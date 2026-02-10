@@ -230,8 +230,8 @@
       "id": 24,
       "name": "click_title_field",
       "action": "click",
-      "description": "Click Title field (find label, offset to field)",
-      "target": { "image": "1120/label_title.png", "offset_x": 150, "offset_y": 0 },
+      "description": "Click Title field (find label, offset DOWN to field)",
+      "target": { "image": "1120/label_title.png", "offset_x": 50, "offset_y": 35 },
       "wait_after": 0.3
     },
     {
@@ -246,8 +246,8 @@
       "id": 26,
       "name": "click_email_field",
       "action": "click",
-      "description": "Click Email field (find label, offset to field)",
-      "target": { "image": "1120/label_email.png", "offset_x": 150, "offset_y": 0 },
+      "description": "Click Email field (find label, offset DOWN to field)",
+      "target": { "image": "1120/label_email.png", "offset_x": 50, "offset_y": 35 },
       "wait_after": 0.3
     },
     {
@@ -262,8 +262,8 @@
       "id": 28,
       "name": "click_phone_field",
       "action": "click",
-      "description": "Click Phone field (find label, offset to field)",
-      "target": { "image": "1120/label_phone.png", "offset_x": 150, "offset_y": 0 },
+      "description": "Click Phone field (find label, offset DOWN to field)",
+      "target": { "image": "1120/label_phone.png", "offset_x": 50, "offset_y": 35 },
       "wait_after": 0.3
     },
     {
