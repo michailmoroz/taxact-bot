@@ -7,9 +7,9 @@
     "confidence_threshold": 0.8,
     "retry_count": 3,
     "retry_delay_ms": 500,
-    "scroll_amount": -3,
+    "scroll_amount": -15,
     "scroll_max_attempts": 10,
-    "scroll_delay_ms": 500
+    "scroll_delay_ms": 150
   },
   "hotkeys": {
     "start": "F6",
@@ -17,9 +17,9 @@
     "pause": "F8"
   },
   "timing": {
-    "default_wait": 2.0,
-    "long_wait": 5.0,
-    "scroll_wait": 0.5,
+    "default_wait": 1.0,
+    "long_wait": 2.0,
+    "scroll_wait": 0.3,
     "typing_interval": 0.05
   },
   "sounds": {

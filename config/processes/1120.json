@@ -32,7 +32,7 @@
       "action": "click",
       "description": "Click E-File in the top menu bar",
       "target": { "image": "common/efile_menu.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 3,
@@ -40,7 +40,7 @@
       "action": "click",
       "description": "Select Submit Electronic Filing Return in popup",
       "target": { "image": "common/submit_electronic_filing.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 4,
@@ -56,7 +56,7 @@
       "action": "click",
       "description": "Click Continue on Filing screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 6,
@@ -64,7 +64,7 @@
       "action": "click",
       "description": "Click Yes for Federal Extension",
       "target": { "image": "common/yes_green.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 7,
@@ -72,7 +72,7 @@
       "action": "click",
       "description": "Click Complete Form 7004 button",
       "target": { "image": "1120/complete_form_7004.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 8,
@@ -80,7 +80,7 @@
       "action": "click",
       "description": "Continue on Corporation Name screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 9,
@@ -102,7 +102,7 @@
       "action": "click",
       "description": "Continue on Homeowners screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 11,
@@ -110,7 +110,7 @@
       "action": "click",
       "description": "Continue on Address screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 12,
@@ -118,7 +118,7 @@
       "action": "click",
       "description": "Continue on Federal ID Number screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 13,
@@ -126,7 +126,7 @@
       "action": "click",
       "description": "Continue on Fiscal Year screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 14,
@@ -134,7 +134,7 @@
       "action": "click",
       "description": "Continue on Today's Date screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 15,
@@ -156,7 +156,7 @@
       "action": "click",
       "description": "Continue on No Office screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 17,
@@ -178,7 +178,7 @@
       "action": "click",
       "description": "Continue on Section screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 19,
@@ -200,7 +200,7 @@
       "action": "click",
       "description": "Continue on Tax Liability screen (after scroll)",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 21,
@@ -208,7 +208,7 @@
       "action": "click",
       "description": "Continue on Payment Amount screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 22,
@@ -216,7 +216,7 @@
       "action": "click",
       "description": "Click E-File Form 7004 green button (Print Form 7004 screen)",
       "target": { "image": "1120/efile_form_7004.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 23,
@@ -224,7 +224,7 @@
       "action": "click",
       "description": "Continue on Acknowledgment Status screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 24,
@@ -292,7 +292,7 @@
       "action": "click",
       "description": "Continue on Signing Officer Information screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 28,
@@ -320,7 +320,7 @@
       "action": "click",
       "description": "Continue after PIN entry",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 30,
@@ -328,7 +328,7 @@
       "action": "click",
       "description": "Continue on ERO Signature screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 31,
@@ -336,7 +336,7 @@
       "action": "click",
       "description": "Click Start Form 7004 Alerts button (Federal E-File Alerts screen)",
       "target": { "image": "1120/start_form_7004_alerts.png" },
-      "wait_after": 3.0
+      "wait_after": 1.5
     },
     {
       "id": 32,
@@ -356,7 +356,7 @@
         "description": "Click Clients button to return to base (Error/Omission case)",
         "target": { "image": "common/clients_button.png" }
       },
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 33,
@@ -372,7 +372,7 @@
         "target": { "image": "1120/submit_efile.png" }
       },
       "if_false": "continue",
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 34,
@@ -388,7 +388,7 @@
         "target": { "image": "common/continue_green.png" }
       },
       "if_false": "continue",
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 35,
@@ -404,7 +404,7 @@
         "target": { "image": "common/new_return.png" }
       },
       "if_false": "continue",
-      "wait_after": 2.0
+      "wait_after": 1.0
     },
     {
       "id": 36,
@@ -420,7 +420,7 @@
         "target": { "image": "common/popup_close_x.png" }
       },
       "if_false": "continue",
-      "wait_after": 2.0
+      "wait_after": 1.0
     }
   ]
 }
