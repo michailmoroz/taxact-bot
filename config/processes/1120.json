@@ -216,7 +216,7 @@
       "action": "click",
       "description": "Click E-File Form 7004 green button (Print Form 7004 screen)",
       "target": { "image": "1120/efile_form_7004.png" },
-      "wait_after": 1.0
+      "wait_after": 2.0
     },
     {
       "id": 23,
