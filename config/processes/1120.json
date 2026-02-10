@@ -287,7 +287,7 @@
       "name": "click_pin_field",
       "action": "click",
       "description": "Click PIN field (Officer's Signature screen)",
-      "target": { "image": "1120/label_pin.png", "offset_x": 0, "offset_y": 35 },
+      "target": { "image": "1120/label_pin.png", "offset_x": -17, "offset_y": 35 },
       "wait_after": 0.3
     },
     {
