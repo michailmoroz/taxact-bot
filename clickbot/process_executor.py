@@ -477,8 +477,9 @@ class ProcessExecutor:
                 return True
 
             # Field is empty - type the value
+            # Use write() instead of typewrite() to support special chars like @
             logger.info(f"Field empty, typing: {text}")
-            pyautogui.typewrite(text, interval=0.02)
+            pyautogui.write(text)
             return True
 
         except Exception as e:

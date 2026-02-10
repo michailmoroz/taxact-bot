@@ -284,26 +284,22 @@
     },
     {
       "id": 31,
-      "name": "enter_officer_pin",
-      "action": "conditional",
-      "description": "Enter Officer PIN (Officer's Signature screen)",
-      "condition": {
-        "type": "field_empty_by_label",
-        "label_image": "1120/label_pin.png",
-        "field_offset_x": 120,
-        "field_width": 100,
-        "field_height": 25
-      },
-      "if_true": {
-        "action": "type_at_detected",
-        "text_key": "officer_pin",
-        "clear_first": true
-      },
-      "if_false": "continue",
-      "wait_after": 0.5
+      "name": "click_pin_field",
+      "action": "click",
+      "description": "Click PIN field (Officer's Signature screen)",
+      "target": { "image": "1120/label_pin.png", "offset_x": 50, "offset_y": 35 },
+      "wait_after": 0.3
     },
     {
       "id": 32,
+      "name": "fill_officer_pin",
+      "action": "type_field",
+      "description": "Fill PIN if empty",
+      "text_key": "officer_pin",
+      "wait_after": 0.3
+    },
+    {
+      "id": 33,
       "name": "click_continue_pin",
       "action": "click",
       "description": "Continue after PIN entry",
@@ -311,7 +307,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 33,
+      "id": 34,
       "name": "click_continue_ero_signature",
       "action": "click",
       "description": "Continue on ERO Signature screen",
@@ -319,7 +315,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 34,
+      "id": 35,
       "name": "click_start_form_7004_alerts",
       "action": "click",
       "description": "Click Start Form 7004 Alerts button (Federal E-File Alerts screen)",
@@ -327,7 +323,7 @@
       "wait_after": 1.5
     },
     {
-      "id": 35,
+      "id": 36,
       "name": "handle_alerts_result",
       "action": "conditional",
       "description": "Check if 'Passed Alerts' or 'Error/Omission' - different actions for each",
@@ -347,7 +343,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 36,
+      "id": 37,
       "name": "click_submit_efile",
       "action": "conditional",
       "description": "Click Submit E-File button if visible (only after passed alerts)",
@@ -363,7 +359,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 37,
+      "id": 38,
       "name": "click_continue_green_confirmation",
       "action": "conditional",
       "description": "Click GREEN Continue (NOT blue!) on confirmation screen",
@@ -379,7 +375,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 38,
+      "id": 39,
       "name": "click_new_return",
       "action": "conditional",
       "description": "Click New Return button (Filing Complete screen)",
@@ -395,7 +391,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 39,
+      "id": 40,
       "name": "close_add_client_popup",
       "action": "conditional",
       "description": "Close Add Client popup if present",
