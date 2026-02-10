@@ -549,26 +549,31 @@ def scan_table_row(
     Args:
         row_index: Index of the row (0-based)
         row_y: Y coordinate of the row center
-        column_positions: Dict from get_column_positions()
-        settings: Settings dict for column widths
+        column_positions: Dict from get_column_positions() (used as fallback)
+        settings: Settings dict for column config
 
     Returns:
         ClientRow with extracted data
     """
     table_settings = settings.get("client_table", {})
-    column_widths = table_settings.get("columns", {})
+    column_config = table_settings.get("columns", {})
     row_height = table_settings.get("row_height", 25)
 
-    # Calculate Y region (center the row)
-    region_y = row_y - row_height // 2
+    # Calculate Y region (top of row)
+    region_y = row_y
 
     # Read each column
     def read_cell(col_name: str) -> str:
-        col_x, _ = column_positions[col_name]
-        col_width = column_widths.get(col_name, {}).get("width", 100)
+        col_cfg = column_config.get(col_name, {})
+        col_width = col_cfg.get("width", 100)
 
-        # Offset X to start of cell (header X is center, go left by half width)
-        cell_x = col_x - col_width // 2
+        # Use explicit X from config if available, otherwise use template matching result
+        if "x" in col_cfg:
+            cell_x = col_cfg["x"]
+        else:
+            # Fallback to template matching position
+            col_x, _ = column_positions[col_name]
+            cell_x = col_x - col_width // 2
 
         # Read text from cell region
         text = read_text_region(cell_x, region_y, col_width, row_height, preprocess=True)
@@ -644,7 +649,12 @@ def find_next_client(
 
         if is_status_empty and type_matches:
             # Found a match! Calculate click position (client name column)
-            client_col_x, _ = column_positions["client_name"]
+            client_col_cfg = table_settings.get("columns", {}).get("client_name", {})
+            if "x" in client_col_cfg:
+                # Use config x + half width for center of cell
+                client_col_x = client_col_cfg["x"] + client_col_cfg.get("width", 200) // 2
+            else:
+                client_col_x, _ = column_positions["client_name"]
             click_pos = (client_col_x, row_y)
 
             logger.info(f"Found client: {row_data.client_name} ({row_data.return_type}) at row {row_index}")
