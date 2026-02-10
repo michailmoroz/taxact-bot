@@ -238,9 +238,9 @@
       "id": 25,
       "name": "tab_to_title",
       "action": "key_press",
-      "description": "TAB 3x: First name -> Last name -> SSN -> Title",
+      "description": "TAB 4x: First name -> Last name -> SSN -> Title",
       "key": "tab",
-      "count": 3,
+      "count": 4,
       "wait_after": 0.2
     },
     {
