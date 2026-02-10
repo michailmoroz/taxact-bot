@@ -160,7 +160,7 @@ class BotController:
 
         # Step 2: Double-click to open the client
         logger.info(f"Double-clicking client at ({click_pos[0]}, {click_pos[1]})")
-        executor.double_click(click_pos[0], click_pos[1], wait=3.0)
+        executor.double_click(click_pos[0], click_pos[1], wait=4.0)
 
         # Check for stop signal
         if self.stop_event.is_set():

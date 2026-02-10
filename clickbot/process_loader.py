@@ -84,7 +84,7 @@ def validate_process(process: Dict[str, Any]) -> None:
 
         # Validate action type
         valid_actions = ["click", "double_click", "type", "scroll", "scroll_until_visible",
-                        "conditional", "wait", "verify_screen"]
+                        "conditional", "wait", "verify_screen", "key_press", "type_field"]
         if step["action"] not in valid_actions:
             raise ProcessValidationError(f"Step {step['id']} has invalid action: {step['action']}")
 
