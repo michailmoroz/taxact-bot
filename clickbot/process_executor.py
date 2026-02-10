@@ -476,10 +476,11 @@ class ProcessExecutor:
                 pyautogui.press('end')
                 return True
 
-            # Field is empty - type the value
-            # Use write() instead of typewrite() to support special chars like @
-            logger.info(f"Field empty, typing: {text}")
-            pyautogui.write(text)
+            # Field is empty - paste the value via clipboard (most robust method)
+            logger.info(f"Field empty, pasting: {text}")
+            pyperclip.copy(text)
+            pyautogui.hotkey('ctrl', 'v')
+            time.sleep(0.1)
             return True
 
         except Exception as e:
