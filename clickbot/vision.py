@@ -655,7 +655,9 @@ def find_next_client(
                 client_col_x = client_col_cfg["x"] + client_col_cfg.get("width", 200) // 2
             else:
                 client_col_x, _ = column_positions["client_name"]
-            click_pos = (client_col_x, row_y)
+            # Click in the CENTER of the row (row_y is top edge, add half row_height)
+            click_y = row_y + row_height // 2
+            click_pos = (client_col_x, click_y)
 
             logger.info(f"Found client: {row_data.client_name} ({row_data.return_type}) at row {row_index}")
             return (row_data, click_pos)

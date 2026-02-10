@@ -7,7 +7,7 @@
     "confidence_threshold": 0.8,
     "retry_count": 3,
     "retry_delay_ms": 500,
-    "scroll_amount": -15,
+    "scroll_amount": -120,
     "scroll_max_attempts": 10,
     "scroll_delay_ms": 150
   },
@@ -48,7 +48,7 @@
     "color_theme": "blue"
   },
   "client_table": {
-    "row_height": 30,
+    "row_height": 50,
     "header_row_y": 145,
     "first_data_row_y": 205,
     "max_visible_rows": 20,
