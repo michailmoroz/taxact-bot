@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 
 import pyautogui
+import pyperclip
 
 from clickbot import executor
 from clickbot import sounds
@@ -176,6 +177,12 @@ class ProcessExecutor:
 
             elif action == "verify_screen":
                 return self._action_verify_screen(target)
+
+            elif action == "key_press":
+                return self._action_key_press(step)
+
+            elif action == "type_field":
+                return self._action_type_field(step, static_inputs)
 
             else:
                 logger.error(f"Unknown action: {action}")
@@ -408,6 +415,69 @@ class ProcessExecutor:
         confidence = target.get("confidence")
 
         return vision.verify_screen(expected, confidence)
+
+    def _action_key_press(self, step: Dict[str, Any]) -> bool:
+        """Execute key press action (TAB, Enter, etc.)."""
+        key = step.get("key", "tab")
+        count = step.get("count", 1)
+
+        try:
+            for _ in range(count):
+                pyautogui.press(key)
+                time.sleep(0.1)
+            logger.debug(f"Pressed {key} {count}x")
+            return True
+        except Exception as e:
+            logger.error(f"Key press failed: {e}")
+            return False
+
+    def _action_type_field(self, step: Dict[str, Any], static_inputs: Dict[str, str]) -> bool:
+        """Type into current field, only if empty.
+
+        Uses clipboard to check if field is empty:
+        1. Ctrl+A (select all)
+        2. Ctrl+C (copy)
+        3. Check clipboard - if empty, type the value
+        """
+        text_key = step.get("text_key")
+        text_value = step.get("text_value")
+
+        # Get text to type
+        if text_key and text_key in static_inputs:
+            text = static_inputs[text_key]
+        elif text_value:
+            text = text_value
+        else:
+            logger.error("No text specified for type_field action")
+            return False
+
+        try:
+            # Clear clipboard first
+            pyperclip.copy("")
+
+            # Select all and copy current content
+            pyautogui.hotkey('ctrl', 'a')
+            time.sleep(0.05)
+            pyautogui.hotkey('ctrl', 'c')
+            time.sleep(0.05)
+
+            # Check clipboard content
+            current_content = pyperclip.paste().strip()
+
+            if current_content:
+                logger.info(f"Field not empty ('{current_content[:20]}...'), skipping")
+                # Press End to deselect and move cursor to end
+                pyautogui.press('end')
+                return True
+
+            # Field is empty - type the value
+            logger.info(f"Field empty, typing: {text}")
+            pyautogui.typewrite(text, interval=0.02)
+            return True
+
+        except Exception as e:
+            logger.error(f"type_field failed: {e}")
+            return False
 
     # --- Message Helpers ---
 

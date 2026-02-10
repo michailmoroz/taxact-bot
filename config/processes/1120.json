@@ -228,66 +228,65 @@
     },
     {
       "id": 24,
-      "name": "check_and_fill_officer_title",
-      "action": "conditional",
-      "description": "Fill Officer Title if empty (Signing Officer Information screen)",
-      "condition": {
-        "type": "field_empty_by_label",
-        "label_image": "1120/label_title.png",
-        "field_offset_x": 120,
-        "field_width": 200,
-        "field_height": 25
-      },
-      "if_true": {
-        "action": "type_at_detected",
-        "text_key": "officer_title",
-        "clear_first": true
-      },
-      "if_false": "continue",
-      "wait_after": 0.5
+      "name": "click_first_name_field",
+      "action": "click",
+      "description": "Click First name field to ensure cursor position",
+      "target": { "image": "1120/field_first_name.png", "fallback_coords": [516, 257] },
+      "wait_after": 0.3
     },
     {
       "id": 25,
-      "name": "check_and_fill_officer_email",
-      "action": "conditional",
-      "description": "Fill Officer Email if empty",
-      "condition": {
-        "type": "field_empty_by_label",
-        "label_image": "1120/label_email.png",
-        "field_offset_x": 120,
-        "field_width": 250,
-        "field_height": 25
-      },
-      "if_true": {
-        "action": "type_at_detected",
-        "text_key": "officer_email",
-        "clear_first": true
-      },
-      "if_false": "continue",
-      "wait_after": 0.5
+      "name": "tab_to_title",
+      "action": "key_press",
+      "description": "TAB 3x: First name -> Last name -> SSN -> Title",
+      "key": "tab",
+      "count": 3,
+      "wait_after": 0.2
     },
     {
       "id": 26,
-      "name": "check_and_fill_officer_phone",
-      "action": "conditional",
-      "description": "Fill Officer Phone if empty",
-      "condition": {
-        "type": "field_empty_by_label",
-        "label_image": "1120/label_phone.png",
-        "field_offset_x": 120,
-        "field_width": 150,
-        "field_height": 25
-      },
-      "if_true": {
-        "action": "type_at_detected",
-        "text_key": "officer_phone",
-        "clear_first": true
-      },
-      "if_false": "continue",
-      "wait_after": 0.5
+      "name": "fill_officer_title",
+      "action": "type_field",
+      "description": "Fill Title if empty (uses clipboard check)",
+      "text_key": "officer_title",
+      "wait_after": 0.3
     },
     {
       "id": 27,
+      "name": "tab_to_email",
+      "action": "key_press",
+      "description": "TAB to Email field",
+      "key": "tab",
+      "count": 1,
+      "wait_after": 0.2
+    },
+    {
+      "id": 28,
+      "name": "fill_officer_email",
+      "action": "type_field",
+      "description": "Fill Email if empty",
+      "text_key": "officer_email",
+      "wait_after": 0.3
+    },
+    {
+      "id": 29,
+      "name": "tab_to_phone",
+      "action": "key_press",
+      "description": "TAB to Phone field",
+      "key": "tab",
+      "count": 1,
+      "wait_after": 0.2
+    },
+    {
+      "id": 30,
+      "name": "fill_officer_phone",
+      "action": "type_field",
+      "description": "Fill Phone if empty",
+      "text_key": "officer_phone",
+      "wait_after": 0.3
+    },
+    {
+      "id": 31,
       "name": "click_continue_officer_info",
       "action": "click",
       "description": "Continue on Signing Officer Information screen",
@@ -295,7 +294,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 28,
+      "id": 32,
       "name": "enter_officer_pin",
       "action": "conditional",
       "description": "Enter Officer PIN (Officer's Signature screen)",
@@ -315,7 +314,7 @@
       "wait_after": 0.5
     },
     {
-      "id": 29,
+      "id": 33,
       "name": "click_continue_pin",
       "action": "click",
       "description": "Continue after PIN entry",
@@ -323,7 +322,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 30,
+      "id": 34,
       "name": "click_continue_ero_signature",
       "action": "click",
       "description": "Continue on ERO Signature screen",
@@ -331,7 +330,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 31,
+      "id": 35,
       "name": "click_start_form_7004_alerts",
       "action": "click",
       "description": "Click Start Form 7004 Alerts button (Federal E-File Alerts screen)",
@@ -339,7 +338,7 @@
       "wait_after": 1.5
     },
     {
-      "id": 32,
+      "id": 36,
       "name": "handle_alerts_result",
       "action": "conditional",
       "description": "Check if 'Passed Alerts' or 'Error/Omission' - different actions for each",
@@ -359,7 +358,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 33,
+      "id": 37,
       "name": "click_submit_efile",
       "action": "conditional",
       "description": "Click Submit E-File button if visible (only after passed alerts)",
@@ -375,7 +374,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 34,
+      "id": 38,
       "name": "click_continue_green_confirmation",
       "action": "conditional",
       "description": "Click GREEN Continue (NOT blue!) on confirmation screen",
@@ -391,7 +390,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 35,
+      "id": 39,
       "name": "click_new_return",
       "action": "conditional",
       "description": "Click New Return button (Filing Complete screen)",
@@ -407,7 +406,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 36,
+      "id": 40,
       "name": "close_add_client_popup",
       "action": "conditional",
       "description": "Close Add Client popup if present",
