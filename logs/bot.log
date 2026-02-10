@@ -1,0 +1,231 @@
+2026-02-05 02:46:49 | INFO     | __main__ | Logging configured: level=DEBUG
+2026-02-05 02:46:49 | DEBUG    | clickbot.sounds | Sounds enabled
+2026-02-05 02:46:49 | DEBUG    | clickbot.executor | Dev mode enabled
+2026-02-05 02:46:49 | INFO     | __main__ | Hotkeys registered: F6=start, F7=stop, F8=pause
+2026-02-05 02:47:02 | INFO     | __main__ | Starting bot...
+2026-02-05 02:47:02 | INFO     | clickbot.window_validator | Validating startup...
+2026-02-05 02:47:02 | WARNING  | clickbot.window_validator | No window found with title containing 'TaxAct'
+2026-02-05 02:47:02 | ERROR    | clickbot.window_validator | TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:47:02 | ERROR    | __main__ | Startup validation failed: TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:47:03 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-05 02:47:07 | INFO     | __main__ | Starting bot...
+2026-02-05 02:47:07 | INFO     | clickbot.window_validator | Validating startup...
+2026-02-05 02:47:07 | WARNING  | clickbot.window_validator | No window found with title containing 'TaxAct'
+2026-02-05 02:47:07 | ERROR    | clickbot.window_validator | TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:47:07 | ERROR    | __main__ | Startup validation failed: TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:47:09 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-05 02:47:18 | INFO     | __main__ | Starting bot...
+2026-02-05 02:47:18 | INFO     | clickbot.window_validator | Validating startup...
+2026-02-05 02:47:18 | WARNING  | clickbot.window_validator | No window found with title containing 'TaxAct'
+2026-02-05 02:47:18 | ERROR    | clickbot.window_validator | TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:47:18 | ERROR    | __main__ | Startup validation failed: TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:47:20 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-05 02:47:24 | INFO     | __main__ | Starting bot...
+2026-02-05 02:47:24 | INFO     | clickbot.window_validator | Validating startup...
+2026-02-05 02:47:24 | WARNING  | clickbot.window_validator | No window found with title containing 'TaxAct'
+2026-02-05 02:47:24 | ERROR    | clickbot.window_validator | TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:47:24 | ERROR    | __main__ | Startup validation failed: TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:47:26 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-05 02:47:53 | INFO     | __main__ | Bot terminated by user (Ctrl+C)
+2026-02-05 02:48:03 | INFO     | clickbot.main | Logging configured: level=DEBUG
+2026-02-05 02:48:03 | INFO     | __main__ | Starting GUI application
+2026-02-05 02:48:03 | INFO     | __main__ | GUI initialized
+2026-02-05 02:48:04 | INFO     | clickbot.window_validator | Found TaxAct window: 'TaxAct E-File Extension Bot' at (104, 104)
+2026-02-05 02:48:23 | DEBUG    | clickbot.bot_controller | BotController initialized
+2026-02-05 02:48:23 | INFO     | clickbot.window_validator | Validating startup...
+2026-02-05 02:48:23 | INFO     | clickbot.window_validator | Found TaxAct window: 'TaxAct E-File Extension Bot' at (-903, 313)
+2026-02-05 02:48:23 | WARNING  | clickbot.window_validator | Window has negative x position: -903
+2026-02-05 02:48:23 | ERROR    | clickbot.window_validator | TaxAct is not on the primary monitor. Please move TaxAct to the primary monitor (x < 1920).
+2026-02-05 02:48:24 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-05 02:49:20 | INFO     | __main__ | Logging configured: level=DEBUG
+2026-02-05 02:49:20 | DEBUG    | clickbot.sounds | Sounds enabled
+2026-02-05 02:49:20 | DEBUG    | clickbot.executor | Dev mode enabled
+2026-02-05 02:49:20 | INFO     | __main__ | Hotkeys registered: F6=start, F7=stop, F8=pause
+2026-02-05 02:49:22 | INFO     | __main__ | Starting bot...
+2026-02-05 02:49:22 | INFO     | clickbot.window_validator | Validating startup...
+2026-02-05 02:49:22 | WARNING  | clickbot.window_validator | No window found with title containing 'TaxAct'
+2026-02-05 02:49:22 | ERROR    | clickbot.window_validator | TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:49:22 | ERROR    | __main__ | Startup validation failed: TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:49:24 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-05 02:50:39 | INFO     | __main__ | Starting bot...
+2026-02-05 02:50:39 | INFO     | clickbot.window_validator | Validating startup...
+2026-02-05 02:50:39 | WARNING  | clickbot.window_validator | No window found with title containing 'TaxAct'
+2026-02-05 02:50:39 | ERROR    | clickbot.window_validator | TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:50:39 | ERROR    | __main__ | Startup validation failed: TaxAct window not found. Please open TaxAct and ensure 'TaxAct' is in the window title.
+2026-02-05 02:50:41 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-05 02:50:42 | INFO     | __main__ | Bot terminated by user (Ctrl+C)
+2026-02-05 02:54:33 | INFO     | __main__ | Logging configured: level=DEBUG
+2026-02-05 02:54:33 | DEBUG    | clickbot.sounds | Sounds enabled
+2026-02-05 02:54:33 | DEBUG    | clickbot.executor | Dev mode enabled
+2026-02-05 02:54:33 | INFO     | __main__ | Hotkeys registered: F6=start, F7=stop, F8=pause
+2026-02-05 02:54:41 | INFO     | __main__ | Starting bot...
+2026-02-05 02:54:41 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-05 02:54:41 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-05 02:54:41 | INFO     | __main__ | Bot is now running
+2026-02-05 02:56:11 | INFO     | __main__ | Bot paused
+2026-02-05 02:56:17 | INFO     | __main__ | Resuming bot from paused state
+2026-02-05 02:56:19 | INFO     | __main__ | Stopping bot...
+2026-02-05 02:56:23 | INFO     | __main__ | Starting bot...
+2026-02-05 02:56:23 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-05 02:56:23 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-05 02:56:23 | INFO     | __main__ | Bot is now running
+2026-02-05 02:56:25 | INFO     | __main__ | Bot paused
+2026-02-05 02:56:26 | INFO     | __main__ | Stopping bot...
+2026-02-05 02:56:28 | INFO     | __main__ | Bot terminated by user (Ctrl+C)
+2026-02-05 02:56:35 | INFO     | clickbot.main | Logging configured: level=DEBUG
+2026-02-05 02:56:35 | INFO     | __main__ | Starting GUI application
+2026-02-05 02:56:35 | INFO     | __main__ | GUI initialized
+2026-02-05 02:56:47 | DEBUG    | clickbot.bot_controller | BotController initialized
+2026-02-05 02:56:47 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-05 02:56:47 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-05 02:56:47 | INFO     | clickbot.bot_controller | Bot worker thread running
+2026-02-05 02:56:47 | INFO     | clickbot.bot_controller | Bot thread started
+2026-02-05 02:56:53 | DEBUG    | clickbot.sounds | Played complete melody: [523, 659, 784]
+2026-02-05 02:56:53 | INFO     | clickbot.bot_controller | Bot worker thread finished
+2026-02-05 02:57:23 | DEBUG    | clickbot.bot_controller | BotController initialized
+2026-02-05 02:57:23 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-05 02:57:23 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-05 02:57:23 | INFO     | clickbot.bot_controller | Bot worker thread running
+2026-02-05 02:57:23 | INFO     | clickbot.bot_controller | Bot thread started
+2026-02-05 02:57:26 | INFO     | clickbot.bot_controller | Stop signal received
+2026-02-05 02:57:26 | INFO     | clickbot.bot_controller | Stop event detected, exiting loop
+2026-02-05 02:57:26 | INFO     | clickbot.bot_controller | Bot worker thread finished
+2026-02-05 02:57:26 | INFO     | clickbot.bot_controller | Bot stopped
+2026-02-05 03:02:12 | INFO     | __main__ | Window close requested
+2026-02-05 03:02:12 | INFO     | __main__ | GUI application closed
+2026-02-05 03:02:16 | INFO     | clickbot.main | Logging configured: level=DEBUG
+2026-02-05 03:02:16 | INFO     | __main__ | Starting GUI application
+2026-02-05 03:02:17 | INFO     | __main__ | GUI initialized
+2026-02-05 03:02:26 | DEBUG    | clickbot.bot_controller | BotController initialized
+2026-02-05 03:02:26 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-05 03:02:26 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-05 03:02:26 | INFO     | clickbot.bot_controller | Bot worker thread running
+2026-02-05 03:02:26 | INFO     | clickbot.bot_controller | Bot thread started
+2026-02-05 03:02:32 | DEBUG    | clickbot.sounds | Played complete melody: [523, 659, 784]
+2026-02-05 03:02:32 | INFO     | clickbot.bot_controller | Bot worker thread finished
+2026-02-05 03:07:09 | INFO     | __main__ | Window close requested
+2026-02-05 03:07:10 | INFO     | __main__ | GUI application closed
+2026-02-06 01:55:34 | INFO     | clickbot.main | Logging configured: level=DEBUG
+2026-02-06 01:55:34 | INFO     | __main__ | Starting GUI application
+2026-02-06 01:55:34 | INFO     | __main__ | GUI initialized
+2026-02-06 01:55:49 | DEBUG    | clickbot.bot_controller | BotController initialized
+2026-02-06 01:55:49 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-06 01:55:49 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-06 01:55:49 | INFO     | clickbot.bot_controller | Bot thread started
+2026-02-06 01:55:49 | INFO     | numexpr.utils | Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+2026-02-06 01:55:49 | INFO     | numexpr.utils | NumExpr defaulting to 8 threads.
+2026-02-06 01:55:49 | INFO     | clickbot.bot_controller | Bot worker thread running
+2026-02-06 01:55:49 | DEBUG    | clickbot.vision | Vision configured: base_path=.agents/screenshots/buttons, confidence=0.8
+2026-02-06 01:55:49 | DEBUG    | clickbot.vision | Tesseract path: C:/Program Files/Tesseract-OCR/tesseract.exe
+2026-02-06 01:55:49 | DEBUG    | clickbot.process_executor | ProcessExecutor initialized
+2026-02-06 01:55:49 | INFO     | clickbot.process_loader | Loading process: config\processes\1120.json
+2026-02-06 01:55:49 | DEBUG    | clickbot.process_loader | Process validation passed: 36 steps
+2026-02-06 01:55:49 | INFO     | clickbot.process_loader | Process loaded: Form 1120 E-File Extension with 36 steps
+2026-02-06 01:55:50 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\1120\popup_add_remove_states.png ((31, 256, 3))
+2026-02-06 01:55:50 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.413 (threshold=0.8)
+2026-02-06 01:55:50 | DEBUG    | clickbot.vision | Template match attempt 2: confidence=0.413 (threshold=0.8)
+2026-02-06 01:55:51 | DEBUG    | clickbot.vision | Template match attempt 3: confidence=0.413 (threshold=0.8)
+2026-02-06 01:55:51 | ERROR    | clickbot.vision | Element not found: 1120/popup_add_remove_states.png (max confidence: 0.413)
+2026-02-06 01:55:52 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\efile_menu.png ((23, 57, 3))
+2026-02-06 01:55:52 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.494 (threshold=0.8)
+2026-02-06 01:55:53 | DEBUG    | clickbot.vision | Template match attempt 2: confidence=0.494 (threshold=0.8)
+2026-02-06 01:55:53 | DEBUG    | clickbot.vision | Template match attempt 3: confidence=0.494 (threshold=0.8)
+2026-02-06 01:55:53 | ERROR    | clickbot.vision | Element not found: common/efile_menu.png (max confidence: 0.494)
+2026-02-06 01:55:53 | ERROR    | clickbot.process_executor | Click target not found: common/efile_menu.png
+2026-02-06 01:55:55 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-06 01:55:55 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-06 01:55:57 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-06 01:55:57 | INFO     | clickbot.bot_controller | Bot worker thread finished
+2026-02-06 01:55:57 | DEBUG    | clickbot.sounds | Played error sound: 400Hz x 3
+2026-02-06 02:10:08 | INFO     | __main__ | Window close requested
+2026-02-06 02:10:08 | INFO     | __main__ | GUI application closed
+2026-02-06 02:10:25 | INFO     | clickbot.main | Logging configured: level=DEBUG
+2026-02-06 02:10:25 | INFO     | __main__ | Starting GUI application
+2026-02-06 02:10:25 | INFO     | __main__ | GUI initialized
+2026-02-06 02:10:32 | DEBUG    | clickbot.bot_controller | BotController initialized
+2026-02-06 02:10:32 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-06 02:10:33 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-06 02:10:33 | INFO     | clickbot.bot_controller | Bot thread started
+2026-02-06 02:10:33 | INFO     | clickbot.bot_controller | Bot worker thread running
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Vision configured: base_path=.agents/screenshots/buttons, confidence=0.8
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Tesseract path: C:/Program Files/Tesseract-OCR/tesseract.exe
+2026-02-06 02:10:33 | INFO     | clickbot.vision | Scanning client table for return type: 1120
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_client_name.png ((22, 53, 3))
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.7)
+2026-02-06 02:10:33 | INFO     | clickbot.vision | Element found: common/column_header_client_name.png at (51, 183) confidence=1.000
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_client_name.png ((22, 53, 3))
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Column 'client_name' found at x=51, width=53
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_return_type.png ((22, 89, 3))
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.7)
+2026-02-06 02:10:33 | INFO     | clickbot.vision | Element found: common/column_header_return_type.png at (515, 184) confidence=1.000
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_return_type.png ((22, 89, 3))
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Column 'return_type' found at x=515, width=89
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_fed_ef_status.png ((22, 100, 3))
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.7)
+2026-02-06 02:10:33 | INFO     | clickbot.vision | Element found: common/column_header_fed_ef_status.png at (750, 184) confidence=1.000
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_fed_ef_status.png ((22, 100, 3))
+2026-02-06 02:10:33 | DEBUG    | clickbot.vision | Column 'fed_ef_status' found at x=750, width=100
+2026-02-06 02:10:33 | INFO     | clickbot.vision | All column headers found: ['client_name', 'return_type', 'fed_ef_status']
+2026-02-06 02:10:33 | DEBUG    | pytesseract | ['C:/Program Files/Tesseract-OCR/tesseract.exe', 'C:\\Users\\misch\\AppData\\Local\\Temp\\tess_b36fng2q_input.PNG', 'C:\\Users\\misch\\AppData\\Local\\Temp\\tess_b36fng2q', '-l', 'eng', 'txt']
+2026-02-06 02:10:38 | INFO     | clickbot.bot_controller | Stop signal received
+2026-02-06 02:10:38 | INFO     | clickbot.bot_controller | Bot stopped
+2026-02-06 02:12:21 | INFO     | __main__ | Window close requested
+2026-02-06 02:12:21 | INFO     | __main__ | GUI application closed
+2026-02-06 02:13:50 | INFO     | clickbot.main | Logging configured: level=DEBUG
+2026-02-06 02:13:50 | INFO     | __main__ | Starting GUI application
+2026-02-06 02:13:50 | INFO     | __main__ | GUI initialized
+2026-02-06 02:13:57 | DEBUG    | clickbot.bot_controller | BotController initialized
+2026-02-06 02:13:57 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-06 02:13:57 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-06 02:13:57 | INFO     | clickbot.bot_controller | Bot thread started
+2026-02-06 02:13:57 | INFO     | clickbot.bot_controller | Bot worker thread running
+2026-02-06 02:13:57 | DEBUG    | clickbot.vision | Vision configured: base_path=.agents/screenshots/buttons, confidence=0.8
+2026-02-06 02:13:57 | DEBUG    | clickbot.vision | Tesseract path: C:/Program Files/Tesseract-OCR/tesseract.exe
+2026-02-06 02:13:57 | INFO     | clickbot.vision | Scanning client table for return type: 1120
+2026-02-06 02:13:57 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_client_name.png ((22, 53, 3))
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.7)
+2026-02-06 02:13:58 | INFO     | clickbot.vision | Element found: common/column_header_client_name.png at (51, 183) confidence=1.000
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_client_name.png ((22, 53, 3))
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Column 'client_name' found at x=51, width=53
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_return_type.png ((22, 89, 3))
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.7)
+2026-02-06 02:13:58 | INFO     | clickbot.vision | Element found: common/column_header_return_type.png at (515, 184) confidence=1.000
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_return_type.png ((22, 89, 3))
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Column 'return_type' found at x=515, width=89
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_fed_ef_status.png ((22, 100, 3))
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.7)
+2026-02-06 02:13:58 | INFO     | clickbot.vision | Element found: common/column_header_fed_ef_status.png at (750, 184) confidence=1.000
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_fed_ef_status.png ((22, 100, 3))
+2026-02-06 02:13:58 | DEBUG    | clickbot.vision | Column 'fed_ef_status' found at x=750, width=100
+2026-02-06 02:13:58 | INFO     | clickbot.vision | All column headers found: ['client_name', 'return_type', 'fed_ef_status']
+2026-02-06 02:13:58 | DEBUG    | pytesseract | ['C:/Program Files/Tesseract-OCR/tesseract.exe', 'C:\\Users\\misch\\AppData\\Local\\Temp\\tess_l6mvse7c_input.PNG', 'C:\\Users\\misch\\AppData\\Local\\Temp\\tess_l6mvse7c', '-l', 'eng', 'txt']
+2026-02-06 02:13:59 | DEBUG    | clickbot.vision | OCR result: ''
+2026-02-06 02:13:59 | DEBUG    | pytesseract | ['C:/Program Files/Tesseract-OCR/tesseract.exe', 'C:\\Users\\misch\\AppData\\Local\\Temp\\tess_2lqoutrh_input.PNG', 'C:\\Users\\misch\\AppData\\Local\\Temp\\tess_2lqoutrh', '-l', 'eng', 'txt']
+2026-02-06 02:13:59 | DEBUG    | clickbot.vision | OCR result: ''
+2026-02-06 02:13:59 | DEBUG    | pytesseract | ['C:/Program Files/Tesseract-OCR/tesseract.exe', 'C:\\Users\\misch\\AppData\\Local\\Temp\\tess_y3eqwvcb_input.PNG', 'C:\\Users\\misch\\AppData\\Local\\Temp\\tess_y3eqwvcb', '-l', 'eng', 'txt']
+2026-02-06 02:14:00 | DEBUG    | clickbot.vision | OCR result: ''
+2026-02-06 02:14:00 | DEBUG    | clickbot.vision | Row 0: name='', type='', status=''
+2026-02-06 02:14:00 | DEBUG    | clickbot.vision | Row 0: empty, stopping scan
+2026-02-06 02:14:00 | WARNING  | clickbot.vision | No unprocessed clients found with return type 1120
+2026-02-06 02:14:00 | DEBUG    | clickbot.sounds | Played complete melody: [523, 659, 784]
+2026-02-10 00:42:54 | INFO     | clickbot.main | Logging configured: level=DEBUG
+2026-02-10 00:42:54 | INFO     | __main__ | Starting GUI application
+2026-02-10 00:42:54 | INFO     | __main__ | GUI initialized
+2026-02-10 00:43:01 | DEBUG    | clickbot.bot_controller | BotController initialized
+2026-02-10 00:43:01 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-02-10 00:43:01 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-02-10 00:43:01 | INFO     | clickbot.bot_controller | Bot thread started
+2026-02-10 00:43:01 | INFO     | clickbot.bot_controller | Bot worker thread running
+2026-02-10 00:43:01 | DEBUG    | clickbot.vision | Vision configured: base_path=.agents/screenshots/buttons, confidence=0.8
+2026-02-10 00:43:01 | DEBUG    | clickbot.vision | Tesseract path: C:/Program Files/Tesseract-OCR/tesseract.exe
+2026-02-10 00:43:01 | INFO     | clickbot.vision | Scanning client table for return type: 1120
+2026-02-10 00:43:01 | DEBUG    | clickbot.vision | Loaded template: .agents\screenshots\buttons\common\column_header_client_name.png ((22, 53, 3))
+2026-02-10 00:43:01 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.555 (threshold=0.7)
+2026-02-10 00:43:02 | DEBUG    | clickbot.vision | Template match attempt 2: confidence=0.555 (threshold=0.7)
+2026-02-10 00:43:02 | DEBUG    | clickbot.vision | Template match attempt 3: confidence=0.555 (threshold=0.7)
+2026-02-10 00:43:02 | ERROR    | clickbot.vision | Element not found: common/column_header_client_name.png (max confidence: 0.555)
+2026-02-10 00:43:02 | ERROR    | clickbot.vision | Column header not found: client_name (common/column_header_client_name.png)
+2026-02-10 00:43:02 | ERROR    | clickbot.vision | Failed to find column headers - not on Client Manager screen?
+2026-02-10 00:43:03 | DEBUG    | clickbot.sounds | Played complete melody: [523, 659, 784]
+2026-02-10 01:04:23 | INFO     | __main__ | Window close requested
+2026-02-10 01:04:23 | INFO     | __main__ | GUI application closed

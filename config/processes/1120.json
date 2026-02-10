@@ -1,0 +1,426 @@
+{
+  "name": "Form 1120 E-File Extension",
+  "return_type": "1120",
+  "version": "2.0",
+  "description": "Automated E-File Extension process for Form 1120 - 100% screenshot-based",
+  "static_inputs": {
+    "officer_title": "president",
+    "officer_email": "info@tmaccountant.com",
+    "officer_phone": "847850-0085",
+    "officer_pin": "12345"
+  },
+  "steps": [
+    {
+      "id": 1,
+      "name": "close_popup_if_present",
+      "action": "conditional",
+      "description": "Close Add/Remove State popup if it appears",
+      "condition": {
+        "type": "element_visible",
+        "image": "1120/popup_add_remove_states.png"
+      },
+      "if_true": {
+        "action": "click",
+        "target": { "image": "common/popup_close_x.png" }
+      },
+      "if_false": "continue",
+      "wait_after": 1.0
+    },
+    {
+      "id": 2,
+      "name": "click_efile_menu",
+      "action": "click",
+      "description": "Click E-File in the top menu bar",
+      "target": { "image": "common/efile_menu.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 3,
+      "name": "click_submit_electronic_filing",
+      "action": "click",
+      "description": "Select Submit Electronic Filing Return in popup",
+      "target": { "image": "common/submit_electronic_filing.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 4,
+      "name": "select_file_extension",
+      "action": "click",
+      "description": "Select File Extension option (if not already selected)",
+      "target": { "image": "common/file_extension_option_unchecked.png" },
+      "wait_after": 1.0
+    },
+    {
+      "id": 5,
+      "name": "click_continue_filing",
+      "action": "click",
+      "description": "Click Continue on Filing screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 6,
+      "name": "click_yes_federal_extension",
+      "action": "click",
+      "description": "Click Yes for Federal Extension",
+      "target": { "image": "common/yes_green.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 7,
+      "name": "click_complete_form_7004",
+      "action": "click",
+      "description": "Click Complete Form 7004 button",
+      "target": { "image": "1120/complete_form_7004.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 8,
+      "name": "click_continue_corporation_name",
+      "action": "click",
+      "description": "Continue on Corporation Name screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 9,
+      "name": "check_homeowners_checkbox",
+      "action": "conditional",
+      "description": "Ensure Homeowners Association checkbox is UNCHECKED - click to uncheck if checked",
+      "condition": {
+        "type": "checkbox_checked",
+        "image_checked": "1120/checkbox_homeowners_checked.png",
+        "image_unchecked": "1120/checkbox_homeowners_unchecked.png"
+      },
+      "if_true": { "action": "click_detected" },
+      "if_false": "continue",
+      "wait_after": 0.5
+    },
+    {
+      "id": 10,
+      "name": "click_continue_homeowners",
+      "action": "click",
+      "description": "Continue on Homeowners screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 11,
+      "name": "click_continue_address",
+      "action": "click",
+      "description": "Continue on Address screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 12,
+      "name": "click_continue_federal_id",
+      "action": "click",
+      "description": "Continue on Federal ID Number screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 13,
+      "name": "click_continue_fiscal_year",
+      "action": "click",
+      "description": "Continue on Fiscal Year screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 14,
+      "name": "click_continue_todays_date",
+      "action": "click",
+      "description": "Continue on Today's Date screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 15,
+      "name": "check_no_office_checkbox",
+      "action": "conditional",
+      "description": "Ensure 'No office or place of business in the United States' checkbox is UNCHECKED",
+      "condition": {
+        "type": "checkbox_checked",
+        "image_checked": "1120/checkbox_no_office_checked.png",
+        "image_unchecked": "1120/checkbox_no_office_unchecked.png"
+      },
+      "if_true": { "action": "click_detected" },
+      "if_false": "continue",
+      "wait_after": 0.5
+    },
+    {
+      "id": 16,
+      "name": "click_continue_no_office",
+      "action": "click",
+      "description": "Continue on No Office screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 17,
+      "name": "check_section_checkbox",
+      "action": "conditional",
+      "description": "Ensure Section 1.6081-5 checkbox is UNCHECKED",
+      "condition": {
+        "type": "checkbox_checked",
+        "image_checked": "1120/checkbox_section_checked.png",
+        "image_unchecked": "1120/checkbox_section_unchecked.png"
+      },
+      "if_true": { "action": "click_detected" },
+      "if_false": "continue",
+      "wait_after": 0.5
+    },
+    {
+      "id": 18,
+      "name": "click_continue_section",
+      "action": "click",
+      "description": "Continue on Section screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 19,
+      "name": "scroll_tax_liability",
+      "action": "scroll_until_visible",
+      "description": "Scroll down in Tax Liability screen until Continue button is visible (scroll in screen center)",
+      "target": {
+        "image": "common/continue_blue.png",
+        "scroll_x": 960,
+        "scroll_y": 540,
+        "scroll_direction": "down",
+        "max_scrolls": 10
+      },
+      "wait_after": 1.0
+    },
+    {
+      "id": 20,
+      "name": "click_continue_tax_liability",
+      "action": "click",
+      "description": "Continue on Tax Liability screen (after scroll)",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 21,
+      "name": "click_continue_payment",
+      "action": "click",
+      "description": "Continue on Payment Amount screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 22,
+      "name": "click_efile_form_7004",
+      "action": "click",
+      "description": "Click E-File Form 7004 green button (Print Form 7004 screen)",
+      "target": { "image": "1120/efile_form_7004.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 23,
+      "name": "click_continue_acknowledgment",
+      "action": "click",
+      "description": "Continue on Acknowledgment Status screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 24,
+      "name": "check_and_fill_officer_title",
+      "action": "conditional",
+      "description": "Fill Officer Title if empty (Signing Officer Information screen)",
+      "condition": {
+        "type": "field_empty_by_label",
+        "label_image": "1120/label_title.png",
+        "field_offset_x": 120,
+        "field_width": 200,
+        "field_height": 25
+      },
+      "if_true": {
+        "action": "type_at_detected",
+        "text_key": "officer_title",
+        "clear_first": true
+      },
+      "if_false": "continue",
+      "wait_after": 0.5
+    },
+    {
+      "id": 25,
+      "name": "check_and_fill_officer_email",
+      "action": "conditional",
+      "description": "Fill Officer Email if empty",
+      "condition": {
+        "type": "field_empty_by_label",
+        "label_image": "1120/label_email.png",
+        "field_offset_x": 120,
+        "field_width": 250,
+        "field_height": 25
+      },
+      "if_true": {
+        "action": "type_at_detected",
+        "text_key": "officer_email",
+        "clear_first": true
+      },
+      "if_false": "continue",
+      "wait_after": 0.5
+    },
+    {
+      "id": 26,
+      "name": "check_and_fill_officer_phone",
+      "action": "conditional",
+      "description": "Fill Officer Phone if empty",
+      "condition": {
+        "type": "field_empty_by_label",
+        "label_image": "1120/label_phone.png",
+        "field_offset_x": 120,
+        "field_width": 150,
+        "field_height": 25
+      },
+      "if_true": {
+        "action": "type_at_detected",
+        "text_key": "officer_phone",
+        "clear_first": true
+      },
+      "if_false": "continue",
+      "wait_after": 0.5
+    },
+    {
+      "id": 27,
+      "name": "click_continue_officer_info",
+      "action": "click",
+      "description": "Continue on Signing Officer Information screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 28,
+      "name": "enter_officer_pin",
+      "action": "conditional",
+      "description": "Enter Officer PIN (Officer's Signature screen)",
+      "condition": {
+        "type": "field_empty_by_label",
+        "label_image": "1120/label_pin.png",
+        "field_offset_x": 120,
+        "field_width": 100,
+        "field_height": 25
+      },
+      "if_true": {
+        "action": "type_at_detected",
+        "text_key": "officer_pin",
+        "clear_first": true
+      },
+      "if_false": "continue",
+      "wait_after": 0.5
+    },
+    {
+      "id": 29,
+      "name": "click_continue_pin",
+      "action": "click",
+      "description": "Continue after PIN entry",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 30,
+      "name": "click_continue_ero_signature",
+      "action": "click",
+      "description": "Continue on ERO Signature screen",
+      "target": { "image": "common/continue_blue.png" },
+      "wait_after": 2.0
+    },
+    {
+      "id": 31,
+      "name": "click_start_form_7004_alerts",
+      "action": "click",
+      "description": "Click Start Form 7004 Alerts button (Federal E-File Alerts screen)",
+      "target": { "image": "1120/start_form_7004_alerts.png" },
+      "wait_after": 3.0
+    },
+    {
+      "id": 32,
+      "name": "handle_alerts_result",
+      "action": "conditional",
+      "description": "Check if 'Passed Alerts' or 'Error/Omission' - different actions for each",
+      "condition": {
+        "type": "element_visible",
+        "image": "common/passed_alerts.png"
+      },
+      "if_true": {
+        "action": "click",
+        "target": { "image": "common/continue_blue.png" }
+      },
+      "if_false": {
+        "action": "click",
+        "description": "Click Clients button to return to base (Error/Omission case)",
+        "target": { "image": "common/clients_button.png" }
+      },
+      "wait_after": 2.0
+    },
+    {
+      "id": 33,
+      "name": "click_submit_efile",
+      "action": "conditional",
+      "description": "Click Submit E-File button if visible (only after passed alerts)",
+      "condition": {
+        "type": "element_visible",
+        "image": "1120/submit_efile.png"
+      },
+      "if_true": {
+        "action": "click",
+        "target": { "image": "1120/submit_efile.png" }
+      },
+      "if_false": "continue",
+      "wait_after": 2.0
+    },
+    {
+      "id": 34,
+      "name": "click_continue_green_confirmation",
+      "action": "conditional",
+      "description": "Click GREEN Continue (NOT blue!) on confirmation screen",
+      "condition": {
+        "type": "element_visible",
+        "image": "common/continue_green.png"
+      },
+      "if_true": {
+        "action": "click",
+        "target": { "image": "common/continue_green.png" }
+      },
+      "if_false": "continue",
+      "wait_after": 2.0
+    },
+    {
+      "id": 35,
+      "name": "click_new_return",
+      "action": "conditional",
+      "description": "Click New Return button (Filing Complete screen)",
+      "condition": {
+        "type": "element_visible",
+        "image": "common/new_return.png"
+      },
+      "if_true": {
+        "action": "click",
+        "target": { "image": "common/new_return.png" }
+      },
+      "if_false": "continue",
+      "wait_after": 2.0
+    },
+    {
+      "id": 36,
+      "name": "close_add_client_popup",
+      "action": "conditional",
+      "description": "Close Add Client popup if present",
+      "condition": {
+        "type": "element_visible",
+        "image": "common/popup_close_x.png"
+      },
+      "if_true": {
+        "action": "click",
+        "target": { "image": "common/popup_close_x.png" }
+      },
+      "if_false": "continue",
+      "wait_after": 2.0
+    }
+  ]
+}

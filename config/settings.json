@@ -1,0 +1,61 @@
+{
+  "mock_mode": false,
+  "dev_mode": true,
+  "skip_taxact_validation": true,
+  "vision": {
+    "screenshot_base_path": ".agents/screenshots/buttons",
+    "confidence_threshold": 0.8,
+    "retry_count": 3,
+    "retry_delay_ms": 500,
+    "scroll_amount": -3,
+    "scroll_max_attempts": 10,
+    "scroll_delay_ms": 500
+  },
+  "hotkeys": {
+    "start": "F6",
+    "stop": "F7",
+    "pause": "F8"
+  },
+  "timing": {
+    "default_wait": 2.0,
+    "long_wait": 5.0,
+    "scroll_wait": 0.5,
+    "typing_interval": 0.05
+  },
+  "sounds": {
+    "enabled": true,
+    "success_freq": 1000,
+    "success_duration": 200,
+    "error_freq": 400,
+    "error_duration": 500,
+    "complete_frequencies": [523, 659, 784]
+  },
+  "ocr": {
+    "tesseract_path": "C:/Program Files/Tesseract-OCR/tesseract.exe",
+    "language": "eng"
+  },
+  "display": {
+    "expected_width": 1920,
+    "expected_height": 1080,
+    "require_primary_monitor": true,
+    "taxact_window_title": "TaxAct"
+  },
+  "gui": {
+    "window_width": 500,
+    "window_height": 600,
+    "countdown_seconds": 5,
+    "appearance_mode": "dark",
+    "color_theme": "blue"
+  },
+  "client_table": {
+    "row_height": 25,
+    "header_row_y": 145,
+    "first_data_row_y": 170,
+    "max_visible_rows": 20,
+    "columns": {
+      "client_name": { "width": 250 },
+      "return_type": { "width": 80 },
+      "fed_ef_status": { "width": 100 }
+    }
+  }
+}
