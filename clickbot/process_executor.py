@@ -193,10 +193,12 @@ class ProcessExecutor:
             return False
 
     def _action_click(self, target: Dict[str, Any]) -> bool:
-        """Execute click action."""
+        """Execute click action with optional offset."""
         image = target.get("image")
         confidence = target.get("confidence")
         fallback = target.get("fallback_coords")
+        offset_x = target.get("offset_x", 0)
+        offset_y = target.get("offset_y", 0)
 
         if fallback:
             fallback = tuple(fallback)
@@ -207,7 +209,11 @@ class ProcessExecutor:
             logger.error(f"Click target not found: {image}")
             return False
 
-        return executor.click(coords[0], coords[1], wait=0)  # wait handled by step
+        # Apply offset if specified
+        click_x = coords[0] + offset_x
+        click_y = coords[1] + offset_y
+
+        return executor.click(click_x, click_y, wait=0)  # wait handled by step
 
     def _action_double_click(self, target: Dict[str, Any]) -> bool:
         """Execute double-click action."""

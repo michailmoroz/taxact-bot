@@ -228,23 +228,14 @@
     },
     {
       "id": 24,
-      "name": "click_first_name_field",
+      "name": "click_title_field",
       "action": "click",
-      "description": "Click First name field to ensure cursor position",
-      "target": { "image": "1120/field_first_name.png", "fallback_coords": [516, 257] },
+      "description": "Click Title field (find label, offset to field)",
+      "target": { "image": "1120/label_title.png", "offset_x": 150, "offset_y": 0 },
       "wait_after": 0.3
     },
     {
       "id": 25,
-      "name": "tab_to_title",
-      "action": "key_press",
-      "description": "TAB 4x: First name -> Last name -> SSN -> Title",
-      "key": "tab",
-      "count": 4,
-      "wait_after": 0.2
-    },
-    {
-      "id": 26,
       "name": "fill_officer_title",
       "action": "type_field",
       "description": "Fill Title if empty (uses clipboard check)",
@@ -252,16 +243,15 @@
       "wait_after": 0.3
     },
     {
-      "id": 27,
-      "name": "tab_to_email",
-      "action": "key_press",
-      "description": "TAB to Email field",
-      "key": "tab",
-      "count": 1,
-      "wait_after": 0.2
+      "id": 26,
+      "name": "click_email_field",
+      "action": "click",
+      "description": "Click Email field (find label, offset to field)",
+      "target": { "image": "1120/label_email.png", "offset_x": 150, "offset_y": 0 },
+      "wait_after": 0.3
     },
     {
-      "id": 28,
+      "id": 27,
       "name": "fill_officer_email",
       "action": "type_field",
       "description": "Fill Email if empty",
@@ -269,16 +259,15 @@
       "wait_after": 0.3
     },
     {
-      "id": 29,
-      "name": "tab_to_phone",
-      "action": "key_press",
-      "description": "TAB to Phone field",
-      "key": "tab",
-      "count": 1,
-      "wait_after": 0.2
+      "id": 28,
+      "name": "click_phone_field",
+      "action": "click",
+      "description": "Click Phone field (find label, offset to field)",
+      "target": { "image": "1120/label_phone.png", "offset_x": 150, "offset_y": 0 },
+      "wait_after": 0.3
     },
     {
-      "id": 30,
+      "id": 29,
       "name": "fill_officer_phone",
       "action": "type_field",
       "description": "Fill Phone if empty",
@@ -286,7 +275,7 @@
       "wait_after": 0.3
     },
     {
-      "id": 31,
+      "id": 30,
       "name": "click_continue_officer_info",
       "action": "click",
       "description": "Continue on Signing Officer Information screen",
@@ -294,7 +283,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 32,
+      "id": 31,
       "name": "enter_officer_pin",
       "action": "conditional",
       "description": "Enter Officer PIN (Officer's Signature screen)",
@@ -314,7 +303,7 @@
       "wait_after": 0.5
     },
     {
-      "id": 33,
+      "id": 32,
       "name": "click_continue_pin",
       "action": "click",
       "description": "Continue after PIN entry",
@@ -322,7 +311,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 34,
+      "id": 33,
       "name": "click_continue_ero_signature",
       "action": "click",
       "description": "Continue on ERO Signature screen",
@@ -330,7 +319,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 35,
+      "id": 34,
       "name": "click_start_form_7004_alerts",
       "action": "click",
       "description": "Click Start Form 7004 Alerts button (Federal E-File Alerts screen)",
@@ -338,7 +327,7 @@
       "wait_after": 1.5
     },
     {
-      "id": 36,
+      "id": 35,
       "name": "handle_alerts_result",
       "action": "conditional",
       "description": "Check if 'Passed Alerts' or 'Error/Omission' - different actions for each",
@@ -358,7 +347,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 37,
+      "id": 36,
       "name": "click_submit_efile",
       "action": "conditional",
       "description": "Click Submit E-File button if visible (only after passed alerts)",
@@ -374,7 +363,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 38,
+      "id": 37,
       "name": "click_continue_green_confirmation",
       "action": "conditional",
       "description": "Click GREEN Continue (NOT blue!) on confirmation screen",
@@ -390,7 +379,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 39,
+      "id": 38,
       "name": "click_new_return",
       "action": "conditional",
       "description": "Click New Return button (Filing Complete screen)",
@@ -406,7 +395,7 @@
       "wait_after": 1.0
     },
     {
-      "id": 40,
+      "id": 39,
       "name": "close_add_client_popup",
       "action": "conditional",
       "description": "Close Add Client popup if present",
