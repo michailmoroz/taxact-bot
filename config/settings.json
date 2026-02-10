@@ -31,7 +31,7 @@
     "complete_frequencies": [523, 659, 784]
   },
   "ocr": {
-    "tesseract_path": "C:/Program Files/Tesseract-OCR/tesseract.exe",
+    "tesseract_path": "C:/Users/michailmoroz/AppData/Local/Programs/Tesseract-OCR/tesseract.exe",
     "language": "eng"
   },
   "display": {
