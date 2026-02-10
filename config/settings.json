@@ -50,7 +50,7 @@
   "client_table": {
     "row_height": 50,
     "header_row_y": 145,
-    "first_data_row_y": 205,
+    "first_data_row_y": 155,
     "max_visible_rows": 20,
     "columns": {
       "client_name": { "x": 20, "width": 330 },
