@@ -17,7 +17,7 @@
       "description": "Close Add/Remove State popup if it appears",
       "condition": {
         "type": "element_visible",
-        "image": "1120/popup_add_remove_states.png"
+        "image": "common/popup_add_remove_states.png"
       },
       "if_true": {
         "action": "click",
@@ -349,11 +349,11 @@
       "description": "Click Submit E-File button if visible (only after passed alerts)",
       "condition": {
         "type": "element_visible",
-        "image": "1120/submit_efile.png"
+        "image": "common/submit_efile.png"
       },
       "if_true": {
         "action": "click",
-        "target": { "image": "1120/submit_efile.png" }
+        "target": { "image": "common/submit_efile.png" }
       },
       "if_false": "continue",
       "wait_after": 1.0

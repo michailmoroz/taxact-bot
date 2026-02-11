@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.4
+**Version:** 2.5
 **Date:** 2026-02-04
 **Last Updated:** 2026-02-11
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.5 Changes:** Phase 4 (Client Selection) als COMPLETE markiert, Plan/Report-Dateien korrekt benannt
+>
 > **v2.4 Changes:** Mock-up Modus verworfen (direktes Testen gegen TaxAct möglich), Phasen neu nummeriert
 >
 > **v2.3 Changes:** .exe Packaging in Scope aufgenommen
@@ -1062,24 +1064,29 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 4: OCR & Client Detection ⬅️ NEXT
+### Phase 4: OCR & Client Selection ✅ COMPLETE
 
-**Goal:** Bot kann Bildschirm "lesen" und Entscheidungen treffen
+**Goal:** Bot kann Client-Tabelle lesen und automatisch Client auswählen
 
 **Deliverables:**
-- ⬜ Client-Tabelle scannen (Fed EF Status)
-- ⬜ **Return-Type Erkennung** aus Client-Tabelle (1120, 1120S)
-- ⬜ Automatische Client-Auswahl (erster mit leerem Fed EF Status)
-- ⬜ Dynamisches Laden der passenden Prozess-JSON
+- ✅ `ClientRow` Dataclass für Tabellendaten
+- ✅ `get_column_positions()` - Spaltenköpfe via Template Matching finden
+- ✅ `scan_table_row()` - OCR für einzelne Tabellenzeile
+- ✅ `find_next_client()` - Ersten Client mit leerem Fed EF Status finden
+- ✅ `client_table` Konfiguration in settings.json (Koordinaten kalibriert)
+- ✅ Bot-Controller Integration (scannt Tabelle vor Prozess-Start)
 
 **Validation:**
-- Bot erkennt leeren Fed EF Status korrekt
-- Bot erkennt Return-Type (1120 vs 1120S) korrekt
-- Bot lädt passende Prozess-Definition
+- ✅ Bot erkennt leeren Fed EF Status korrekt
+- ✅ Bot erkennt Return-Type (1120 vs 1120S) korrekt
+- ✅ Bot wählt automatisch Client und startet Doppelklick
+
+**Plan:** `.agents/plans/phase-4-client-selection.md`
+**Report:** `.agents/execution-reports/phase-4-client-selection.md`
 
 ---
 
-### Phase 5: Multi-Return-Type Process Files
+### Phase 5: Multi-Return-Type Process Files ⬅️ NEXT
 
 **Goal:** Separate Klickabfolgen für verschiedene Return-Types
 
