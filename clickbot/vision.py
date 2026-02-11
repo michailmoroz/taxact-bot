@@ -497,6 +497,28 @@ class ClientRow:
     fed_ef_status: str
 
 
+# OCR correction map for return types (OCR often misreads S as 5)
+RETURN_TYPE_OCR_CORRECTIONS = {
+    "11205": "1120S",
+    "1120s": "1120S",
+}
+
+
+def normalize_return_type(ocr_value: str) -> str:
+    """Normalize OCR-read return type to correct process name.
+
+    Args:
+        ocr_value: Raw OCR result for return type
+
+    Returns:
+        Normalized return type (e.g., "11205" -> "1120S")
+    """
+    normalized = RETURN_TYPE_OCR_CORRECTIONS.get(ocr_value, ocr_value)
+    if normalized != ocr_value:
+        logger.debug(f"Return type normalized: '{ocr_value}' -> '{normalized}'")
+    return normalized
+
+
 def get_column_positions() -> Optional[Dict[str, Tuple[int, int]]]:
     """Find X positions of table columns by matching header templates.
 
@@ -580,7 +602,7 @@ def scan_table_row(
         return text.strip()
 
     client_name = read_cell("client_name")
-    return_type = read_cell("return_type")
+    return_type = normalize_return_type(read_cell("return_type"))
     fed_ef_status = read_cell("fed_ef_status")
 
     logger.debug(f"Row {row_index}: name='{client_name}', type='{return_type}', status='{fed_ef_status}'")
