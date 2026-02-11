@@ -1,13 +1,15 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.3
+**Version:** 2.4
 **Date:** 2026-02-04
-**Last Updated:** 2026-02-10
+**Last Updated:** 2026-02-11
 **Author:** Claude Code
 **Status:** Draft
 
-> **v2.3 Changes:** Mock-up Modus für Development ohne TaxAct hinzugefügt, .exe Packaging als Phase 7 in Scope aufgenommen
+> **v2.4 Changes:** Mock-up Modus verworfen (direktes Testen gegen TaxAct möglich), Phasen neu nummeriert
+>
+> **v2.3 Changes:** .exe Packaging in Scope aufgenommen
 >
 > **v2.2 Changes:** UI-Sprache auf Englisch umgestellt (GUI und CLI)
 >
@@ -141,13 +143,6 @@ Automatisierung des TaxAct E-File-Extension-Prozesses für Return-Types 1120 und
 - ✅ Voraussetzung: TaxAct bereits geöffnet im Client Manager View
 - ✅ Fehler mit Sound-Feedback wenn TaxAct nicht korrekt positioniert
 - ✅ Start-Check für Bildschirmauflösung (1920x1080 erwartet)
-
-#### Development & Testing (NEU in v2.3)
-- ✅ **Mock-up Modus** - Entwicklung und Testing ohne echtes TaxAct
-- ✅ **Screenshot-Replay** - Voraufgezeichnete Screenshots statt Live-Capture
-- ✅ **Mock-OCR-Ergebnisse** - Definierte Testdaten für OCR-Funktionen
-- ✅ **RDP-Kompatibilität** - Umgehung von Remote Desktop Einschränkungen
-- ✅ **Offline-Development** - Komplette Entwicklung ohne TaxAct-Installation
 
 #### Deployment (NEU in v2.3)
 - ✅ **Executable (.exe) Packaging** - Standalone Windows-Anwendung via PyInstaller
@@ -1063,37 +1058,11 @@ Der MVP ist erfolgreich wenn:
 **Validation:**
 - ✅ Alle Module kompilieren ohne Fehler
 - ✅ 27 Button-Screenshots vorhanden
-- ⚠️ E2E-Test nicht möglich wegen RDP-Einschränkungen (Screenshot-Capture funktioniert nicht durch Remote Desktop)
-
-**Blocker:** Remote Desktop verhindert Live-Testing. Mock-up Modus erforderlich.
+- ✅ E2E-Test gegen echtes TaxAct erfolgreich
 
 ---
 
-### Phase 4: Mock-up Modus ⬅️ NEXT (NEU in v2.3)
-
-**Goal:** Development und Testing ohne echtes TaxAct ermöglichen
-
-**Deliverables:**
-- ⬜ `mock_mode.py` - Mock-Modus Steuerung und Konfiguration
-- ⬜ Screenshot-Replay System (voraufgezeichnete Bilder statt Live-Capture)
-- ⬜ Mock-OCR-Ergebnisse für definierte Testszenarien
-- ⬜ Mock-Daten für Client-Tabelle (verschiedene Return-Types, Fed EF Status)
-- ⬜ Umschaltbar via `settings.json` (`mock_mode: true/false`)
-- ⬜ Unterstützung für 1120 und 1120S (variabel)
-- ⬜ Aufnahme-Tool für neue Mock-Sequenzen
-
-**Validation:**
-- Bot läuft komplett ohne TaxAct-Installation
-- Alle Prozess-Schritte können offline getestet werden
-- Mock-Daten decken alle Szenarien ab (1120, 1120S, leere Felder, gefüllte Felder)
-- Development über Remote Desktop möglich
-- Phase 3 E2E-Test kann mit Mock-Daten durchgeführt werden
-
-**Hinweis:** Diese Phase ist Voraussetzung für alle weiteren Phasen, da Live-Testing via RDP nicht funktioniert.
-
----
-
-### Phase 5: OCR & Client Detection
+### Phase 4: OCR & Client Detection ⬅️ NEXT
 
 **Goal:** Bot kann Bildschirm "lesen" und Entscheidungen treffen
 
@@ -1104,13 +1073,13 @@ Der MVP ist erfolgreich wenn:
 - ⬜ Dynamisches Laden der passenden Prozess-JSON
 
 **Validation:**
-- Bot erkennt leeren Fed EF Status (mit Mock-Daten verifiziert)
+- Bot erkennt leeren Fed EF Status korrekt
 - Bot erkennt Return-Type (1120 vs 1120S) korrekt
 - Bot lädt passende Prozess-Definition
 
 ---
 
-### Phase 6: Multi-Return-Type Process Files
+### Phase 5: Multi-Return-Type Process Files
 
 **Goal:** Separate Klickabfolgen für verschiedene Return-Types
 
@@ -1118,7 +1087,7 @@ Der MVP ist erfolgreich wenn:
 - ✅ `config/processes/1120.json` - Prozess für Return-Type 1120 (bereits vorhanden)
 - ⬜ `config/processes/1120S.json` - Prozess für Return-Type 1120S
 - ⬜ Screenshot-Aufnahme für 1120S Prozess
-- ⬜ Validierung beider Abläufe mit Mock-Modus
+- ⬜ Validierung beider Abläufe gegen echtes TaxAct
 
 **Validation:**
 - Bot führt korrekte Klickabfolge für 1120 aus
@@ -1127,7 +1096,7 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 7: Loop Mode & State Tracking
+### Phase 6: Loop Mode & State Tracking
 
 **Goal:** Mehrere Clients verschiedener Return-Types nacheinander
 
@@ -1147,7 +1116,7 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 8: Executable Packaging (NEU in v2.3)
+### Phase 7: Executable Packaging
 
 **Goal:** Standalone Windows-Anwendung für Endbenutzer
 
@@ -1164,8 +1133,6 @@ Der MVP ist erfolgreich wenn:
 - Alle Funktionen identisch zur Python-Version
 - Dateigröße akzeptabel (< 200MB)
 - Keine Antivirus-Warnungen (Code-Signing optional)
-
-**Hinweis:** Dies ist die letzte Phase nach vollständiger Fertigstellung aller anderen Features.
 
 ---
 

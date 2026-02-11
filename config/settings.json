@@ -1,5 +1,4 @@
 {
-  "mock_mode": false,
   "dev_mode": true,
   "skip_taxact_validation": true,
   "vision": {
