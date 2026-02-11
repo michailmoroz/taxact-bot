@@ -57,8 +57,8 @@
       "id": 6,
       "name": "click_continue_extension_intro",
       "action": "click",
-      "description": "Continue on Extension Intro screen",
-      "target": { "image": "common/continue_blue.png" },
+      "description": "Continue on Extension Intro screen (green button)",
+      "target": { "image": "common/continue_green.png" },
       "wait_after": 1.0
     },
     {
