@@ -596,7 +596,7 @@ def scan_table_row(
 
 def find_next_client(
     settings: dict,
-    target_return_type: str = "1120"
+    target_return_type: Optional[str] = None
 ) -> Optional[Tuple[ClientRow, Tuple[int, int]]]:
     """Find the next unprocessed client in the Client Manager table.
 
@@ -642,8 +642,11 @@ def find_next_client(
         # Fed EF Status must be empty
         is_status_empty = len(row_data.fed_ef_status) == 0
 
-        # Return Type must match (handle OCR variations like "1120" vs "11205")
-        type_matches = target_return_type in row_data.return_type
+        # Return Type filter (if specified)
+        if target_return_type:
+            type_matches = target_return_type in row_data.return_type
+        else:
+            type_matches = True  # Accept any return type
 
         logger.debug(f"Row {row_index}: status_empty={is_status_empty}, type_matches={type_matches}")
 

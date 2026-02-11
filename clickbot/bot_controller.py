@@ -137,14 +137,13 @@ class BotController:
 
         # Step 1: Find next unprocessed client in the table
         self.message_queue.put(StatusMessage("status", "Scanning client table..."))
-        self.message_queue.put(StatusMessage("log", "Looking for unprocessed 1120 client..."))
+        self.message_queue.put(StatusMessage("log", "Looking for unprocessed client..."))
 
-        target_return_type = "1120"
-        client_result = vision.find_next_client(self.settings, target_return_type)
+        client_result = vision.find_next_client(self.settings)
 
         if client_result is None:
             self.message_queue.put(StatusMessage("complete", "No unprocessed clients found"))
-            self.message_queue.put(StatusMessage("log", f"No clients with empty Fed EF Status and type {target_return_type}"))
+            self.message_queue.put(StatusMessage("log", "No clients with empty Fed EF Status found"))
             sounds.play_complete()
             self.state = BotState.IDLE
             return
@@ -176,7 +175,7 @@ class BotController:
             self.stop_event
         )
 
-        result = process_executor.execute(target_return_type)
+        result = process_executor.execute(client_row.return_type)
 
         if result.success:
             self.message_queue.put(StatusMessage("complete",
