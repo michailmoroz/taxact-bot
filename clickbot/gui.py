@@ -331,10 +331,11 @@ class BotGUI(ctk.CTk):
             self.progress_label.configure(text=msg.message)
         elif msg.type == "error":
             self._log(f"ERROR: {msg.message}")
-            sounds.play_error()
+            # Note: Don't play error sound here - bot_controller already plays it
         elif msg.type == "complete":
             self._log(msg.message)
             self.status_label.configure(text="Status: Complete!")
+            self.progress_label.configure(text="")
 
     # --- Lifecycle ---
 

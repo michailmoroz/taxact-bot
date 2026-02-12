@@ -616,25 +616,104 @@ def scan_table_row(
     )
 
 
+def _scan_visible_clients(
+    settings: dict,
+    column_positions: Dict[str, Tuple[int, int]],
+    processed_clients: Optional[set] = None,
+    target_return_type: Optional[str] = None
+) -> Optional[Tuple[ClientRow, Tuple[int, int], str]]:
+    """Scan visible rows and find first matching client.
+
+    Args:
+        settings: Settings dict
+        column_positions: Column positions from get_column_positions()
+        processed_clients: Set of already processed client names to skip
+        target_return_type: Return type filter (optional)
+
+    Returns:
+        Tuple of (ClientRow, click_position, last_client_name) or None.
+        last_client_name is used for scroll-end detection.
+    """
+    table_settings = settings.get("client_table", {})
+    first_data_row_y = table_settings.get("first_data_row_y", 170)
+    row_height = table_settings.get("row_height", 25)
+    max_rows = table_settings.get("max_visible_rows", 20)
+
+    if processed_clients is None:
+        processed_clients = set()
+
+    last_client_name = ""
+
+    for row_index in range(max_rows):
+        row_y = first_data_row_y + (row_index * row_height)
+        row_data = scan_table_row(row_index, row_y, column_positions, settings)
+
+        # Skip empty rows
+        if not row_data.client_name:
+            logger.debug(f"Row {row_index}: empty, stopping scan")
+            break
+
+        last_client_name = row_data.client_name
+
+        # Skip already processed clients
+        if row_data.client_name in processed_clients:
+            logger.debug(f"Row {row_index}: {row_data.client_name} already processed, skipping")
+            continue
+
+        # Check criteria
+        is_status_empty = len(row_data.fed_ef_status) == 0
+
+        if target_return_type:
+            type_matches = target_return_type in row_data.return_type
+        else:
+            type_matches = True
+
+        logger.debug(f"Row {row_index}: status_empty={is_status_empty}, type_matches={type_matches}")
+
+        if is_status_empty and type_matches:
+            # Found a match
+            client_col_cfg = table_settings.get("columns", {}).get("client_name", {})
+            if "x" in client_col_cfg:
+                client_col_x = client_col_cfg["x"] + client_col_cfg.get("width", 200) // 2
+            else:
+                client_col_x, _ = column_positions["client_name"]
+            click_y = row_y + row_height // 2
+            click_pos = (client_col_x, click_y)
+
+            logger.info(f"Found client: {row_data.client_name} ({row_data.return_type}) at row {row_index}")
+            return (row_data, click_pos, last_client_name)
+
+    # No match found, return last client name for scroll detection
+    return (None, None, last_client_name)
+
+
 def find_next_client(
     settings: dict,
-    target_return_type: Optional[str] = None
+    target_return_type: Optional[str] = None,
+    processed_clients: Optional[set] = None
 ) -> Optional[Tuple[ClientRow, Tuple[int, int]]]:
     """Find the next unprocessed client in the Client Manager table.
 
     Scans visible rows and returns the first client matching:
+    - Not in processed_clients set
     - Empty Fed EF Status
-    - Return Type matches target_return_type
+    - Return Type matches target_return_type (if specified)
+
+    If no matching client is visible, scrolls down and re-scans.
+    Stops when end of list is detected or max scroll attempts reached.
 
     Args:
         settings: Settings dict from config/settings.json
-        target_return_type: Return type to filter for (default "1120")
+        target_return_type: Return type to filter for (optional, accepts any if None)
+        processed_clients: Set of client names to skip (already processed)
 
     Returns:
         Tuple of (ClientRow, click_position) or None if no client found.
         click_position is the (x, y) for double-clicking the client name.
     """
-    logger.info(f"Scanning client table for return type: {target_return_type}")
+    from clickbot import executor
+
+    logger.info(f"Scanning client table (processed={len(processed_clients or set())} clients)")
 
     # Get column positions
     column_positions = get_column_positions()
@@ -642,50 +721,43 @@ def find_next_client(
         logger.error("Failed to find column headers - not on Client Manager screen?")
         return None
 
-    # Get table settings
-    table_settings = settings.get("client_table", {})
-    first_data_row_y = table_settings.get("first_data_row_y", 170)
-    row_height = table_settings.get("row_height", 25)
-    max_rows = table_settings.get("max_visible_rows", 20)
+    # Get loop/scroll settings
+    loop_settings = settings.get("loop", {}).get("scroll_in_table", {})
+    scroll_x = loop_settings.get("x", 400)
+    scroll_y = loop_settings.get("y", 500)
+    scroll_amount = loop_settings.get("amount", -300)
+    max_scroll_attempts = loop_settings.get("max_attempts", 20)
 
-    # Scan each visible row
-    for row_index in range(max_rows):
-        row_y = first_data_row_y + (row_index * row_height)
+    last_seen_client = ""
 
-        # Read row data
-        row_data = scan_table_row(row_index, row_y, column_positions, settings)
+    for scroll_attempt in range(max_scroll_attempts + 1):  # +1 for initial scan without scroll
+        # Scan visible rows
+        result = _scan_visible_clients(
+            settings, column_positions, processed_clients, target_return_type
+        )
 
-        # Skip empty rows (no client name)
-        if not row_data.client_name:
-            logger.debug(f"Row {row_index}: empty, stopping scan")
-            break
+        row_data, click_pos, current_last_client = result
 
-        # Check if this client matches our criteria
-        # Fed EF Status must be empty
-        is_status_empty = len(row_data.fed_ef_status) == 0
-
-        # Return Type filter (if specified)
-        if target_return_type:
-            type_matches = target_return_type in row_data.return_type
-        else:
-            type_matches = True  # Accept any return type
-
-        logger.debug(f"Row {row_index}: status_empty={is_status_empty}, type_matches={type_matches}")
-
-        if is_status_empty and type_matches:
-            # Found a match! Calculate click position (client name column)
-            client_col_cfg = table_settings.get("columns", {}).get("client_name", {})
-            if "x" in client_col_cfg:
-                # Use config x + half width for center of cell
-                client_col_x = client_col_cfg["x"] + client_col_cfg.get("width", 200) // 2
-            else:
-                client_col_x, _ = column_positions["client_name"]
-            # Click in the CENTER of the row (row_y is top edge, add half row_height)
-            click_y = row_y + row_height // 2
-            click_pos = (client_col_x, click_y)
-
-            logger.info(f"Found client: {row_data.client_name} ({row_data.return_type}) at row {row_index}")
+        if row_data is not None:
+            # Found a matching client
             return (row_data, click_pos)
 
-    logger.warning(f"No unprocessed clients found with return type {target_return_type}")
+        # No match found in visible rows
+        if scroll_attempt == 0:
+            # First scan, remember the last client for comparison
+            last_seen_client = current_last_client
+        else:
+            # Check if we've reached the end of the list
+            if current_last_client == last_seen_client:
+                logger.info("End of client list reached (no new clients after scroll)")
+                break
+            last_seen_client = current_last_client
+
+        # Scroll down if not at max attempts
+        if scroll_attempt < max_scroll_attempts:
+            logger.debug(f"Scrolling in client table (attempt {scroll_attempt + 1}/{max_scroll_attempts})")
+            executor.scroll(scroll_amount, x=scroll_x, y=scroll_y)
+            time.sleep(0.5)  # Wait for scroll to complete
+
+    logger.warning("No unprocessed clients found after scanning entire list")
     return None

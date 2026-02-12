@@ -56,5 +56,13 @@
       "return_type": { "x": 470, "width": 51 },
       "fed_ef_status": { "x": 700, "width": 120 }
     }
+  },
+  "loop": {
+    "scroll_in_table": {
+      "x": 400,
+      "y": 500,
+      "amount": -300,
+      "max_attempts": 20
+    }
   }
 }

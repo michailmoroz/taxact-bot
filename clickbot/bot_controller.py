@@ -120,71 +120,119 @@ class BotController:
             pass
         return messages
 
+    def _send_status(self, message: str) -> None:
+        """Send status update to GUI."""
+        self.message_queue.put(StatusMessage("status", message))
+
+    def _send_log(self, message: str) -> None:
+        """Send log message to GUI."""
+        self.message_queue.put(StatusMessage("log", message))
+
+    def _send_progress(self, message: str) -> None:
+        """Send progress update to GUI."""
+        self.message_queue.put(StatusMessage("progress", message))
+
+    def _send_complete(self, message: str) -> None:
+        """Send completion message to GUI."""
+        self.message_queue.put(StatusMessage("complete", message))
+
+    def _send_error(self, message: str) -> None:
+        """Send error message to GUI."""
+        self.message_queue.put(StatusMessage("error", message))
+
     def _run(self) -> None:
         """Main bot loop - runs in worker thread.
+
+        Processes clients in a loop until:
+        - No more unprocessed clients found
+        - Stop signal received
 
         WARNING: Do NOT update any UI elements from this method!
         Use self.message_queue.put() to send updates to GUI.
         """
         from clickbot.process_executor import ProcessExecutor
+        from clickbot.state import ClientTracker
 
         logger.info("Bot worker thread running")
-        self.message_queue.put(StatusMessage("status", "Bot running"))
+        self._send_status("Bot running")
 
         # Configure vision module
         vision.configure(self.settings)
         vision.configure_tesseract(self.settings)
 
-        # Step 1: Find next unprocessed client in the table
-        self.message_queue.put(StatusMessage("status", "Scanning client table..."))
-        self.message_queue.put(StatusMessage("log", "Looking for unprocessed client..."))
+        # Initialize state tracking
+        tracker = ClientTracker()
+        clients_processed = 0
+        start_time = time.time()
 
-        client_result = vision.find_next_client(self.settings)
+        # Main processing loop
+        while not self.stop_event.is_set():
+            # Play iteration sound (except first iteration)
+            if clients_processed > 0:
+                sounds.play_iteration()
 
-        if client_result is None:
-            self.message_queue.put(StatusMessage("complete", "No unprocessed clients found"))
-            self.message_queue.put(StatusMessage("log", "No clients with empty Fed EF Status found"))
-            sounds.play_complete()
-            self.state = BotState.IDLE
-            return
+            # Find next unprocessed client
+            self._send_status("Scanning client table...")
+            self._send_log("Looking for unprocessed client...")
 
-        # Check for stop signal
-        if self.stop_event.is_set():
-            self.state = BotState.IDLE
-            return
+            client_result = vision.find_next_client(
+                self.settings,
+                processed_clients=tracker.processed
+            )
 
-        client_row, click_pos = client_result
-        self.message_queue.put(StatusMessage("log", f"Selected: {client_row.client_name} ({client_row.return_type})"))
-        self.message_queue.put(StatusMessage("status", f"Opening: {client_row.client_name}"))
+            if client_result is None:
+                # No more clients to process
+                elapsed = time.time() - start_time
+                minutes = int(elapsed // 60)
+                seconds = int(elapsed % 60)
+                self._send_complete(f"All done! Processed {clients_processed} clients in {minutes}m {seconds}s")
+                self._send_log(f"No more unprocessed clients found")
+                sounds.play_complete()
+                break
 
-        # Step 2: Double-click to open the client
-        logger.info(f"Double-clicking client at ({click_pos[0]}, {click_pos[1]})")
-        executor.double_click(click_pos[0], click_pos[1], wait=4.0)
+            # Check for stop signal
+            if self.stop_event.is_set():
+                break
 
-        # Check for stop signal
-        if self.stop_event.is_set():
-            self.state = BotState.IDLE
-            return
+            client_row, click_pos = client_result
 
-        # Step 3: Execute the process for this client
-        self.message_queue.put(StatusMessage("status", f"Processing: {client_row.client_name}"))
+            # Mark as processed BEFORE starting (prevents retry on failure)
+            tracker.mark_processed(client_row.client_name)
+            clients_processed += 1
 
-        process_executor = ProcessExecutor(
-            self.settings,
-            self.message_queue,
-            self.stop_event
-        )
+            # Update progress
+            self._send_progress(f"Processing client {clients_processed}")
+            self._send_log(f"Selected: {client_row.client_name} ({client_row.return_type})")
+            self._send_status(f"Opening: {client_row.client_name}")
 
-        result = process_executor.execute(client_row.return_type)
+            # Double-click to open the client
+            logger.info(f"Double-clicking client at ({click_pos[0]}, {click_pos[1]})")
+            executor.double_click(click_pos[0], click_pos[1], wait=4.0)
 
-        if result.success:
-            self.message_queue.put(StatusMessage("complete",
-                f"Completed {client_row.client_name}! {result.steps_completed}/{result.total_steps} steps"))
-            sounds.play_complete()
-        else:
-            if result.error_message != "Stopped by user":
-                self.message_queue.put(StatusMessage("error", result.error_message or "Unknown error"))
+            # Check for stop signal
+            if self.stop_event.is_set():
+                break
+
+            # Execute the process for this client
+            self._send_status(f"Processing: {client_row.client_name}")
+
+            process_executor = ProcessExecutor(
+                self.settings,
+                self.message_queue,
+                self.stop_event
+            )
+
+            result = process_executor.execute(client_row.return_type)
+
+            if result.success:
+                self._send_log(f"Completed: {client_row.client_name} ({result.steps_completed}/{result.total_steps} steps)")
+            else:
+                if result.error_message == "Stopped by user":
+                    break
+                # Error occurred - skip this client and continue with next
+                self._send_log(f"SKIPPED: {client_row.client_name} - {result.error_message}")
                 sounds.play_error()
+                # Continue to next client (don't break)
 
         self.state = BotState.IDLE
-        logger.info("Bot worker thread finished")
+        logger.info(f"Bot worker thread finished (processed {clients_processed} clients)")

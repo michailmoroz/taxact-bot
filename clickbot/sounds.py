@@ -4,6 +4,7 @@ Provides audible feedback for bot operations:
 - play_success(): Short beep for successful actions
 - play_error(): Triple alarm for errors
 - play_complete(): Ascending melody when all clients processed
+- play_iteration(): Windows system sound for new iteration
 """
 
 import logging
@@ -121,3 +122,22 @@ def play_complete(frequencies: Optional[List[int]] = None) -> None:
         logger.warning(f"Could not play complete sound: {e}")
     except Exception as e:
         logger.error(f"Unexpected error playing complete sound: {e}")
+
+
+def play_iteration() -> None:
+    """Play Windows system sound for new iteration.
+
+    Uses the Windows "SystemAsterisk" sound which is a familiar,
+    non-intrusive notification sound.
+    """
+    if not is_enabled():
+        logger.debug("Sound disabled, skipping play_iteration")
+        return
+
+    try:
+        # SND_ALIAS: Play system sound by name
+        # SND_ASYNC: Play asynchronously (don't block)
+        winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS | winsound.SND_ASYNC)
+        logger.debug("Played iteration sound: SystemAsterisk")
+    except Exception as e:
+        logger.warning(f"Could not play iteration sound: {e}")
