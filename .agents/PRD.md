@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.5
+**Version:** 2.6
 **Date:** 2026-02-04
-**Last Updated:** 2026-02-11
+**Last Updated:** 2026-02-12
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.6 Changes:** Phase 5 (Multi-Return-Type Process Files) als COMPLETE markiert - 1120S Prozess funktioniert
+>
 > **v2.5 Changes:** Phase 4 (Client Selection) als COMPLETE markiert, Plan/Report-Dateien korrekt benannt
 >
 > **v2.4 Changes:** Mock-up Modus verworfen (direktes Testen gegen TaxAct möglich), Phasen neu nummeriert
@@ -1086,24 +1088,30 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 5: Multi-Return-Type Process Files ⬅️ NEXT
+### Phase 5: Multi-Return-Type Process Files ✅ COMPLETE
 
 **Goal:** Separate Klickabfolgen für verschiedene Return-Types
 
 **Deliverables:**
-- ✅ `config/processes/1120.json` - Prozess für Return-Type 1120 (bereits vorhanden)
-- ⬜ `config/processes/1120S.json` - Prozess für Return-Type 1120S
-- ⬜ Screenshot-Aufnahme für 1120S Prozess
-- ⬜ Validierung beider Abläufe gegen echtes TaxAct
+- ✅ `config/processes/1120.json` - Prozess für Return-Type 1120
+- ✅ `config/processes/1120S.json` - Prozess für Return-Type 1120S (22 Schritte)
+- ✅ Screenshot-Aufnahme für 1120S Prozess
+- ✅ Validierung beider Abläufe gegen echtes TaxAct
+- ✅ Dynamische Return-Type Erkennung (1120/1120S/11205→1120S)
+- ✅ Gemeinsame Buttons refactored nach `common/`
 
 **Validation:**
-- Bot führt korrekte Klickabfolge für 1120 aus
-- Bot führt korrekte Klickabfolge für 1120S aus
-- Wechsel zwischen Return-Types funktioniert nahtlos
+- ✅ Bot führt korrekte Klickabfolge für 1120 aus
+- ✅ Bot führt korrekte Klickabfolge für 1120S aus
+- ✅ Wechsel zwischen Return-Types funktioniert nahtlos
+
+**Plan:** `.agents/plans/phase-5-1120s-process.md`
+**Report:** `.agents/execution-reports/phase-5-1120s-process.md`
+**Bug Fixes:** `.agents/bug-fixes/phase-5-dynamic-return-type-loading.md`
 
 ---
 
-### Phase 6: Loop Mode & State Tracking
+### Phase 6: Loop Mode & State Tracking ⬅️ NEXT
 
 **Goal:** Mehrere Clients verschiedener Return-Types nacheinander
 
