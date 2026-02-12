@@ -518,8 +518,9 @@ def normalize_return_type(ocr_value: str) -> str:
     Returns:
         Normalized return type (e.g., "11205" -> "1120S")
     """
-    # Clean up OCR result: take first line, strip whitespace
-    cleaned = ocr_value.split('\n')[0].strip()
+    # Clean up OCR result: take first non-empty line
+    lines = [line.strip() for line in ocr_value.split('\n') if line.strip()]
+    cleaned = lines[0] if lines else ""
 
     # Try exact match first
     if cleaned in RETURN_TYPE_OCR_CORRECTIONS:
@@ -620,9 +621,9 @@ def scan_table_row(
 
         # Read text from cell region
         text = read_text_region(cell_x, region_y, col_width, row_height, preprocess=True)
-        # Take first line only (OCR often reads multiple rows)
-        first_line = text.split('\n')[0].strip()
-        return first_line
+        # Take first non-empty line (OCR sometimes has leading newlines)
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        return lines[0] if lines else ""
 
     client_name = read_cell("client_name")
     return_type = normalize_return_type(read_cell("return_type"))
