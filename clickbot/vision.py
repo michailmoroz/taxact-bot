@@ -507,16 +507,37 @@ RETURN_TYPE_OCR_CORRECTIONS = {
 def normalize_return_type(ocr_value: str) -> str:
     """Normalize OCR-read return type to correct process name.
 
+    Handles common OCR issues:
+    - Multi-line results (takes first line)
+    - "S" misread as "5" (11205 -> 1120S)
+    - Case variations (1120s -> 1120S)
+
     Args:
         ocr_value: Raw OCR result for return type
 
     Returns:
         Normalized return type (e.g., "11205" -> "1120S")
     """
-    normalized = RETURN_TYPE_OCR_CORRECTIONS.get(ocr_value, ocr_value)
-    if normalized != ocr_value:
-        logger.debug(f"Return type normalized: '{ocr_value}' -> '{normalized}'")
-    return normalized
+    # Clean up OCR result: take first line, strip whitespace
+    cleaned = ocr_value.split('\n')[0].strip()
+
+    # Try exact match first
+    if cleaned in RETURN_TYPE_OCR_CORRECTIONS:
+        normalized = RETURN_TYPE_OCR_CORRECTIONS[cleaned]
+        logger.debug(f"Return type normalized: '{cleaned}' -> '{normalized}'")
+        return normalized
+
+    # Check if it contains known patterns (for partial matches)
+    if "11205" in cleaned or "1120S" in cleaned.upper():
+        logger.debug(f"Return type detected as 1120S from: '{cleaned}'")
+        return "1120S"
+
+    if "1120" in cleaned and "S" not in cleaned.upper():
+        logger.debug(f"Return type detected as 1120 from: '{cleaned}'")
+        return "1120"
+
+    logger.debug(f"Return type unchanged: '{cleaned}'")
+    return cleaned
 
 
 def get_column_positions() -> Optional[Dict[str, Tuple[int, int]]]:
@@ -599,7 +620,9 @@ def scan_table_row(
 
         # Read text from cell region
         text = read_text_region(cell_x, region_y, col_width, row_height, preprocess=True)
-        return text.strip()
+        # Take first line only (OCR often reads multiple rows)
+        first_line = text.split('\n')[0].strip()
+        return first_line
 
     client_name = read_cell("client_name")
     return_type = normalize_return_type(read_cell("return_type"))
