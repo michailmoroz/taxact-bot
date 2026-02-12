@@ -154,7 +154,7 @@
       "description": "Check if 'You're Good to Go' or error - different actions",
       "condition": {
         "type": "element_visible",
-        "image": "common/passed_alerts.png"
+        "image": "1120S/good_to_go.png"
       },
       "if_true": {
         "action": "click",
