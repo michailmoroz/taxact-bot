@@ -388,22 +388,14 @@
         "target": { "image": "common/new_return.png" }
       },
       "if_false": "continue",
-      "wait_after": 1.0
+      "wait_after": 2.0
     },
     {
       "id": 40,
       "name": "close_add_client_popup",
-      "action": "conditional",
-      "description": "Close Add Client popup if present",
-      "condition": {
-        "type": "element_visible",
-        "image": "common/popup_close_x.png"
-      },
-      "if_true": {
-        "action": "click",
-        "target": { "image": "common/popup_close_x.png" }
-      },
-      "if_false": "continue",
+      "action": "click",
+      "description": "Close Add Client popup (always appears after New Return)",
+      "target": { "image": "common/popup_close_x.png" },
       "wait_after": 1.0
     }
   ]
