@@ -497,13 +497,22 @@ class ClientRow:
     fed_ef_status: str
 
 
-# OCR correction map for return types (OCR often misreads S as 5)
+import re
+
+# Pattern: any digit + "120" + optional trailing character
+# Matches: 1120, 1120S, 4120, 41205, 11208, etc.
+_RETURN_TYPE_PATTERN = re.compile(r'\d120(.)?')
+
+
 def normalize_return_type(ocr_value: str) -> str:
     """Normalize OCR-read return type to correct process name.
 
-    Rule: if "1120" is found and ANY character follows it (S, 5, 8, etc.),
-    classify as "1120S". OCR frequently misreads the trailing "S" as other
-    characters, but plain "1120" is read reliably.
+    OCR commonly misreads characters in the return type column:
+    - First "1" misread as "4" (4120 -> 1120)
+    - Trailing "S" misread as "5" or "8" (11205/11208 -> 1120S)
+
+    Rule: match pattern <digit>120 (covers 1120, 4120, etc.).
+    If any character follows, classify as "1120S", otherwise "1120".
 
     Args:
         ocr_value: Raw OCR result for return type
@@ -518,14 +527,14 @@ def normalize_return_type(ocr_value: str) -> str:
     # Strip all whitespace for matching
     compact = cleaned.replace(" ", "")
 
-    if "1120" in compact:
-        # Find where "1120" ends and check if anything follows
-        idx = compact.index("1120") + 4
-        if idx < len(compact):
-            logger.debug(f"Return type '{cleaned}' -> '1120S' (extra char: '{compact[idx]}')")
+    match = _RETURN_TYPE_PATTERN.search(compact)
+    if match:
+        trailing = match.group(1)
+        if trailing:
+            logger.debug(f"Return type '{cleaned}' -> '1120S' (trailing char: '{trailing}')")
             return "1120S"
         else:
-            logger.debug(f"Return type '{cleaned}' -> '1120' (no trailing chars)")
+            logger.debug(f"Return type '{cleaned}' -> '1120' (no trailing char)")
             return "1120"
 
     logger.debug(f"Return type not recognized: '{cleaned}'")
