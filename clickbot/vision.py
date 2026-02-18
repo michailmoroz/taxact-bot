@@ -498,46 +498,37 @@ class ClientRow:
 
 
 # OCR correction map for return types (OCR often misreads S as 5)
-RETURN_TYPE_OCR_CORRECTIONS = {
-    "11205": "1120S",
-    "1120s": "1120S",
-}
-
-
 def normalize_return_type(ocr_value: str) -> str:
     """Normalize OCR-read return type to correct process name.
 
-    Handles common OCR issues:
-    - Multi-line results (takes first line)
-    - "S" misread as "5" (11205 -> 1120S)
-    - Case variations (1120s -> 1120S)
+    Rule: if "1120" is found and ANY character follows it (S, 5, 8, etc.),
+    classify as "1120S". OCR frequently misreads the trailing "S" as other
+    characters, but plain "1120" is read reliably.
 
     Args:
         ocr_value: Raw OCR result for return type
 
     Returns:
-        Normalized return type (e.g., "11205" -> "1120S")
+        Normalized return type: "1120" or "1120S"
     """
     # Clean up OCR result: take first non-empty line
     lines = [line.strip() for line in ocr_value.split('\n') if line.strip()]
-    cleaned = lines[0] if lines else ""
+    cleaned = lines[0].strip() if lines else ""
 
-    # Try exact match first
-    if cleaned in RETURN_TYPE_OCR_CORRECTIONS:
-        normalized = RETURN_TYPE_OCR_CORRECTIONS[cleaned]
-        logger.debug(f"Return type normalized: '{cleaned}' -> '{normalized}'")
-        return normalized
+    # Strip all whitespace for matching
+    compact = cleaned.replace(" ", "")
 
-    # Check if it contains known patterns (for partial matches)
-    if "11205" in cleaned or "1120S" in cleaned.upper():
-        logger.debug(f"Return type detected as 1120S from: '{cleaned}'")
-        return "1120S"
+    if "1120" in compact:
+        # Find where "1120" ends and check if anything follows
+        idx = compact.index("1120") + 4
+        if idx < len(compact):
+            logger.debug(f"Return type '{cleaned}' -> '1120S' (extra char: '{compact[idx]}')")
+            return "1120S"
+        else:
+            logger.debug(f"Return type '{cleaned}' -> '1120' (no trailing chars)")
+            return "1120"
 
-    if "1120" in cleaned and "S" not in cleaned.upper():
-        logger.debug(f"Return type detected as 1120 from: '{cleaned}'")
-        return "1120"
-
-    logger.debug(f"Return type unchanged: '{cleaned}'")
+    logger.debug(f"Return type not recognized: '{cleaned}'")
     return cleaned
 
 

@@ -47,7 +47,7 @@
     "color_theme": "blue"
   },
   "client_table": {
-    "row_height": 45,
+    "row_height": 30,
     "header_row_y": 145,
     "first_data_row_y": 205,
     "max_visible_rows": 20,
