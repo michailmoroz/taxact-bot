@@ -687,6 +687,12 @@ def _scan_visible_clients(
         # Check criteria
         is_status_empty = len(row_data.fed_ef_status) == 0
 
+        # Only accept known return types (1120 or 1120S)
+        is_valid_type = row_data.return_type in ("1120", "1120S")
+        if not is_valid_type:
+            logger.warning(f"Row {row_index}: unrecognized return type '{row_data.return_type}', skipping")
+            continue
+
         if target_return_type:
             type_matches = target_return_type in row_data.return_type
         else:
