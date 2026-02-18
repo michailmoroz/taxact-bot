@@ -388,7 +388,7 @@
         "target": { "image": "common/new_return.png" }
       },
       "if_false": "continue",
-      "wait_after": 2.0
+      "wait_after": 5.0
     },
     {
       "id": 40,
