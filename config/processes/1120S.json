@@ -234,9 +234,17 @@
     {
       "id": 22,
       "name": "close_add_client_popup",
-      "action": "click",
-      "description": "Close Add Client popup (always appears after New Return)",
-      "target": { "image": "common/popup_close_x.png" },
+      "action": "conditional",
+      "description": "Close Add Client popup if present (click Cancel)",
+      "condition": {
+        "type": "element_visible",
+        "image": "common/popup_cancel.png"
+      },
+      "if_true": {
+        "action": "click",
+        "target": { "image": "common/popup_cancel.png" }
+      },
+      "if_false": "continue",
       "wait_after": 1.0
     }
   ]
