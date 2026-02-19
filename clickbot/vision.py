@@ -616,11 +616,12 @@ def scan_table_row(
         col_center_x, template_w = column_positions[col_name]
         col_width = col_cfg.get("width", template_w)
         # Align data cell with header LEFT EDGE (center - half template width),
-        # not center - half data width, since headers and data share the same left edge.
-        cell_x = col_center_x - template_w // 2
+        # with a small left padding to avoid cutting off text at column boundaries.
+        cell_x = col_center_x - template_w // 2 - 5
 
-        # Read text from cell region
-        text = read_text_region(cell_x, region_y, col_width, row_height, preprocess=True)
+        # Read text from cell region (no preprocessing to match debug_ocr.py behavior;
+        # Otsu thresholding can eliminate text with certain colors/contrasts)
+        text = read_text_region(cell_x, region_y, col_width, row_height, preprocess=False)
         # Take first non-empty line (OCR sometimes has leading newlines)
         lines = [line.strip() for line in text.split('\n') if line.strip()]
         return lines[0] if lines else ""
