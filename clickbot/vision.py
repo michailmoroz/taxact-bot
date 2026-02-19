@@ -615,7 +615,9 @@ def scan_table_row(
         # which adapts automatically when TaxAct changes column layout (e.g. after import).
         col_center_x, template_w = column_positions[col_name]
         col_width = col_cfg.get("width", template_w)
-        cell_x = col_center_x - col_width // 2
+        # Align data cell with header LEFT EDGE (center - half template width),
+        # not center - half data width, since headers and data share the same left edge.
+        cell_x = col_center_x - template_w // 2
 
         # Read text from cell region
         text = read_text_region(cell_x, region_y, col_width, row_height, preprocess=True)
