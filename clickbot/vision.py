@@ -294,13 +294,14 @@ def read_text_region(
     screenshot = take_screenshot(region=(x, y, width, height))
 
     if preprocess:
-        # Convert to grayscale
+        # Convert to grayscale + Otsu threshold (aggressive binarization)
         gray = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
-        # Apply threshold
         _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         img_for_ocr = thresh
     else:
-        img_for_ocr = screenshot
+        # Convert to grayscale only (matches what Tesseract does internally,
+        # avoids BGR/RGB color swap that corrupts OCR with raw BGR arrays)
+        img_for_ocr = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
 
     # Convert to PIL for pytesseract
     pil_image = Image.fromarray(img_for_ocr)

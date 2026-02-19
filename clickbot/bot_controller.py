@@ -120,6 +120,29 @@ class BotController:
             pass
         return messages
 
+    def _recover_to_client_manager(self) -> None:
+        """Navigate back to Client Manager after a process error.
+
+        Clicks the 'Clients' button in the top menu bar to return to base state.
+        """
+        self._send_status("Recovering: returning to Client Manager...")
+        self._send_log("Clicking 'Clients' to return to base...")
+
+        try:
+            clicked = vision.find_and_click(
+                "common/clients_button.png",
+                wait_after=3.0
+            )
+            if clicked:
+                logger.info("Recovery: clicked Clients button, back to Client Manager")
+                self._send_log("Recovery successful")
+            else:
+                logger.error("Recovery: Clients button not found")
+                self._send_error("Recovery failed: Clients button not found")
+        except Exception as e:
+            logger.error(f"Recovery failed: {e}")
+            self._send_error(f"Recovery failed: {e}")
+
     def _send_status(self, message: str) -> None:
         """Send status update to GUI."""
         self.message_queue.put(StatusMessage("status", message))
@@ -229,10 +252,10 @@ class BotController:
             else:
                 if result.error_message == "Stopped by user":
                     break
-                # Error occurred - skip this client and continue with next
+                # Error occurred - navigate back to Client Manager before continuing
                 self._send_log(f"SKIPPED: {client_row.client_name} - {result.error_message}")
                 sounds.play_error()
-                # Continue to next client (don't break)
+                self._recover_to_client_manager()
 
         self.state = BotState.IDLE
         logger.info(f"Bot worker thread finished (processed {clients_processed} clients)")
