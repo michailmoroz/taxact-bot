@@ -609,15 +609,13 @@ def scan_table_row(
     # Read each column
     def read_cell(col_name: str) -> str:
         col_cfg = column_config.get(col_name, {})
-        col_width = col_cfg.get("width", 100)
 
-        # Use explicit X from config if available, otherwise use template matching result
-        if "x" in col_cfg:
-            cell_x = col_cfg["x"]
-        else:
-            # Fallback to template matching position
-            col_x, _ = column_positions[col_name]
-            cell_x = col_x - col_width // 2
+        # Always use dynamically detected column header position as primary source.
+        # The header center_x and template_width tell us where the column actually is,
+        # which adapts automatically when TaxAct changes column layout (e.g. after import).
+        col_center_x, template_w = column_positions[col_name]
+        col_width = col_cfg.get("width", template_w)
+        cell_x = col_center_x - col_width // 2
 
         # Read text from cell region
         text = read_text_region(cell_x, region_y, col_width, row_height, preprocess=True)
@@ -701,12 +699,8 @@ def _scan_visible_clients(
         logger.debug(f"Row {row_index}: status_empty={is_status_empty}, type_matches={type_matches}")
 
         if is_status_empty and type_matches:
-            # Found a match
-            client_col_cfg = table_settings.get("columns", {}).get("client_name", {})
-            if "x" in client_col_cfg:
-                client_col_x = client_col_cfg["x"] + client_col_cfg.get("width", 200) // 2
-            else:
-                client_col_x, _ = column_positions["client_name"]
+            # Found a match - use dynamic column position for click target
+            client_col_x, _ = column_positions["client_name"]
             click_y = row_y + row_height // 2
             click_pos = (client_col_x, click_y)
 
