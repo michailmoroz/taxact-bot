@@ -197,7 +197,7 @@
         "target": { "image": "common/continue_blue.png" }
       },
       "if_false": "continue",
-      "wait_after": 1.0
+      "wait_after": 2.0
     },
     {
       "id": 20,
@@ -213,7 +213,7 @@
         "target": { "image": "common/continue_blue.png" }
       },
       "if_false": "continue",
-      "wait_after": 1.0
+      "wait_after": 2.0
     },
     {
       "id": 21,
