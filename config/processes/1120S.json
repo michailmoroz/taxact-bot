@@ -217,6 +217,22 @@
     },
     {
       "id": 21,
+      "name": "click_continue_filing_complete",
+      "action": "conditional",
+      "description": "Click Continue on Filing Complete screen if visible",
+      "condition": {
+        "type": "element_visible",
+        "image": "common/continue_blue.png"
+      },
+      "if_true": {
+        "action": "click",
+        "target": { "image": "common/continue_blue.png" }
+      },
+      "if_false": "continue",
+      "wait_after": 2.0
+    },
+    {
+      "id": 22,
       "name": "click_new_return",
       "action": "conditional",
       "description": "Click New Return button (Filing Complete screen)",
@@ -232,7 +248,7 @@
       "wait_after": 5.0
     },
     {
-      "id": 22,
+      "id": 23,
       "name": "close_add_client_popup",
       "action": "conditional",
       "description": "Close Add Client popup if present (click Cancel)",
