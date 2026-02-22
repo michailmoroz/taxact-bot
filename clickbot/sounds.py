@@ -124,12 +124,12 @@ def play_complete(frequencies: Optional[List[int]] = None) -> None:
         logger.error(f"Unexpected error playing complete sound: {e}")
 
 
-def play_click(freq: int = 2000, duration: int = 30) -> None:
-    """Play a very short tick sound when a click is executed.
+def play_click(freq: int = 1200, duration: int = 120) -> None:
+    """Play a clear tick sound when a click is executed.
 
     Args:
-        freq: Frequency in Hz. Default 2000 Hz (short tick).
-        duration: Duration in milliseconds. Default 30ms.
+        freq: Frequency in Hz. Default 1200 Hz.
+        duration: Duration in milliseconds. Default 120ms.
     """
     if not is_enabled():
         return
