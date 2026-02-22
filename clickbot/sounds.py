@@ -124,6 +124,23 @@ def play_complete(frequencies: Optional[List[int]] = None) -> None:
         logger.error(f"Unexpected error playing complete sound: {e}")
 
 
+def play_click(freq: int = 2000, duration: int = 30) -> None:
+    """Play a very short tick sound when a click is executed.
+
+    Args:
+        freq: Frequency in Hz. Default 2000 Hz (short tick).
+        duration: Duration in milliseconds. Default 30ms.
+    """
+    if not is_enabled():
+        return
+
+    try:
+        freq = max(37, min(32767, freq))
+        winsound.Beep(freq, duration)
+    except Exception:
+        pass  # Never block execution for a click sound
+
+
 def play_iteration() -> None:
     """Play Windows system sound for new iteration.
 

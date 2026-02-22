@@ -13,6 +13,8 @@ from typing import Optional, Tuple
 
 import pyautogui
 
+from clickbot import sounds
+
 logger = logging.getLogger(__name__)
 
 # Safety settings
@@ -98,6 +100,7 @@ def click(x: int, y: int, wait: float = 2.0) -> bool:
             time.sleep(0.2)
 
         pyautogui.click(x, y)
+        sounds.play_click()
 
         if wait > 0:
             time.sleep(wait)
@@ -135,6 +138,7 @@ def double_click(x: int, y: int, wait: float = 5.0) -> bool:
             time.sleep(0.2)
 
         pyautogui.doubleClick(x, y)
+        sounds.play_click()
 
         if wait > 0:
             time.sleep(wait)
