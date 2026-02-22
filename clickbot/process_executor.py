@@ -108,9 +108,16 @@ class ProcessExecutor:
 
             self.current_step = i + 1
             step_name = step.get("name", f"Step {step['id']}")
+            step_desc = step.get("description", step_name)
 
-            self._send_status(f"Step {self.current_step}/{total_steps}: {step_name}")
-            self._send_log(f"Executing: {step_name}")
+            # Terminal debug: clear stage indicator
+            logger.info(
+                f"[{return_type}] Step {self.current_step:2d}/{total_steps} | "
+                f"{step_name:<35s} | {step_desc}"
+            )
+
+            self._send_status(f"Step {self.current_step}/{total_steps}: {step_desc}")
+            self._send_log(f"Step {self.current_step}/{total_steps}: {step_desc}")
 
             # Execute step
             success = self._execute_step(step, static_inputs)
@@ -301,6 +308,9 @@ class ProcessExecutor:
             image = condition.get("image")
             confidence = condition.get("confidence")
             is_visible = vision.find_element(image, confidence, fallback_coords=None) is not None
+
+            branch = "if_true" if is_visible else "if_false"
+            logger.info(f"  -> Condition: {image} visible={is_visible} -> {branch}")
 
             if is_visible:
                 return self._execute_branch(step.get("if_true"), static_inputs)

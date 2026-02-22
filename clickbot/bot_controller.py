@@ -229,7 +229,9 @@ class BotController:
             self._send_status(f"Opening: {client_row.client_name}")
 
             # Double-click to open the client
-            logger.info(f"Double-clicking client at ({click_pos[0]}, {click_pos[1]})")
+            logger.info(f"{'='*60}")
+            logger.info(f"CLIENT #{clients_processed}: {client_row.client_name} ({client_row.return_type})")
+            logger.info(f"{'='*60}")
             executor.double_click(click_pos[0], click_pos[1], wait=4.0)
 
             # Check for stop signal
