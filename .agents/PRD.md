@@ -1,12 +1,16 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.6
+**Version:** 2.8
 **Date:** 2026-02-04
-**Last Updated:** 2026-02-12
+**Last Updated:** 2026-02-23
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.8 Changes:** Neue Phase 7 (Step Validation & Speed Optimization) eingefügt - Validierung nach jedem Klick statt blinder Wartezeiten. Alte Phase 7 wird Phase 8.
+>
+> **v2.7 Changes:** Phase 6 (Loop Mode & State Tracking) als COMPLETE markiert - Loop-Modus funktioniert mit mehreren Clients, Duplikat-Vermeidung, Error-Recovery
+>
 > **v2.6 Changes:** Phase 5 (Multi-Return-Type Process Files) als COMPLETE markiert - 1120S Prozess funktioniert
 >
 > **v2.5 Changes:** Phase 4 (Client Selection) als COMPLETE markiert, Plan/Report-Dateien korrekt benannt
@@ -1111,27 +1115,83 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 6: Loop Mode & State Tracking ⬅️ NEXT
+### Phase 6: Loop Mode & State Tracking ✅ COMPLETE
 
 **Goal:** Mehrere Clients verschiedener Return-Types nacheinander
 
 **Deliverables:**
-- ⬜ state.py für Client-Tracking
-- ⬜ Loop-Modus mit Duplikat-Vermeidung
-- ⬜ overlay.py für Dev-Mode Visualisierung
-- ⬜ Scroll in Client-Liste
-- ⬜ Fehlerbehandlung mit Stopp
-- ⬜ recorder.py Utility
+- ✅ `state.py` für Client-Tracking (`ClientTracker` mit `Set[str]`)
+- ✅ Loop-Modus mit Duplikat-Vermeidung (Clients werden VOR Verarbeitung markiert)
+- ✅ Scroll in Client-Liste (konfigurierbar via `settings.json:loop.scroll_in_table`)
+- ✅ Fehlerbehandlung: Client überspringen + Recovery zum Client Manager
+- ✅ `play_iteration()` Sound bei jedem neuen Client
+- ✅ GUI Progress-Anzeige ("Processing client X")
+- ✅ Completion-Stats ("All done! Processed X clients in Ym Zs")
+- ✅ Debug-Logging: Verbose Terminal-Output mit Step-Nummern und Descriptions
+- ✅ Click-Sound für jeden Klick (Debug-Hilfe, temporär)
 
 **Validation:**
-- Bot bearbeitet 5+ Clients verschiedener Return-Types
-- Kein Client wird doppelt bearbeitet
-- Bot wechselt automatisch zwischen 1120 und 1120S
-- Bot stoppt sauber wenn fertig oder bei Fehler
+- ✅ Bot bearbeitet mehrere Clients verschiedener Return-Types
+- ✅ Kein Client wird doppelt bearbeitet
+- ✅ Bot wechselt automatisch zwischen 1120 und 1120S
+- ✅ Bot stoppt sauber wenn fertig oder bei Fehler
+- ✅ Error-Recovery navigiert zurück zum Client Manager
+
+**Plan:** `.agents/plans/phase-6-loop-mode.md`
+**Report:** `.agents/execution-reports/phase-6-loop-mode.md`
+
+**Known Issues:** Sporadische Fehler bei einzelnen Clients — vermutlich TaxAct-Ladezeiten/Lag. Klicks werden ausgeführt bevor Screen bereit ist. → Wird in Phase 7 adressiert.
 
 ---
 
-### Phase 7: Executable Packaging
+### Phase 7: Step Validation & Speed Optimization ⬅️ NEXT
+
+**Goal:** Zuverlässige Ausführung durch Validierung nach jedem Schritt, statt blinder Wartezeiten. Ermöglicht gleichzeitig schnellere Ausführung, da der Bot fortfährt sobald TaxAct bereit ist.
+
+**Problem:** Der Bot verwendet aktuell feste `wait_after`-Zeiten nach jedem Klick. Wenn TaxAct langsamer lädt als erwartet, klickt der Bot ins Leere oder auf den falschen Screen. Wenn TaxAct schneller lädt, wartet der Bot unnötig.
+
+**Lösung:** Nach jedem Schritt wird validiert, dass der erwartete nächste Screen tatsächlich erschienen ist. Der Bot wartet dynamisch bis TaxAct bereit ist (mit Timeout), statt feste Zeiten zu verwenden.
+
+**Ansatz:**
+```
+Step ausführen (Klick)
+    │
+    ▼
+┌─────────────────────────────────┐
+│ wait_for_next: Warte auf        │
+│ nächsten erwarteten Screen      │
+│ (Template Matching)             │
+└─────────────────────────────────┘
+    │
+    ├─── Element gefunden ───→ Weiter zum nächsten Step
+    │    (typisch 0.3-1.5s)
+    │
+    ├─── Timeout (z.B. 10s) ──→ Retry: Klick wiederholen
+    │
+    └─── Max Retries ─────────→ Error + Recovery
+```
+
+**Deliverables:**
+- ⬜ `wait_for_next` Feld in Prozess-JSON: Definiert welches Element nach dem Step erscheinen soll
+- ⬜ `wait_for_element()` Funktion in `vision.py`: Pollt bis Element sichtbar (mit Timeout)
+- ⬜ Retry-Mechanismus in `process_executor.py`: Klick wiederholen wenn Screen nicht gewechselt hat
+- ⬜ Timeout-Konfiguration in `settings.json` (z.B. `validation.poll_interval_ms`, `validation.timeout_s`, `validation.max_retries`)
+- ⬜ Aktualisierung von `1120S.json` mit `wait_for_next` für jeden Step
+- ⬜ Aktualisierung von `1120.json` mit `wait_for_next` für jeden Step
+- ⬜ Entfernung/Reduzierung der festen `wait_after`-Zeiten
+- ⬜ Performance-Messung: Durchschnittliche Zeit pro Client vorher/nachher
+
+**Validation:**
+- Bot validiert nach jedem Schritt, dass TaxAct korrekt reagiert hat
+- Bot wartet dynamisch statt feste Zeiten
+- Bot erkennt wenn ein Klick nicht registriert wurde und wiederholt ihn
+- Durchschnittliche Zeit pro Client reduziert sich
+- Fehlerrate bei Loop-Mode sinkt signifikant
+- Bot läuft stabil über 10+ Clients ohne Fehler
+
+---
+
+### Phase 8: Executable Packaging
 
 **Goal:** Standalone Windows-Anwendung für Endbenutzer
 
