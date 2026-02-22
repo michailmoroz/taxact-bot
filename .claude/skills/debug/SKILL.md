@@ -1,6 +1,9 @@
 ---
+name: debug
 description: Structured debugging with root-cause analysis
-argument-hint: <bug description>
+argument-hint: "<bug description>"
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Debug: Root-Cause Analysis

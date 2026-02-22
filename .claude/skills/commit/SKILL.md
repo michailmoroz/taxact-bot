@@ -1,6 +1,9 @@
 ---
+name: commit
 description: Commit and push changes based on execution report
-argument-hint: <execution-report-path>
+argument-hint: "<execution-report-path>"
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Commit: Git Commit + Push
@@ -21,8 +24,8 @@ git rev-parse --git-dir
 
 | Result | Action |
 |--------|--------|
-| ✓ Success | Continue |
-| ✗ Not a repo | Stop: "This is not a Git repository. Run `git init` first." |
+| Success | Continue |
+| Not a repo | Stop: "This is not a Git repository. Run `git init` first." |
 
 ### 0.2 Remote Connection
 
@@ -32,8 +35,8 @@ git remote -v
 
 | Result | Action |
 |--------|--------|
-| ✓ Remote exists | Continue |
-| ✗ No remote | Stop: "No remote configured. Run `git remote add origin <url>`" |
+| Remote exists | Continue |
+| No remote | Stop: "No remote configured. Run `git remote add origin <url>`" |
 
 ### 0.3 Authentication Check
 
@@ -49,8 +52,8 @@ glab auth status
 
 | Result | Action |
 |--------|--------|
-| ✓ Logged in | Continue |
-| ✗ Not logged in | Stop: "Not authenticated. Run `gh auth login` or `glab auth login`" |
+| Logged in | Continue |
+| Not logged in | Stop: "Not authenticated. Run `gh auth login` or `glab auth login`" |
 
 ### 0.4 Uncommitted Changes
 
@@ -60,8 +63,8 @@ git status --porcelain
 
 | Result | Action |
 |--------|--------|
-| ✓ Changes exist | Continue |
-| ✗ No changes | Stop: "Nothing to commit. Working tree clean." |
+| Changes exist | Continue |
+| No changes | Stop: "Nothing to commit. Working tree clean." |
 
 ### 0.5 Current Branch
 

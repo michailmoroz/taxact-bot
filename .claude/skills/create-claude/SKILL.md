@@ -1,6 +1,9 @@
 ---
+name: create-claude
 description: Create a comprehensive CLAUDE.md with interview and auto-detection
-argument-hint: [update]
+argument-hint: "[update]"
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Create-Claude: Generate CLAUDE.md

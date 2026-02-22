@@ -1,6 +1,9 @@
 ---
+name: execute
 description: Execute an implementation plan with testing and validation
-argument-hint: <plan-file-path>
+argument-hint: "<plan-file-path>"
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Execute: Implement Plan
@@ -38,18 +41,18 @@ Execute the plan from: **$ARGUMENTS**
 
 | Section | Required |
 |---------|----------|
-| User Story | ✓ |
-| Acceptance Criteria | ✓ |
-| Tasks | ✓ |
-| Testing Requirements | ✓ |
+| User Story | Yes |
+| Acceptance Criteria | Yes |
+| Tasks | Yes |
+| Testing Requirements | Yes |
 
 ### Decision Matrix
 
 | Status | Action |
 |--------|--------|
-| All sections present | ✓ Proceed to Phase 3 |
-| Optional sections missing | ✓ Proceed, note in report |
-| Required sections missing | ⚠️ Ask user: proceed or update plan? |
+| All sections present | Proceed to Phase 3 |
+| Optional sections missing | Proceed, note in report |
+| Required sections missing | Ask user: proceed or update plan? |
 
 **If blocking issues found, ask user:**
 ```

@@ -1,6 +1,9 @@
 ---
+name: prime
 description: Load project context and provide summary
-argument-hint: [focus: full|status|structure]
+argument-hint: "[focus: full|status|structure]"
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Prime: Project Context

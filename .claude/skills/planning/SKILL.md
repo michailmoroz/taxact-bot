@@ -1,6 +1,9 @@
 ---
+name: planning
 description: Create a comprehensive implementation plan for a feature
-argument-hint: <feature-description>
+argument-hint: "<feature-description>"
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Planning: Create Implementation Plan

@@ -1,6 +1,9 @@
 ---
+name: review
 description: Code review based on execution report
-argument-hint: <execution-report-path>
+argument-hint: "<execution-report-path>"
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # Review: Code Review
@@ -89,7 +92,7 @@ Review each file against ALL aspects:
 | **Memory** | Leaks, large allocations, retained references |
 | **Rendering** | Unnecessary re-renders, missing memoization |
 | **Network** | Excessive requests, missing caching, large payloads |
-| **Algorithms** | O(n²) loops, inefficient searches |
+| **Algorithms** | O(n^2) loops, inefficient searches |
 
 ### 3.4 Tests
 
@@ -348,7 +351,7 @@ Ready to commit. Run `/commit {execution-report-path}`
 - Add rate limiting to login endpoint (future task)
 
 ### Verdict
-✓ Ready to commit
+Ready to commit
 
 Next: `/commit .agents/execution-reports/add-user-auth-2025-02-11.md`
 ```

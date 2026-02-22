@@ -1,6 +1,9 @@
 ---
+name: prd
 description: Create or update the project PRD (Product Requirements Document)
-argument-hint: [create|update|status]
+argument-hint: "[create|update|status]"
+disable-model-invocation: true
+user-invocable: true
 ---
 
 # PRD: Project Requirements Document
