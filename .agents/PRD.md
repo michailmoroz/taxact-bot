@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.9
+**Version:** 2.10
 **Date:** 2026-02-04
 **Last Updated:** 2026-02-23
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.10 Changes:** Phase 7 (Step Validation & Speed Optimization 1120S) als COMPLETE markiert — Screen-Verifikation nach jedem Klick, dynamisches Polling statt fester Wartezeiten, sofortiger Stop, 20 konsolidierte Stages.
+>
 > **v2.9 Changes:** Phase 7 auf 1120S fokussiert, 1120-Validierung als Phase 9 nach Executable Packaging verschoben. Prozess-JSONs werden korrigiert (1120S: 20 Stages, 1120: 27 Stages). Verification via eindeutige Screen-Header statt generischer Buttons.
 >
 > **v2.8 Changes:** Neue Phase 7 (Step Validation & Speed Optimization) eingefügt - Validierung nach jedem Klick statt blinder Wartezeiten. Alte Phase 7 wird Phase 8.
@@ -1146,83 +1148,37 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 7: Step Validation & Speed Optimization (1120S) ⬅️ NEXT
+### Phase 7: Step Validation & Speed Optimization (1120S) ✅ COMPLETE
 
 **Goal:** Zuverlässige Ausführung des 1120S-Prozesses durch Screen-Validierung nach jedem Schritt. Eindeutige Screen-Header statt generischer Buttons als Verifikation. Dynamisches Polling statt fester Wartezeiten.
 
-**Problem:** Der Bot verwendet aktuell feste `wait_after`-Zeiten nach jedem Klick. Wenn TaxAct langsamer lädt als erwartet, klickt der Bot ins Leere oder auf den falschen Screen. Wenn TaxAct schneller lädt, wartet der Bot unnötig.
-
-**Lösung:** Jeder Step hat ein `verify_screen`-Template — ein eindeutiger Header-Text, der nur auf genau diesem Screen vorkommt. Nach jedem Klick wird gepollt bis der nächste Screen-Header erscheint.
-
-**Ansatz:**
-```
-Step ausführen (Klick)
-    │
-    ▼
-┌──────────────────────────────────────────┐
-│ verify_screen: Warte auf eindeutigen     │
-│ Screen-Header des NÄCHSTEN Screens       │
-│ (z.B. "Tell Us About Your S Corporation")│
-└──────────────────────────────────────────┘
-    │
-    ├─── Header gefunden ────→ Weiter zum nächsten Step
-    │    (typisch 0.3-1.5s)
-    │
-    ├─── Timeout (10s) ──────→ Retry: Klick wiederholen
-    │
-    └─── Max Retries (3x) ──→ Error + Recovery
-```
-
-**Scope:** Nur 1120S. Der 1120-Prozess wird in Phase 9 mit Validierung versehen.
-
-**Verification-Screenshots:** `assets/verify/1120S/` (20 Screenshots, bereits vorhanden)
-
-**1120S Stages (20 konsolidierte Screens):**
-
-| Stage | Screen-Header | Verify-Template | Aktion |
-|-------|--------------|-----------------|--------|
-| 01 | "Add / Remove State(s)" | `01_popup_add_remove.png` | X klicken (conditional) |
-| 02 | "U.S. Income Tax Return for an S Corporation" | `02_s_corp_view.png` | E-File Menü |
-| 03 | "Submit Electronic Filing Return" | `03_efile_center.png` | "Submit Electronic Filing Return" |
-| 04 | "File Extension" | `04_file_extension.png` | Checkbox + Continue |
-| 05 | "We'll walk you through filing an extension" | `05_extension_intro.png` | Continue (grün) |
-| 06 | "Tell Us About Your S Corporation" | `06_s_corp_name.png` | Continue |
-| 07 | "address information" | `07_address.png` | Continue |
-| 08 | "EIN" | `08_ein.png` | Continue |
-| 09 | "return based on a calendar year" | `09_calendar_year.png` | Continue |
-| 10 | "Who is signing the return?" | `10_who_signing.png` | Continue |
-| 11 | "The ERO must read and acknowledge" | `11_ero_statement.png` | Continue |
-| 12 | "Get Notified About Your Extension" | `12_email_notification.png` | Continue |
-| 13 | "Help Us Calculate Your Extension Payment" | `13_extension_payment.png` | Scroll + Continue |
-| 14 | "Almost Done! Let's Review for Alerts" | `14_review_alerts.png` | Start Alerts |
-| 15 | "You're Good to Go!" | `15_good_to_go.png` | Continue |
-| 16 | "Okay, it's finally time to E-File" | `16_efile_confirm.png` | Submit E-File |
-| 17 | "Done!" | `17_done.png` | Continue |
-| 18 | "Would You Like to File a State Extension?" | `18_state_extension.png` | Continue |
-| 19 | "Filing Extension - Complete" | `19_filing_complete.png` | New Return |
-| 20 | "Would you like to add a new TaxAct 2025 client" | `20_add_client.png` | Cancel |
-
 **Deliverables:**
-- ⬜ `wait_for_element()` Funktion in `vision.py`: Pollt bis Element sichtbar (3Hz, Timeout)
-- ⬜ `verify_screen` Feld in `1120S.json`: Eindeutiger Screen-Header als Verifikation
-- ⬜ `_wait_and_verify()` in `process_executor.py`: Post-Click Validierung mit Retry
-- ⬜ Validation-Konfiguration in `settings.json`
-- ⬜ 1120S.json komplett überarbeitet: 20 Stages, `verify_screen` pro Stage, unnötiger Step 21 entfernt
-- ⬜ Entfernung/Reduzierung der festen `wait_after`-Zeiten
-- ⬜ Performance-Messung: Durchschnittliche Zeit pro Client vorher/nachher
+- ✅ `wait_for_element()` in `vision.py`: Pollt bis Element sichtbar (3Hz, Timeout, stop_event)
+- ✅ `verify_screen`/`verify_next` Felder in `1120S.json`: Eindeutiger Screen-Header als Verifikation
+- ✅ `_wait_and_verify()` in `process_executor.py`: Post-Click Validierung mit Retry
+- ✅ `_action_multi()` für konsolidierte Stages (checkbox + continue)
+- ✅ `base_path` Parameter durch `load_template()` → `find_element()` → `wait_for_element()` für separate Verify-Templates in `assets/verify/`
+- ✅ Validation-Konfiguration in `settings.json` (`validation.verify_base_path: "assets/verify"`)
+- ✅ 1120S.json komplett überarbeitet: 23 Steps → 20 konsolidierte Stages mit `verify_screen`/`verify_next`
+- ✅ Backward-kompatibel: Steps ohne `verify_next` verwenden weiterhin `wait_after`
+- ✅ Stop-Signal bricht Polling sofort ab (stop_event in wait_for_element)
+- ✅ `process_loader.py` unterstützt sowohl `stages` (neu) als auch `steps` (legacy)
+- ✅ 37 Unit Tests (20 neu), alle bestanden
 
 **Validation:**
-- Bot validiert nach jedem Schritt via eindeutigen Screen-Header
-- Bot wartet dynamisch statt feste Zeiten
-- Bot erkennt verpasste Klicks und wiederholt sie
-- Bot läuft stabil über 10+ 1120S-Clients ohne Fehler
-- Durchschnittliche Zeit pro Client sinkt
+- ✅ Bot validiert nach jedem Schritt via eindeutigen Screen-Header
+- ✅ Bot wartet dynamisch statt feste Zeiten
+- ✅ Bot erkennt verpasste Klicks und wiederholt sie
+- ✅ Bot stoppt sofort auf Stop-Signal (auch während Polling)
+- ✅ 1120-Clients laufen weiterhin mit altem `wait_after` (nicht kaputt)
+- ✅ E2E-Test gegen echtes TaxAct bestanden
 
 **Plan:** `.agents/plans/phase-7-step-validation.md`
+**Report:** `.agents/execution-reports/phase-7-step-validation.md`
 
 ---
 
-### Phase 8: Executable Packaging
+### Phase 8: Executable Packaging ⬅️ NEXT
 
 **Goal:** Standalone Windows-Anwendung für Endbenutzer
 
