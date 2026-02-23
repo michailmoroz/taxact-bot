@@ -598,9 +598,10 @@ class ProcessExecutor:
         Returns:
             True if screen verified, False if all retries exhausted
         """
-        timeout = validation_cfg.get("step_timeout_s", 10.0)
+        timeout = step.get("verify_timeout", validation_cfg.get("step_timeout_s", 10.0))
         poll_interval = validation_cfg.get("poll_interval_ms", 333) / 1000
-        max_retries = validation_cfg.get("max_retries", 3)
+        no_retry = step.get("no_retry", False)
+        max_retries = 1 if no_retry else validation_cfg.get("max_retries", 3)
         min_wait = validation_cfg.get("min_wait_after_ms", 200) / 1000
         verify_base = self._get_verify_base_path()
 
@@ -629,7 +630,7 @@ class ProcessExecutor:
                 logger.info("  -> Verification aborted: stop signal")
                 return False
 
-            # Timeout: retry the click
+            # Timeout: retry the click (unless no_retry is set)
             if retry < max_retries - 1:
                 logger.warning(f"  -> Screen not verified, retrying click...")
                 self._send_log(f"Retry {retry + 1}: {step.get('name', 'unknown')}")

@@ -190,11 +190,13 @@
     {
       "id": 16,
       "name": "click_submit_efile",
-      "description": "Click Submit E-File button",
+      "description": "Click Submit E-File button (no retry - dangerous!)",
       "verify_screen": "1120S/16_efile_confirm.png",
       "action": "click",
       "target": { "image": "common/submit_efile.png" },
-      "verify_next": "1120S/17_done.png"
+      "verify_next": "1120S/17_done.png",
+      "no_retry": true,
+      "verify_timeout": 30.0
     },
     {
       "id": 17,
