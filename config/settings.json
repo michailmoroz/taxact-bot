@@ -69,7 +69,7 @@
     "scroll_in_table": {
       "x": 400,
       "y": 500,
-      "amount": -300,
+      "amount": -320,
       "max_attempts": 20
     }
   }

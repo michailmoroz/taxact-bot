@@ -724,6 +724,40 @@ def scan_table_row(
     )
 
 
+def _read_single_cell(
+    col_name: str,
+    row_y: int,
+    column_positions: Dict[str, Tuple[int, int]],
+    settings: dict
+) -> str:
+    """Read a single table cell via OCR.
+
+    Extracted from scan_table_row() for use in optimized scanning where
+    not all columns need to be read for every row.
+
+    Args:
+        col_name: Column name (must exist in column_positions and settings)
+        row_y: Y coordinate of the row (top of row)
+        column_positions: Dict from get_column_positions()
+        settings: Settings dict for column config
+
+    Returns:
+        Cell text (first non-empty line), or empty string
+    """
+    table_settings = settings.get("client_table", {})
+    column_config = table_settings.get("columns", {})
+    row_height = table_settings.get("row_height", 25)
+
+    col_cfg = column_config.get(col_name, {})
+    col_center_x, template_w = column_positions[col_name]
+    col_width = col_cfg.get("width", template_w)
+    cell_x = col_center_x - template_w // 2 - 5
+
+    text = read_text_region(cell_x, row_y, col_width, row_height, preprocess=False)
+    lines = [line.strip() for line in text.split('\n') if line.strip()]
+    return lines[0] if lines else ""
+
+
 def _scan_visible_clients(
     settings: dict,
     column_positions: Dict[str, Tuple[int, int]],
@@ -731,6 +765,11 @@ def _scan_visible_clients(
     target_return_type: Optional[str] = None
 ) -> Optional[Tuple[ClientRow, Tuple[int, int], str]]:
     """Scan visible rows and find first matching client.
+
+    Uses optimized read order to minimize OCR calls:
+    1. fed_ef_status first — skip immediately if non-empty (1 OCR call)
+    2. client_name — detect empty rows / already processed (2 OCR calls)
+    3. return_type — only for actual candidates (3 OCR calls)
 
     Args:
         settings: Settings dict
@@ -754,43 +793,65 @@ def _scan_visible_clients(
 
     for row_index in range(max_rows):
         row_y = first_data_row_y + (row_index * row_height)
-        row_data = scan_table_row(row_index, row_y, column_positions, settings)
 
-        # Skip empty rows
-        if not row_data.client_name:
+        # Step 1: Read fed_ef_status first (cheapest filter)
+        fed_ef_status = _read_single_cell("fed_ef_status", row_y, column_positions, settings)
+        if fed_ef_status:
+            # Non-empty status → already filed, skip (only 1 OCR call)
+            logger.debug(f"Row {row_index}: status='{fed_ef_status}', skipping")
+            # Still need client_name for last_client tracking (scroll-end detection)
+            client_name = _read_single_cell("client_name", row_y, column_positions, settings)
+            if client_name:
+                last_client_name = client_name
+            continue
+
+        # Step 2: Status is empty → read client_name
+        client_name = _read_single_cell("client_name", row_y, column_positions, settings)
+
+        # Empty client_name = end of table data
+        if not client_name:
             logger.debug(f"Row {row_index}: empty, stopping scan")
             break
 
-        last_client_name = row_data.client_name
+        last_client_name = client_name
 
-        # Skip already processed clients
-        if row_data.client_name in processed_clients:
-            logger.debug(f"Row {row_index}: {row_data.client_name} already processed, skipping")
+        # Skip already processed clients (2 OCR calls)
+        if client_name in processed_clients:
+            logger.debug(f"Row {row_index}: {client_name} already processed, skipping")
             continue
 
-        # Check criteria
-        is_status_empty = len(row_data.fed_ef_status) == 0
+        # Step 3: Read return_type only for actual candidates (3 OCR calls)
+        raw_return_type = _read_single_cell("return_type", row_y, column_positions, settings)
+        return_type = normalize_return_type(raw_return_type)
 
         # Only accept known return types (1120 or 1120S)
-        is_valid_type = row_data.return_type in ("1120", "1120S")
+        is_valid_type = return_type in ("1120", "1120S")
         if not is_valid_type:
-            logger.warning(f"Row {row_index}: unrecognized return type '{row_data.return_type}', skipping")
+            logger.warning(f"Row {row_index}: unrecognized return type '{return_type}', skipping")
             continue
 
         if target_return_type:
-            type_matches = target_return_type in row_data.return_type
+            type_matches = target_return_type in return_type
         else:
             type_matches = True
 
-        logger.debug(f"Row {row_index}: status_empty={is_status_empty}, type_matches={type_matches}")
+        logger.debug(f"Row {row_index}: name='{client_name}', type='{return_type}', status_empty=True, type_matches={type_matches}")
 
-        if is_status_empty and type_matches:
+        if type_matches:
             # Found a match - use dynamic column position for click target
             client_col_x, _ = column_positions["client_name"]
             click_y = row_y + row_height // 2
             click_pos = (client_col_x, click_y)
 
-            logger.info(f"Found client: {row_data.client_name} ({row_data.return_type}) at row {row_index}")
+            row_data = ClientRow(
+                row_index=row_index,
+                y_position=row_y,
+                client_name=client_name,
+                return_type=return_type,
+                fed_ef_status=""
+            )
+
+            logger.info(f"Found client: {client_name} ({return_type}) at row {row_index}")
             return (row_data, click_pos, last_client_name)
 
     # No match found, return last client name for scroll detection
