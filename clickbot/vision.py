@@ -90,18 +90,22 @@ def take_screenshot(region: Optional[Tuple[int, int, int, int]] = None) -> np.nd
     return img_bgr
 
 
-def load_template(image_path: str) -> Optional[np.ndarray]:
+def load_template(
+    image_path: str,
+    base_path: Optional[str] = None
+) -> Optional[np.ndarray]:
     """Load a template image for matching.
 
     Args:
-        image_path: Path to template image (relative to screenshot_base_path in settings)
+        image_path: Path to template image (relative to base_path)
+        base_path: Override base path (default: screenshot_base_path from config)
 
     Returns:
         Template as BGR numpy array, or None if not found
     """
-    # Build full path using configured base path
-    base_path = Path(_config["screenshot_base_path"])
-    full_path = base_path / image_path
+    # Build full path using configured base path or override
+    root = Path(base_path) if base_path else Path(_config["screenshot_base_path"])
+    full_path = root / image_path
 
     if not full_path.exists():
         logger.error(f"Template not found: {full_path}")
@@ -122,7 +126,8 @@ def find_element(
     confidence: Optional[float] = None,
     fallback_coords: Optional[Tuple[int, int]] = None,
     region: Optional[Tuple[int, int, int, int]] = None,
-    retry_count: Optional[int] = None
+    retry_count: Optional[int] = None,
+    base_path: Optional[str] = None
 ) -> Optional[Tuple[int, int]]:
     """Find an element on screen using template matching.
 
@@ -133,10 +138,12 @@ def find_element(
     4. Return None if not found and no fallback
 
     Args:
-        image_path: Path to template image (relative to assets/buttons/)
+        image_path: Path to template image (relative to base_path)
         confidence: Confidence threshold (0.0-1.0), uses config default if None
         fallback_coords: Optional (x, y) fallback coordinates
         region: Optional (x, y, w, h) to limit search area
+        retry_count: Override retry count (default: config value)
+        base_path: Override base path for template loading
 
     Returns:
         (x, y) center coordinates of found element, or None
@@ -145,7 +152,7 @@ def find_element(
         confidence = _config["confidence_threshold"]
 
     # Load template
-    template = load_template(image_path)
+    template = load_template(image_path, base_path=base_path)
     if template is None:
         if fallback_coords:
             logger.warning(f"Template not found, using fallback: {fallback_coords}")
@@ -198,7 +205,8 @@ def wait_for_element(
     timeout: float = 10.0,
     poll_interval: float = 0.333,
     confidence: Optional[float] = None,
-    region: Optional[Tuple[int, int, int, int]] = None
+    region: Optional[Tuple[int, int, int, int]] = None,
+    base_path: Optional[str] = None
 ) -> Optional[Tuple[int, int]]:
     """Poll screen until element appears or timeout.
 
@@ -211,6 +219,7 @@ def wait_for_element(
         poll_interval: Seconds between checks (default ~3Hz)
         confidence: Confidence threshold
         region: Optional search region
+        base_path: Override base path for template loading
 
     Returns:
         (x, y) if found, None on timeout
@@ -223,7 +232,8 @@ def wait_for_element(
             image_path, confidence,
             fallback_coords=None,
             region=region,
-            retry_count=1
+            retry_count=1,
+            base_path=base_path
         )
         if coords is not None:
             logger.debug(f"wait_for_element: found {image_path} after {attempts} polls")

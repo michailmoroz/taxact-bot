@@ -138,10 +138,10 @@ Der Bot hat feste `wait_after`-Zeiten und validiert nicht, ob TaxAct korrekt rea
     "step_timeout_s": 10.0,
     "max_retries": 3,
     "min_wait_after_ms": 200,
-    "verify_base_path": "verify"
+    "verify_base_path": "assets/verify"
   }
   ```
-  - `verify_base_path`: Relativer Pfad unter `assets/` für Verify-Templates
+  - `verify_base_path`: Eigener Base-Path für Verify-Templates (getrennt von `vision.screenshot_base_path`). Screenshots liegen in `assets/verify/1120S/*.png`.
 - **Depends on**: none
 - **Validate**: `python -c "import json; c=json.load(open('config/settings.json')); print(c['validation'])"`
 
@@ -240,8 +240,7 @@ Der Bot hat feste `wait_after`-Zeiten und validiert nicht, ob TaxAct korrekt rea
   validation_enabled = validation_cfg.get("enabled", False)
 
   if verify_next and validation_enabled:
-      verify_path = self._resolve_verify_path(verify_next)
-      success = self._wait_and_verify(step, verify_path, validation_cfg)
+      success = self._wait_and_verify(step, verify_next, validation_cfg)
       if not success:
           error_msg = f"Screen verification failed after: {step_name}"
           self._send_error(error_msg)
@@ -263,8 +262,10 @@ Der Bot hat feste `wait_after`-Zeiten und validiert nicht, ob TaxAct korrekt rea
   # Before step execution: optionally verify we're on the right screen
   verify_screen = step.get("verify_screen")
   if verify_screen and validation_enabled:
-      verify_path = self._resolve_verify_path(verify_screen)
-      on_screen = vision.find_element(verify_path, retry_count=1, fallback_coords=None)
+      on_screen = vision.find_element(
+          verify_screen, retry_count=1, fallback_coords=None,
+          base_path=self._get_verify_base_path()
+      )
       if on_screen is None:
           logger.warning(f"  -> Pre-check: expected screen not detected: {verify_screen}")
   ```
@@ -277,20 +278,21 @@ Der Bot hat feste `wait_after`-Zeiten und validiert nicht, ob TaxAct korrekt rea
 - **Depends on**: Task 2, Task 3
 - **Validate**: Bot startet ohne Fehler, Steps ohne `verify_next` verwenden `wait_after`
 
-### Task 6: ADD `_wait_and_verify()` and `_resolve_verify_path()` to `ProcessExecutor`
+### Task 6: ADD `_get_verify_base_path()`, `_wait_and_verify()` to `ProcessExecutor`
 
 - **Action**: ADD to `clickbot/process_executor.py`
 - **Implement**:
   ```python
-  def _resolve_verify_path(self, verify_image: str) -> str:
-      """Resolve verify image path relative to verify_base_path."""
-      base = self.settings.get("validation", {}).get("verify_base_path", "verify")
-      return f"{base}/{verify_image}"
+  def _get_verify_base_path(self) -> str:
+      """Get the base path for verification templates.
+      Returns 'assets/verify' (separate from screenshot_base_path for buttons).
+      """
+      return self.settings.get("validation", {}).get("verify_base_path", "assets/verify")
 
   def _wait_and_verify(
       self,
       step: Dict[str, Any],
-      verify_path: str,
+      verify_image: str,
       validation_cfg: Dict[str, Any]
   ) -> bool:
       """Wait for next screen and retry click if needed.
@@ -299,46 +301,39 @@ Der Bot hat feste `wait_after`-Zeiten und validiert nicht, ob TaxAct korrekt rea
       2. If found → success
       3. If timeout → re-locate and retry click (max_retries)
       4. If max retries exhausted → return False
+
+      Uses base_path from settings.validation.verify_base_path (assets/verify)
+      to load verify templates separately from button templates.
       """
       timeout = validation_cfg.get("step_timeout_s", 10.0)
       poll_interval = validation_cfg.get("poll_interval_ms", 333) / 1000
       max_retries = validation_cfg.get("max_retries", 3)
       min_wait = validation_cfg.get("min_wait_after_ms", 200) / 1000
+      verify_base = self._get_verify_base_path()
 
       for retry in range(max_retries):
-          logger.info(
-              f"  -> Verifying: {verify_path} "
-              f"(timeout={timeout}s, attempt {retry+1}/{max_retries})"
-          )
           coords = vision.wait_for_element(
-              verify_path, timeout=timeout, poll_interval=poll_interval
+              verify_image, timeout=timeout, poll_interval=poll_interval,
+              base_path=verify_base
           )
 
           if coords is not None:
-              logger.info(f"  -> Screen verified: {verify_path}")
+              logger.info(f"  -> Screen verified: {verify_image}")
               time.sleep(min_wait)
               return True
 
           # Timeout: retry the click
           if retry < max_retries - 1:
               logger.warning(f"  -> Screen not verified, retrying click...")
-              self._send_log(f"Retry {retry+1}: {step.get('name', 'unknown')}")
               self._retry_step_click(step)
 
-      logger.error(f"  -> Verification FAILED after {max_retries} attempts")
       return False
-
-  def _retry_step_click(self, step: Dict[str, Any]) -> None:
-      """Re-execute the click action of a step for retry."""
-      action = step.get("action")
-      target = step.get("target", {})
-
-      if action == "click":
-          self._action_click(target)
-      elif action == "double_click":
-          self._action_double_click(target)
-      # For conditional/scroll: don't retry click, just wait longer
   ```
+
+  **Pfad-Architektur:**
+  - Button-Templates: `load_template()` → base: `.agents/screenshots/buttons/` (screenshot_base_path)
+  - Verify-Templates: `wait_for_element(base_path=...)` → base: `assets/verify/` (verify_base_path)
+  - Beide Pfade werden über `base_path` Parameter an `load_template()`, `find_element()`, `wait_for_element()` durchgereicht
 - **Depends on**: Task 2, Task 5
 - **Validate**: Covered by E2E test
 

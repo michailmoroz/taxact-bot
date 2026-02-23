@@ -126,9 +126,9 @@ class ProcessExecutor:
             validation_enabled = validation_cfg.get("enabled", False)
             verify_screen = step.get("verify_screen")
             if verify_screen and validation_enabled:
-                verify_path = self._resolve_verify_path(verify_screen)
                 on_screen = vision.find_element(
-                    verify_path, fallback_coords=None, retry_count=1
+                    verify_screen, fallback_coords=None, retry_count=1,
+                    base_path=self._get_verify_base_path()
                 )
                 if on_screen is None:
                     logger.warning(
@@ -156,8 +156,7 @@ class ProcessExecutor:
             validation_enabled = validation_cfg.get("enabled", False)
 
             if verify_next and validation_enabled:
-                verify_path = self._resolve_verify_path(verify_next)
-                verified = self._wait_and_verify(step, verify_path, validation_cfg)
+                verified = self._wait_and_verify(step, verify_next, validation_cfg)
                 if not verified:
                     error_msg = f"Screen verification failed after: {step_name}"
                     self._send_error(error_msg)
@@ -479,8 +478,7 @@ class ProcessExecutor:
         verify_next = branch.get("verify_next")
         validation_cfg = self.settings.get("validation", {})
         if verify_next and validation_cfg.get("enabled", False):
-            verify_path = self._resolve_verify_path(verify_next)
-            if not self._wait_and_verify(branch, verify_path, validation_cfg):
+            if not self._wait_and_verify(branch, verify_next, validation_cfg):
                 return False
         return True
 
@@ -562,22 +560,18 @@ class ProcessExecutor:
             logger.error(f"type_field failed: {e}")
             return False
 
-    def _resolve_verify_path(self, verify_image: str) -> str:
-        """Resolve verify image path relative to verify_base_path.
-
-        Args:
-            verify_image: Relative path like '1120S/06_s_corp_name.png'
+    def _get_verify_base_path(self) -> str:
+        """Get the base path for verification templates.
 
         Returns:
-            Full relative path like 'verify/1120S/06_s_corp_name.png'
+            Base path like 'assets/verify'
         """
-        base = self.settings.get("validation", {}).get("verify_base_path", "verify")
-        return f"{base}/{verify_image}"
+        return self.settings.get("validation", {}).get("verify_base_path", "assets/verify")
 
     def _wait_and_verify(
         self,
         step: Dict[str, Any],
-        verify_path: str,
+        verify_image: str,
         validation_cfg: Dict[str, Any]
     ) -> bool:
         """Wait for next screen and retry click if needed.
@@ -590,7 +584,7 @@ class ProcessExecutor:
 
         Args:
             step: The step definition (for retry click)
-            verify_path: Path to verification template image
+            verify_image: Relative image path like '1120S/06_s_corp_name.png'
             validation_cfg: Validation settings dict
 
         Returns:
@@ -600,18 +594,20 @@ class ProcessExecutor:
         poll_interval = validation_cfg.get("poll_interval_ms", 333) / 1000
         max_retries = validation_cfg.get("max_retries", 3)
         min_wait = validation_cfg.get("min_wait_after_ms", 200) / 1000
+        verify_base = self._get_verify_base_path()
 
         for retry in range(max_retries):
             logger.info(
-                f"  -> Verifying: {verify_path} "
+                f"  -> Verifying: {verify_base}/{verify_image} "
                 f"(timeout={timeout}s, attempt {retry + 1}/{max_retries})"
             )
             coords = vision.wait_for_element(
-                verify_path, timeout=timeout, poll_interval=poll_interval
+                verify_image, timeout=timeout, poll_interval=poll_interval,
+                base_path=verify_base
             )
 
             if coords is not None:
-                logger.info(f"  -> Screen verified: {verify_path}")
+                logger.info(f"  -> Screen verified: {verify_image}")
                 time.sleep(min_wait)
                 return True
 

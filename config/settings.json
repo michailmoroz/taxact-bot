@@ -63,7 +63,7 @@
     "step_timeout_s": 10.0,
     "max_retries": 3,
     "min_wait_after_ms": 200,
-    "verify_base_path": "verify"
+    "verify_base_path": "assets/verify"
   },
   "loop": {
     "scroll_in_table": {

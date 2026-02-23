@@ -63,7 +63,8 @@ class TestWaitForElement:
         assert result == (100, 200)
         assert mock_find.call_count == 1
         mock_find.assert_called_with(
-            "test.png", None, fallback_coords=None, region=None, retry_count=1
+            "test.png", None, fallback_coords=None, region=None, retry_count=1,
+            base_path=None
         )
 
     @patch("clickbot.vision.find_element")
@@ -108,5 +109,22 @@ class TestWaitForElement:
 
         mock_find.assert_called_with(
             "test.png", 0.9, fallback_coords=None,
-            region=(0, 0, 100, 100), retry_count=1
+            region=(0, 0, 100, 100), retry_count=1,
+            base_path=None
+        )
+
+    @patch("clickbot.vision.find_element")
+    def test_passes_base_path(self, mock_find):
+        """base_path is forwarded to find_element."""
+        mock_find.return_value = (10, 20)
+
+        vision.wait_for_element(
+            "1120S/test.png", timeout=1.0, poll_interval=0.01,
+            base_path="assets/verify"
+        )
+
+        mock_find.assert_called_with(
+            "1120S/test.png", None, fallback_coords=None,
+            region=None, retry_count=1,
+            base_path="assets/verify"
         )

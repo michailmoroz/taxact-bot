@@ -25,7 +25,7 @@ def executor():
             "step_timeout_s": 0.1,
             "max_retries": 2,
             "min_wait_after_ms": 10,
-            "verify_base_path": "verify",
+            "verify_base_path": "assets/verify",
         },
         "ocr": {},
     }
@@ -34,13 +34,13 @@ def executor():
     return ProcessExecutor(settings, msg_queue, stop_event)
 
 
-class TestResolveVerifyPath:
-    """Tests for _resolve_verify_path()."""
+class TestGetVerifyBasePath:
+    """Tests for _get_verify_base_path()."""
 
-    def test_resolve_path(self, executor):
-        """Resolves relative path with verify base."""
-        result = executor._resolve_verify_path("1120S/06_s_corp_name.png")
-        assert result == "verify/1120S/06_s_corp_name.png"
+    def test_returns_configured_path(self, executor):
+        """Returns verify_base_path from settings."""
+        result = executor._get_verify_base_path()
+        assert result == "assets/verify"
 
 
 class TestWaitAndVerify:
@@ -54,10 +54,16 @@ class TestWaitAndVerify:
         step = {"id": 1, "name": "test_step", "action": "click"}
         cfg = executor.settings["validation"]
 
-        result = executor._wait_and_verify(step, "verify/1120S/test.png", cfg)
+        result = executor._wait_and_verify(step, "1120S/test.png", cfg)
 
         assert result is True
         assert mock_wait.call_count == 1
+        # Verify base_path is passed through
+        mock_wait.assert_called_with(
+            "1120S/test.png", timeout=cfg["step_timeout_s"],
+            poll_interval=cfg["poll_interval_ms"] / 1000,
+            base_path="assets/verify"
+        )
 
     @patch("clickbot.process_executor.vision.wait_for_element")
     def test_retry_after_timeout(self, mock_wait, executor):
@@ -68,7 +74,7 @@ class TestWaitAndVerify:
         cfg = executor.settings["validation"]
 
         with patch.object(executor, "_retry_step_click") as mock_retry:
-            result = executor._wait_and_verify(step, "verify/1120S/test.png", cfg)
+            result = executor._wait_and_verify(step, "1120S/test.png", cfg)
 
         assert result is True
         assert mock_wait.call_count == 2
@@ -83,7 +89,7 @@ class TestWaitAndVerify:
         cfg = executor.settings["validation"]
 
         with patch.object(executor, "_retry_step_click"):
-            result = executor._wait_and_verify(step, "verify/1120S/test.png", cfg)
+            result = executor._wait_and_verify(step, "1120S/test.png", cfg)
 
         assert result is False
         # max_retries=2, so 2 attempts
