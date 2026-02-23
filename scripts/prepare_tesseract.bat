@@ -1,15 +1,33 @@
 @echo off
 REM Copies Tesseract OCR files into tesseract_bundle/ for PyInstaller packaging.
-REM Requires Tesseract-OCR installed at "C:\Program Files\Tesseract-OCR".
+REM Searches common install locations automatically.
 
-set SRC=C:\Program Files\Tesseract-OCR
 set DST=%~dp0..\tesseract_bundle
 
-if not exist "%SRC%\tesseract.exe" (
-    echo ERROR: Tesseract not found at %SRC%
+REM Try common Tesseract install locations
+set SRC=
+if exist "C:\Program Files\Tesseract-OCR\tesseract.exe" (
+    set "SRC=C:\Program Files\Tesseract-OCR"
+) else if exist "%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe" (
+    set "SRC=%LOCALAPPDATA%\Programs\Tesseract-OCR"
+) else if exist "%USERPROFILE%\AppData\Local\Programs\Tesseract-OCR\tesseract.exe" (
+    set "SRC=%USERPROFILE%\AppData\Local\Programs\Tesseract-OCR"
+) else if exist "C:\Program Files (x86)\Tesseract-OCR\tesseract.exe" (
+    set "SRC=C:\Program Files (x86)\Tesseract-OCR"
+)
+
+if "%SRC%"=="" (
+    echo ERROR: Tesseract not found in common locations:
+    echo   - C:\Program Files\Tesseract-OCR
+    echo   - %LOCALAPPDATA%\Programs\Tesseract-OCR
+    echo   - C:\Program Files ^(x86^)\Tesseract-OCR
+    echo.
     echo Install from: https://github.com/UB-Mannheim/tesseract/wiki
+    echo Or set SRC manually: set SRC=C:\path\to\Tesseract-OCR
     exit /b 1
 )
+
+echo Found Tesseract at: %SRC%
 
 echo Preparing Tesseract bundle...
 
