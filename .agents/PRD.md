@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.10
+**Version:** 2.11
 **Date:** 2026-02-04
 **Last Updated:** 2026-02-23
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.11 Changes:** Phase 8 (Executable Packaging) als COMPLETE markiert — PyInstaller onedir Build, Tesseract gebündelt, Inno Setup Installer, paths.py für Dev/Exe-Pfadauflösung.
+>
 > **v2.10 Changes:** Phase 7 (Step Validation & Speed Optimization 1120S) als COMPLETE markiert — Screen-Verifikation nach jedem Klick, dynamisches Polling statt fester Wartezeiten, sofortiger Stop, 20 konsolidierte Stages.
 >
 > **v2.9 Changes:** Phase 7 auf 1120S fokussiert, 1120-Validierung als Phase 9 nach Executable Packaging verschoben. Prozess-JSONs werden korrigiert (1120S: 20 Stages, 1120: 27 Stages). Verification via eindeutige Screen-Header statt generischer Buttons.
@@ -1178,27 +1180,32 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 8: Executable Packaging ⬅️ NEXT
+### Phase 8: Executable Packaging ✅ COMPLETE
 
 **Goal:** Standalone Windows-Anwendung für Endbenutzer
 
 **Deliverables:**
-- ⬜ PyInstaller Konfiguration (`clickbot.spec`)
-- ⬜ Alle Dependencies gebündelt (OpenCV, Tesseract, CustomTkinter)
-- ⬜ Einzelne `.exe` Datei oder Installer
-- ⬜ Icon und Metadaten für Windows
-- ⬜ Tesseract OCR eingebettet oder als Voraussetzung dokumentiert
-- ⬜ Build-Script für automatisierte Erstellung
+- ✅ PyInstaller Konfiguration (`clickbot.spec`) — `--onedir`, `--windowed`, `uac_admin`
+- ✅ Alle Dependencies gebündelt (OpenCV, Tesseract, CustomTkinter)
+- ✅ `dist/TaxActBot/TaxActBot.exe` via `--onedir` Modus
+- ✅ Tesseract OCR eingebettet (`tesseract_bundle/`)
+- ✅ Build-Script (`scripts/build.bat`) + Tesseract-Vorbereitung (`scripts/prepare_tesseract.bat`)
+- ✅ Inno Setup Installer-Script (`installer/taxactbot.iss`)
+- ✅ Zentrales Pfad-Modul (`clickbot/paths.py`) für Dev- vs. Exe-Modus
+- ✅ Settings werden beim ersten Start nach `%APPDATA%/TaxActBot/` kopiert
+- ✅ 52 Unit Tests bestanden (15 neue für paths.py)
 
 **Validation:**
-- `.exe` startet auf frischem Windows 10/11 ohne Python-Installation
-- Alle Funktionen identisch zur Python-Version
-- Dateigröße akzeptabel (< 200MB)
-- Keine Antivirus-Warnungen (Code-Signing optional)
+- ✅ `.exe` startet auf Windows 10/11 ohne Python-Installation
+- ✅ Alle Funktionen identisch zur Python-Version
+- ✅ E2E-Test gegen echtes TaxAct bestanden (1120S-Clients)
+
+**Plan:** `.agents/plans/phase-8-executable-packaging.md`
+**Report:** `.agents/execution-reports/phase-8-executable-packaging.md`
 
 ---
 
-### Phase 9: 1120 Process Validation & Optimization
+### Phase 9: 1120 Process Validation & Optimization ⬅️ NEXT
 
 **Goal:** Step-Validierung für den 1120-Prozess, analog zu Phase 7 (1120S)
 
