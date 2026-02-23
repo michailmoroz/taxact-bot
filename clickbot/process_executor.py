@@ -597,19 +597,29 @@ class ProcessExecutor:
         verify_base = self._get_verify_base_path()
 
         for retry in range(max_retries):
+            # Check stop signal before each retry
+            if self.stop_event.is_set():
+                logger.info("  -> Verification aborted: stop signal")
+                return False
+
             logger.info(
                 f"  -> Verifying: {verify_base}/{verify_image} "
                 f"(timeout={timeout}s, attempt {retry + 1}/{max_retries})"
             )
             coords = vision.wait_for_element(
                 verify_image, timeout=timeout, poll_interval=poll_interval,
-                base_path=verify_base
+                base_path=verify_base, stop_event=self.stop_event
             )
 
             if coords is not None:
                 logger.info(f"  -> Screen verified: {verify_image}")
                 time.sleep(min_wait)
                 return True
+
+            # Stop signal may have caused the timeout
+            if self.stop_event.is_set():
+                logger.info("  -> Verification aborted: stop signal")
+                return False
 
             # Timeout: retry the click
             if retry < max_retries - 1:

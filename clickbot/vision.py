@@ -9,6 +9,7 @@ Provides:
 """
 
 import logging
+import threading
 import time
 from pathlib import Path
 from dataclasses import dataclass
@@ -206,7 +207,8 @@ def wait_for_element(
     poll_interval: float = 0.333,
     confidence: Optional[float] = None,
     region: Optional[Tuple[int, int, int, int]] = None,
-    base_path: Optional[str] = None
+    base_path: Optional[str] = None,
+    stop_event: Optional["threading.Event"] = None
 ) -> Optional[Tuple[int, int]]:
     """Poll screen until element appears or timeout.
 
@@ -220,13 +222,19 @@ def wait_for_element(
         confidence: Confidence threshold
         region: Optional search region
         base_path: Override base path for template loading
+        stop_event: Optional threading.Event to abort early on stop signal
 
     Returns:
-        (x, y) if found, None on timeout
+        (x, y) if found, None on timeout or stop
     """
     deadline = time.time() + timeout
     attempts = 0
     while time.time() < deadline:
+        # Check stop signal
+        if stop_event is not None and stop_event.is_set():
+            logger.debug(f"wait_for_element: aborted by stop signal after {attempts} polls")
+            return None
+
         attempts += 1
         coords = find_element(
             image_path, confidence,

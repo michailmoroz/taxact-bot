@@ -128,3 +128,21 @@ class TestWaitForElement:
             region=None, retry_count=1,
             base_path="assets/verify"
         )
+
+    @patch("clickbot.vision.find_element")
+    def test_stop_event_aborts_polling(self, mock_find):
+        """stop_event aborts polling immediately."""
+        import threading
+        stop = threading.Event()
+        stop.set()  # Already stopped
+
+        mock_find.return_value = None
+
+        result = vision.wait_for_element(
+            "test.png", timeout=5.0, poll_interval=0.01,
+            stop_event=stop
+        )
+
+        assert result is None
+        # Should not have polled at all since stop was already set
+        assert mock_find.call_count == 0

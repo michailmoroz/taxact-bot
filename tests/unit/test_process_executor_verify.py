@@ -58,11 +58,12 @@ class TestWaitAndVerify:
 
         assert result is True
         assert mock_wait.call_count == 1
-        # Verify base_path is passed through
+        # Verify base_path and stop_event are passed through
         mock_wait.assert_called_with(
             "1120S/test.png", timeout=cfg["step_timeout_s"],
             poll_interval=cfg["poll_interval_ms"] / 1000,
-            base_path="assets/verify"
+            base_path="assets/verify",
+            stop_event=executor.stop_event
         )
 
     @patch("clickbot.process_executor.vision.wait_for_element")
