@@ -57,6 +57,14 @@
       "fed_ef_status": { "x": 700, "width": 117 }
     }
   },
+  "validation": {
+    "enabled": true,
+    "poll_interval_ms": 333,
+    "step_timeout_s": 10.0,
+    "max_retries": 3,
+    "min_wait_after_ms": 200,
+    "verify_base_path": "verify"
+  },
   "loop": {
     "scroll_in_table": {
       "x": 400,

@@ -88,14 +88,16 @@ class ProcessExecutor:
                 error_message=str(e)
             )
 
-        total_steps = len(self.process["steps"])
+        # Support both "stages" (new) and "steps" (legacy) keys
+        steps = self.process.get("stages") or self.process.get("steps", [])
+        total_steps = len(steps)
         static_inputs = get_static_inputs(self.process)
 
         self._send_status(f"Starting {self.process['name']}")
         self._send_log(f"Process: {return_type} ({total_steps} steps)")
 
         # Execute steps
-        for i, step in enumerate(self.process["steps"]):
+        for i, step in enumerate(steps):
             # Check for stop signal
             if self.stop_event.is_set():
                 self._send_log("Execution stopped by user")
@@ -119,6 +121,20 @@ class ProcessExecutor:
             self._send_status(f"Step {self.current_step}/{total_steps}: {step_desc}")
             self._send_log(f"Step {self.current_step}/{total_steps}: {step_desc}")
 
+            # Pre-check: optionally verify we're on the right screen
+            validation_cfg = self.settings.get("validation", {})
+            validation_enabled = validation_cfg.get("enabled", False)
+            verify_screen = step.get("verify_screen")
+            if verify_screen and validation_enabled:
+                verify_path = self._resolve_verify_path(verify_screen)
+                on_screen = vision.find_element(
+                    verify_path, fallback_coords=None, retry_count=1
+                )
+                if on_screen is None:
+                    logger.warning(
+                        f"  -> Pre-check: expected screen not detected: {verify_screen}"
+                    )
+
             # Execute step
             success = self._execute_step(step, static_inputs)
 
@@ -134,10 +150,30 @@ class ProcessExecutor:
                     error_step=step["id"]
                 )
 
-            # Wait after step (if specified)
-            wait_after = step.get("wait_after", self.settings.get("timing", {}).get("default_wait", 2.0))
-            if wait_after > 0:
-                time.sleep(wait_after)
+            # Post-step: verify next screen or fall back to wait_after
+            verify_next = step.get("verify_next")
+            validation_cfg = self.settings.get("validation", {})
+            validation_enabled = validation_cfg.get("enabled", False)
+
+            if verify_next and validation_enabled:
+                verify_path = self._resolve_verify_path(verify_next)
+                verified = self._wait_and_verify(step, verify_path, validation_cfg)
+                if not verified:
+                    error_msg = f"Screen verification failed after: {step_name}"
+                    self._send_error(error_msg)
+                    sounds.play_error()
+                    return ExecutionResult(
+                        success=False,
+                        steps_completed=i,
+                        total_steps=total_steps,
+                        error_message=error_msg,
+                        error_step=step["id"]
+                    )
+            else:
+                # Fallback: fixed wait_after (backward compatible)
+                wait_after = step.get("wait_after", self.settings.get("timing", {}).get("default_wait", 2.0))
+                if wait_after > 0:
+                    time.sleep(wait_after)
 
         # All steps completed
         self._send_log("All steps completed successfully")
@@ -181,6 +217,9 @@ class ProcessExecutor:
 
             elif action == "wait":
                 return self._action_wait(step)
+
+            elif action == "multi":
+                return self._action_multi(step, static_inputs)
 
             elif action == "verify_screen":
                 return self._action_verify_screen(target)
@@ -384,7 +423,7 @@ class ProcessExecutor:
         if isinstance(branch, dict):
             # Single step - inject detected position if action is "click_detected"
             if branch.get("action") == "click_detected" and detected_position:
-                return executor.click(detected_position[0], detected_position[1], wait=0)
+                result = executor.click(detected_position[0], detected_position[1], wait=0)
             elif branch.get("action") == "type_at_detected" and detected_position:
                 # Click at detected position, then type
                 executor.click(detected_position[0], detected_position[1], wait=0.5)
@@ -405,19 +444,45 @@ class ProcessExecutor:
                     pyautogui.press('delete')
                     time.sleep(0.1)
 
-                return executor.type_text(text)
+                result = executor.type_text(text)
             else:
-                return self._execute_step(branch, static_inputs)
+                result = self._execute_step(branch, static_inputs)
+
+            # Verify next screen if branch has verify_next
+            if result:
+                result = self._verify_branch(branch)
+
+            return result
 
         if isinstance(branch, list):
             # Multiple steps
             for step in branch:
                 if not self._execute_step(step, static_inputs):
                     return False
+            # Check verify_next on last step if present
+            if branch and isinstance(branch[-1], dict):
+                return self._verify_branch(branch[-1])
             return True
 
         logger.error(f"Invalid branch type: {type(branch)}")
         return False
+
+    def _verify_branch(self, branch: Dict[str, Any]) -> bool:
+        """Verify next screen after branch execution if verify_next is set.
+
+        Args:
+            branch: Branch dict that may contain verify_next
+
+        Returns:
+            True if no verify_next or verification passed
+        """
+        verify_next = branch.get("verify_next")
+        validation_cfg = self.settings.get("validation", {})
+        if verify_next and validation_cfg.get("enabled", False):
+            verify_path = self._resolve_verify_path(verify_next)
+            if not self._wait_and_verify(branch, verify_path, validation_cfg):
+                return False
+        return True
 
     def _action_wait(self, step: Dict[str, Any]) -> bool:
         """Execute wait action."""
@@ -496,6 +561,105 @@ class ProcessExecutor:
         except Exception as e:
             logger.error(f"type_field failed: {e}")
             return False
+
+    def _resolve_verify_path(self, verify_image: str) -> str:
+        """Resolve verify image path relative to verify_base_path.
+
+        Args:
+            verify_image: Relative path like '1120S/06_s_corp_name.png'
+
+        Returns:
+            Full relative path like 'verify/1120S/06_s_corp_name.png'
+        """
+        base = self.settings.get("validation", {}).get("verify_base_path", "verify")
+        return f"{base}/{verify_image}"
+
+    def _wait_and_verify(
+        self,
+        step: Dict[str, Any],
+        verify_path: str,
+        validation_cfg: Dict[str, Any]
+    ) -> bool:
+        """Wait for next screen and retry click if needed.
+
+        Flow:
+        1. Poll for expected screen header (timeout from config)
+        2. If found -> success
+        3. If timeout -> re-locate and retry click (max_retries)
+        4. If max retries exhausted -> return False
+
+        Args:
+            step: The step definition (for retry click)
+            verify_path: Path to verification template image
+            validation_cfg: Validation settings dict
+
+        Returns:
+            True if screen verified, False if all retries exhausted
+        """
+        timeout = validation_cfg.get("step_timeout_s", 10.0)
+        poll_interval = validation_cfg.get("poll_interval_ms", 333) / 1000
+        max_retries = validation_cfg.get("max_retries", 3)
+        min_wait = validation_cfg.get("min_wait_after_ms", 200) / 1000
+
+        for retry in range(max_retries):
+            logger.info(
+                f"  -> Verifying: {verify_path} "
+                f"(timeout={timeout}s, attempt {retry + 1}/{max_retries})"
+            )
+            coords = vision.wait_for_element(
+                verify_path, timeout=timeout, poll_interval=poll_interval
+            )
+
+            if coords is not None:
+                logger.info(f"  -> Screen verified: {verify_path}")
+                time.sleep(min_wait)
+                return True
+
+            # Timeout: retry the click
+            if retry < max_retries - 1:
+                logger.warning(f"  -> Screen not verified, retrying click...")
+                self._send_log(f"Retry {retry + 1}: {step.get('name', 'unknown')}")
+                self._retry_step_click(step)
+
+        logger.error(f"  -> Verification FAILED after {max_retries} attempts")
+        return False
+
+    def _retry_step_click(self, step: Dict[str, Any]) -> None:
+        """Re-execute the click action of a step for retry.
+
+        Args:
+            step: Step definition dict
+        """
+        action = step.get("action")
+        target = step.get("target", {})
+
+        if action == "click":
+            self._action_click(target)
+        elif action == "double_click":
+            self._action_double_click(target)
+        # For conditional/scroll/multi: don't retry click, just wait longer
+
+    def _action_multi(self, step: Dict[str, Any], static_inputs: Dict[str, str]) -> bool:
+        """Execute multiple sub-actions in sequence.
+
+        Used for consolidated stages (e.g., select checkbox + click continue).
+
+        Args:
+            step: Step definition containing 'actions' list
+            static_inputs: Static input values
+
+        Returns:
+            True if all sub-actions succeeded
+        """
+        sub_actions = step.get("actions", [])
+        for i, sub in enumerate(sub_actions):
+            logger.debug(f"  -> Multi sub-action {i + 1}/{len(sub_actions)}: {sub.get('action')}")
+            if not self._execute_step(sub, static_inputs):
+                return False
+            sub_wait = sub.get("wait_after", 0.5)
+            if sub_wait > 0:
+                time.sleep(sub_wait)
+        return True
 
     # --- Message Helpers ---
 

@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 # Required fields in process definition
-REQUIRED_PROCESS_FIELDS = ["name", "return_type", "version", "steps"]
+REQUIRED_PROCESS_FIELDS = ["name", "return_type", "version"]
 REQUIRED_STEP_FIELDS = ["id", "name", "action"]
 
 
@@ -54,7 +54,8 @@ def load_process(return_type: str) -> Dict[str, Any]:
     # Validate process
     validate_process(process)
 
-    logger.info(f"Process loaded: {process['name']} with {len(process['steps'])} steps")
+    steps = process.get("stages") or process.get("steps", [])
+    logger.info(f"Process loaded: {process['name']} with {len(steps)} steps")
     return process
 
 
@@ -72,10 +73,10 @@ def validate_process(process: Dict[str, Any]) -> None:
         if field not in process:
             raise ProcessValidationError(f"Missing required field: {field}")
 
-    # Validate steps
-    steps = process.get("steps", [])
+    # Support both "stages" (new) and "steps" (legacy) keys
+    steps = process.get("stages") or process.get("steps", [])
     if not steps:
-        raise ProcessValidationError("Process has no steps")
+        raise ProcessValidationError("Process has no steps/stages")
 
     for i, step in enumerate(steps):
         for field in REQUIRED_STEP_FIELDS:
@@ -84,11 +85,12 @@ def validate_process(process: Dict[str, Any]) -> None:
 
         # Validate action type
         valid_actions = ["click", "double_click", "type", "scroll", "scroll_until_visible",
-                        "conditional", "wait", "verify_screen", "key_press", "type_field"]
+                        "conditional", "wait", "verify_screen", "key_press", "type_field",
+                        "multi"]
         if step["action"] not in valid_actions:
             raise ProcessValidationError(f"Step {step['id']} has invalid action: {step['action']}")
 
-    logger.debug(f"Process validation passed: {len(steps)} steps")
+    logger.debug(f"Process validation passed: {len(steps)} steps/stages")
 
 
 def get_step(process: Dict[str, Any], step_id: int) -> Optional[Dict[str, Any]]:
@@ -101,7 +103,8 @@ def get_step(process: Dict[str, Any], step_id: int) -> Optional[Dict[str, Any]]:
     Returns:
         Step dict or None if not found
     """
-    for step in process.get("steps", []):
+    steps = process.get("stages") or process.get("steps", [])
+    for step in steps:
         if step.get("id") == step_id:
             return step
     return None

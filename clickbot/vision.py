@@ -121,7 +121,8 @@ def find_element(
     image_path: str,
     confidence: Optional[float] = None,
     fallback_coords: Optional[Tuple[int, int]] = None,
-    region: Optional[Tuple[int, int, int, int]] = None
+    region: Optional[Tuple[int, int, int, int]] = None,
+    retry_count: Optional[int] = None
 ) -> Optional[Tuple[int, int]]:
     """Find an element on screen using template matching.
 
@@ -155,7 +156,8 @@ def find_element(
     max_val = 0
 
     # Retry loop
-    for attempt in range(_config["retry_count"]):
+    retries = retry_count if retry_count is not None else _config["retry_count"]
+    for attempt in range(retries):
         # Take screenshot
         screenshot = take_screenshot(region)
 
@@ -179,15 +181,56 @@ def find_element(
             return (center_x, center_y)
 
         # Wait before retry
-        if attempt < _config["retry_count"] - 1:
+        if attempt < retries - 1:
             time.sleep(_config["retry_delay_ms"] / 1000)
 
     # Not found after retries
     if fallback_coords:
-        logger.warning(f"Element not found after {_config['retry_count']} attempts, using fallback: {fallback_coords}")
+        logger.warning(f"Element not found after {retries} attempts, using fallback: {fallback_coords}")
         return fallback_coords
 
     logger.error(f"Element not found: {image_path} (max confidence: {max_val:.3f})")
+    return None
+
+
+def wait_for_element(
+    image_path: str,
+    timeout: float = 10.0,
+    poll_interval: float = 0.333,
+    confidence: Optional[float] = None,
+    region: Optional[Tuple[int, int, int, int]] = None
+) -> Optional[Tuple[int, int]]:
+    """Poll screen until element appears or timeout.
+
+    Uses SikuliX-style polling (default 3Hz scan rate).
+    Unlike find_element(), does NOT use fallback_coords.
+
+    Args:
+        image_path: Path to template image
+        timeout: Maximum seconds to wait
+        poll_interval: Seconds between checks (default ~3Hz)
+        confidence: Confidence threshold
+        region: Optional search region
+
+    Returns:
+        (x, y) if found, None on timeout
+    """
+    deadline = time.time() + timeout
+    attempts = 0
+    while time.time() < deadline:
+        attempts += 1
+        coords = find_element(
+            image_path, confidence,
+            fallback_coords=None,
+            region=region,
+            retry_count=1
+        )
+        if coords is not None:
+            logger.debug(f"wait_for_element: found {image_path} after {attempts} polls")
+            return coords
+        time.sleep(poll_interval)
+
+    logger.debug(f"wait_for_element: timeout after {attempts} polls for {image_path}")
     return None
 
 

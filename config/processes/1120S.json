@@ -1,15 +1,16 @@
 {
   "name": "Form 1120S E-File Extension",
   "return_type": "1120S",
-  "version": "1.0",
-  "description": "Automated E-File Extension process for Form 1120-S (S Corporation) - 100% screenshot-based",
+  "version": "2.0",
+  "description": "20-stage process with screen verification for Form 1120-S (S Corporation)",
   "static_inputs": {},
-  "steps": [
+  "stages": [
     {
       "id": 1,
       "name": "close_popup_if_present",
-      "action": "conditional",
       "description": "Close Add/Remove State popup if it appears",
+      "verify_screen": "1120S/01_popup_add_remove.png",
+      "action": "conditional",
       "condition": {
         "type": "element_visible",
         "image": "common/popup_add_remove_states.png"
@@ -19,248 +20,216 @@
         "target": { "image": "common/popup_close_x.png" }
       },
       "if_false": "continue",
-      "wait_after": 1.0
+      "verify_next": "1120S/02_s_corp_view.png"
     },
     {
       "id": 2,
       "name": "click_efile_menu",
-      "action": "click",
       "description": "Click E-File in the top menu bar",
+      "verify_screen": "1120S/02_s_corp_view.png",
+      "action": "click",
       "target": { "image": "common/efile_menu.png" },
-      "wait_after": 1.0
+      "verify_next": "1120S/03_efile_center.png"
     },
     {
       "id": 3,
       "name": "click_submit_electronic_filing",
-      "action": "click",
       "description": "Select Submit Electronic Filing Return in popup",
+      "verify_screen": "1120S/03_efile_center.png",
+      "action": "click",
       "target": { "image": "common/submit_electronic_filing.png" },
-      "wait_after": 1.0
+      "verify_next": "1120S/04_file_extension.png"
     },
     {
       "id": 4,
-      "name": "select_file_extension",
-      "action": "click",
-      "description": "Select File Extension option",
-      "target": { "image": "common/file_extension_option_unchecked.png" },
-      "wait_after": 1.0
+      "name": "select_file_extension_and_continue",
+      "description": "Select File Extension option and click Continue",
+      "verify_screen": "1120S/04_file_extension.png",
+      "action": "multi",
+      "actions": [
+        {
+          "action": "click",
+          "target": { "image": "common/file_extension_option_unchecked.png" },
+          "wait_after": 0.5
+        },
+        {
+          "action": "click",
+          "target": { "image": "common/continue_blue.png" },
+          "wait_after": 0
+        }
+      ],
+      "verify_next": "1120S/05_extension_intro.png"
     },
     {
       "id": 5,
-      "name": "click_continue_filing",
+      "name": "click_continue_extension_intro",
+      "description": "Continue on Extension Intro screen (green button)",
+      "verify_screen": "1120S/05_extension_intro.png",
       "action": "click",
-      "description": "Click Continue on Filing screen",
-      "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
+      "target": { "image": "common/continue_green.png" },
+      "verify_next": "1120S/06_s_corp_name.png"
     },
     {
       "id": 6,
-      "name": "click_continue_extension_intro",
+      "name": "click_continue_s_corp_name",
+      "description": "Continue on S Corporation Name screen",
+      "verify_screen": "1120S/06_s_corp_name.png",
       "action": "click",
-      "description": "Continue on Extension Intro screen (green button)",
-      "target": { "image": "common/continue_green.png" },
-      "wait_after": 1.0
+      "target": { "image": "common/continue_blue.png" },
+      "verify_next": "1120S/07_address.png"
     },
     {
       "id": 7,
-      "name": "click_continue_s_corp_name",
+      "name": "click_continue_address",
+      "description": "Continue on Address screen",
+      "verify_screen": "1120S/07_address.png",
       "action": "click",
-      "description": "Continue on S Corporation Name screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
+      "verify_next": "1120S/08_ein.png"
     },
     {
       "id": 8,
-      "name": "click_continue_address",
+      "name": "click_continue_ein",
+      "description": "Continue on EIN screen",
+      "verify_screen": "1120S/08_ein.png",
       "action": "click",
-      "description": "Continue on Address screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
+      "verify_next": "1120S/09_calendar_year.png"
     },
     {
       "id": 9,
-      "name": "click_continue_ein",
+      "name": "click_continue_calendar_year",
+      "description": "Continue on Calendar Year screen",
+      "verify_screen": "1120S/09_calendar_year.png",
       "action": "click",
-      "description": "Continue on EIN screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
+      "verify_next": "1120S/10_who_signing.png"
     },
     {
       "id": 10,
-      "name": "click_continue_calendar_year",
+      "name": "click_continue_who_signing",
+      "description": "Continue on Who is Signing screen",
+      "verify_screen": "1120S/10_who_signing.png",
       "action": "click",
-      "description": "Continue on Calendar Year screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
+      "verify_next": "1120S/11_ero_statement.png"
     },
     {
       "id": 11,
-      "name": "click_continue_who_signing",
+      "name": "click_continue_ero_statement",
+      "description": "Continue on ERO Statement screen",
+      "verify_screen": "1120S/11_ero_statement.png",
       "action": "click",
-      "description": "Continue on Who is Signing screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
+      "verify_next": "1120S/12_email_notification.png"
     },
     {
       "id": 12,
-      "name": "click_continue_ero_statement",
+      "name": "click_continue_email_notification",
+      "description": "Continue on Email Notification screen",
+      "verify_screen": "1120S/12_email_notification.png",
       "action": "click",
-      "description": "Continue on ERO Statement screen",
       "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
+      "verify_next": "1120S/13_extension_payment.png"
     },
     {
       "id": 13,
-      "name": "click_continue_email_notification",
-      "action": "click",
-      "description": "Continue on Email Notification screen",
-      "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
+      "name": "scroll_and_continue_payment",
+      "description": "Scroll down on Extension Payment screen and click Continue",
+      "verify_screen": "1120S/13_extension_payment.png",
+      "action": "multi",
+      "actions": [
+        {
+          "action": "scroll_until_visible",
+          "target": {
+            "image": "common/continue_blue.png",
+            "scroll_x": 960,
+            "scroll_y": 540,
+            "scroll_direction": "down",
+            "max_scrolls": 5
+          },
+          "wait_after": 0.5
+        },
+        {
+          "action": "click",
+          "target": { "image": "common/continue_blue.png" },
+          "wait_after": 0
+        }
+      ],
+      "verify_next": "1120S/14_review_alerts.png"
     },
     {
       "id": 14,
-      "name": "scroll_extension_payment",
-      "action": "scroll_until_visible",
-      "description": "Scroll down on Extension Payment screen until Continue visible",
-      "target": {
-        "image": "common/continue_blue.png",
-        "scroll_x": 960,
-        "scroll_y": 540,
-        "scroll_direction": "down",
-        "max_scrolls": 5
-      },
-      "wait_after": 1.0
+      "name": "click_start_alerts",
+      "description": "Click Start Alerts button on Review Alerts screen",
+      "verify_screen": "1120S/14_review_alerts.png",
+      "action": "click",
+      "target": { "image": "common/start_alerts.png" },
+      "verify_next": "1120S/15_good_to_go.png"
     },
     {
       "id": 15,
-      "name": "click_continue_extension_payment",
-      "action": "click",
-      "description": "Continue on Extension Payment screen (after scroll)",
-      "target": { "image": "common/continue_blue.png" },
-      "wait_after": 1.0
-    },
-    {
-      "id": 16,
-      "name": "click_start_alerts",
-      "action": "click",
-      "description": "Click Start Alerts button",
-      "target": { "image": "common/start_alerts.png" },
-      "wait_after": 1.5
-    },
-    {
-      "id": 17,
       "name": "handle_alerts_result",
+      "description": "Check if Good to Go or error - different actions",
       "action": "conditional",
-      "description": "Check if 'You're Good to Go' or error - different actions",
       "condition": {
         "type": "element_visible",
         "image": "1120S/good_to_go.png"
       },
       "if_true": {
         "action": "click",
-        "target": { "image": "common/continue_blue.png" }
+        "target": { "image": "common/continue_blue.png" },
+        "verify_next": "1120S/16_efile_confirm.png"
       },
       "if_false": {
         "action": "click",
         "description": "Click Clients button to return (Error case)",
         "target": { "image": "common/clients_button.png" }
-      },
-      "wait_after": 1.0
+      }
+    },
+    {
+      "id": 16,
+      "name": "click_submit_efile",
+      "description": "Click Submit E-File button",
+      "verify_screen": "1120S/16_efile_confirm.png",
+      "action": "click",
+      "target": { "image": "common/submit_efile.png" },
+      "verify_next": "1120S/17_done.png"
+    },
+    {
+      "id": 17,
+      "name": "click_continue_done",
+      "description": "Click Continue on Done screen",
+      "verify_screen": "1120S/17_done.png",
+      "action": "click",
+      "target": { "image": "common/continue_blue.png" },
+      "verify_next": "1120S/18_state_extension.png"
     },
     {
       "id": 18,
-      "name": "click_submit_efile",
-      "action": "conditional",
-      "description": "Click Submit E-File button if visible",
-      "condition": {
-        "type": "element_visible",
-        "image": "common/submit_efile.png"
-      },
-      "if_true": {
-        "action": "click",
-        "target": { "image": "common/submit_efile.png" }
-      },
-      "if_false": "continue",
-      "wait_after": 1.0
+      "name": "click_continue_state_extension",
+      "description": "Click Continue on State Extension question",
+      "verify_screen": "1120S/18_state_extension.png",
+      "action": "click",
+      "target": { "image": "common/continue_blue.png" },
+      "verify_next": "1120S/19_filing_complete.png"
     },
     {
       "id": 19,
-      "name": "click_continue_done",
-      "action": "conditional",
-      "description": "Click Continue on Done screen if visible",
-      "condition": {
-        "type": "element_visible",
-        "image": "common/continue_blue.png"
-      },
-      "if_true": {
-        "action": "click",
-        "target": { "image": "common/continue_blue.png" }
-      },
-      "if_false": "continue",
-      "wait_after": 2.0
+      "name": "click_new_return",
+      "description": "Click New Return button on Filing Complete screen",
+      "verify_screen": "1120S/19_filing_complete.png",
+      "action": "click",
+      "target": { "image": "common/new_return.png" },
+      "verify_next": "1120S/20_add_client.png"
     },
     {
       "id": 20,
-      "name": "click_continue_state_extension",
-      "action": "conditional",
-      "description": "Click Continue on State Extension question if visible",
-      "condition": {
-        "type": "element_visible",
-        "image": "common/continue_blue.png"
-      },
-      "if_true": {
-        "action": "click",
-        "target": { "image": "common/continue_blue.png" }
-      },
-      "if_false": "continue",
-      "wait_after": 2.0
-    },
-    {
-      "id": 21,
-      "name": "click_continue_filing_complete",
-      "action": "conditional",
-      "description": "Click Continue on Filing Complete screen if visible",
-      "condition": {
-        "type": "element_visible",
-        "image": "common/continue_blue.png"
-      },
-      "if_true": {
-        "action": "click",
-        "target": { "image": "common/continue_blue.png" }
-      },
-      "if_false": "continue",
-      "wait_after": 2.0
-    },
-    {
-      "id": 22,
-      "name": "click_new_return",
-      "action": "conditional",
-      "description": "Click New Return button (Filing Complete screen)",
-      "condition": {
-        "type": "element_visible",
-        "image": "common/new_return.png"
-      },
-      "if_true": {
-        "action": "click",
-        "target": { "image": "common/new_return.png" }
-      },
-      "if_false": "continue",
-      "wait_after": 5.0
-    },
-    {
-      "id": 23,
       "name": "close_add_client_popup",
-      "action": "conditional",
-      "description": "Close Add Client popup if present (click Cancel)",
-      "condition": {
-        "type": "element_visible",
-        "image": "common/popup_cancel.png"
-      },
-      "if_true": {
-        "action": "click",
-        "target": { "image": "common/popup_cancel.png" }
-      },
-      "if_false": "continue",
+      "description": "Close Add Client popup (click Cancel)",
+      "verify_screen": "1120S/20_add_client.png",
+      "action": "click",
+      "target": { "image": "common/popup_cancel.png" },
       "wait_after": 1.0
     }
   ]
