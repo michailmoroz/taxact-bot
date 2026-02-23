@@ -1,0 +1,24 @@
+# PyInstaller build artifacts
+dist/
+build/
+*.spec.bak
+
+# Tesseract bundle (copied from local install, not committed)
+tesseract_bundle/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Logs
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store

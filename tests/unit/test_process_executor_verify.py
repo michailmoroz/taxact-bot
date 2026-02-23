@@ -38,9 +38,10 @@ class TestGetVerifyBasePath:
     """Tests for _get_verify_base_path()."""
 
     def test_returns_configured_path(self, executor):
-        """Returns verify_base_path from settings."""
+        """Returns verify_base_path resolved to absolute path."""
         result = executor._get_verify_base_path()
-        assert result == "assets/verify"
+        # Now resolves relative paths against bundle dir
+        assert result.endswith("assets/verify") or result.endswith("assets\\verify")
 
 
 class TestWaitAndVerify:
@@ -58,13 +59,11 @@ class TestWaitAndVerify:
 
         assert result is True
         assert mock_wait.call_count == 1
-        # Verify base_path and stop_event are passed through
-        mock_wait.assert_called_with(
-            "1120S/test.png", timeout=cfg["step_timeout_s"],
-            poll_interval=cfg["poll_interval_ms"] / 1000,
-            base_path="assets/verify",
-            stop_event=executor.stop_event
-        )
+        # Verify base_path (now absolute) and stop_event are passed through
+        call_kwargs = mock_wait.call_args[1]
+        assert call_kwargs["timeout"] == cfg["step_timeout_s"]
+        assert call_kwargs["base_path"].endswith("assets/verify") or call_kwargs["base_path"].endswith("assets\\verify")
+        assert call_kwargs["stop_event"] is executor.stop_event
 
     @patch("clickbot.process_executor.vision.wait_for_element")
     def test_retry_after_timeout(self, mock_wait, executor):

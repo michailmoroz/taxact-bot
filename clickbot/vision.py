@@ -21,11 +21,13 @@ import pyautogui
 import pytesseract
 from PIL import Image
 
+from clickbot import paths
+
 logger = logging.getLogger(__name__)
 
 # Module configuration
 _config = {
-    "screenshot_base_path": ".agents/screenshots/buttons",
+    "screenshot_base_path": str(paths.get_buttons_dir()),
     "confidence_threshold": 0.8,
     "retry_count": 3,
     "retry_delay_ms": 500,
@@ -44,7 +46,13 @@ def configure(settings: dict) -> None:
     global _config
     vision_settings = settings.get("vision", {})
 
-    _config["screenshot_base_path"] = vision_settings.get("screenshot_base_path", ".agents/screenshots/buttons")
+    # Resolve screenshot_base_path against bundle dir for frozen builds
+    raw_base = vision_settings.get("screenshot_base_path", ".agents/screenshots/buttons")
+    base_path = Path(raw_base)
+    if not base_path.is_absolute():
+        base_path = paths.get_bundle_dir() / base_path
+    _config["screenshot_base_path"] = str(base_path)
+
     _config["confidence_threshold"] = vision_settings.get("confidence_threshold", 0.8)
     _config["retry_count"] = vision_settings.get("retry_count", 3)
     _config["retry_delay_ms"] = vision_settings.get("retry_delay_ms", 500)
@@ -58,9 +66,22 @@ def configure(settings: dict) -> None:
 def configure_tesseract(settings: dict) -> None:
     """Configure Tesseract OCR path.
 
+    In frozen (exe) mode: uses bundled tesseract from tesseract_bundle/.
+    In dev mode: uses path from settings.json.
+
     Args:
         settings: Settings dict from config/settings.json
     """
+    if paths.is_frozen():
+        # Use bundled tesseract
+        bundled = paths.get_tesseract_path()
+        if bundled.exists():
+            pytesseract.pytesseract.tesseract_cmd = str(bundled)
+            logger.debug(f"Tesseract (bundled): {bundled}")
+            return
+        logger.warning(f"Bundled tesseract not found: {bundled}")
+
+    # Dev mode: use path from settings
     ocr_settings = settings.get("ocr", {})
     tesseract_path = ocr_settings.get("tesseract_path")
 

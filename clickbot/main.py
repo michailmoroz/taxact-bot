@@ -16,6 +16,7 @@ from pathlib import Path
 
 import keyboard
 
+from clickbot import paths
 from clickbot import sounds
 from clickbot import executor
 from clickbot import window_validator
@@ -65,8 +66,7 @@ def setup_logging(dev_mode: bool = False) -> None:
         dev_mode: If True, use DEBUG level; otherwise INFO
     """
     # Create logs directory if needed
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True)
+    log_dir = paths.get_log_dir()
 
     # Set log level based on dev_mode
     log_level = logging.DEBUG if dev_mode else logging.INFO
@@ -185,8 +185,8 @@ def main() -> None:
     """Main entry point."""
     global _settings
 
-    # Load settings
-    settings_path = Path("config/settings.json")
+    # Load settings (copies default to %APPDATA% on first run when frozen)
+    settings_path = paths.ensure_user_config()
 
     try:
         _settings = load_settings(settings_path)

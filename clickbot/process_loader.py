@@ -8,6 +8,8 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from clickbot import paths
+
 logger = logging.getLogger(__name__)
 
 # Required fields in process definition
@@ -38,7 +40,7 @@ def load_process(return_type: str) -> Dict[str, Any]:
         ProcessLoadError: If file not found or invalid JSON
         ProcessValidationError: If process definition is invalid
     """
-    process_path = Path(f"config/processes/{return_type}.json")
+    process_path = paths.get_processes_dir() / f"{return_type}.json"
 
     if not process_path.exists():
         raise ProcessLoadError(f"Process file not found: {process_path}")
@@ -128,7 +130,7 @@ def get_available_processes() -> List[str]:
     Returns:
         List of return type strings
     """
-    processes_dir = Path("config/processes")
+    processes_dir = paths.get_processes_dir()
 
     if not processes_dir.exists():
         return []

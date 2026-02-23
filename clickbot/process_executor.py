@@ -8,12 +8,14 @@ import queue
 import threading
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
 
 import pyautogui
 import pyperclip
 
 from clickbot import executor
+from clickbot import paths
 from clickbot import sounds
 from clickbot import vision
 from clickbot.bot_controller import StatusMessage
@@ -563,10 +565,16 @@ class ProcessExecutor:
     def _get_verify_base_path(self) -> str:
         """Get the base path for verification templates.
 
+        Resolves relative paths against bundle dir for frozen builds.
+
         Returns:
-            Base path like 'assets/verify'
+            Absolute base path like '/path/to/assets/verify'
         """
-        return self.settings.get("validation", {}).get("verify_base_path", "assets/verify")
+        raw_path = self.settings.get("validation", {}).get("verify_base_path", "assets/verify")
+        base = Path(raw_path)
+        if not base.is_absolute():
+            base = paths.get_bundle_dir() / base
+        return str(base)
 
     def _wait_and_verify(
         self,

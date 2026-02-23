@@ -15,6 +15,7 @@ from typing import Optional
 
 import customtkinter as ctk
 
+from clickbot import paths
 from clickbot import sounds
 from clickbot import window_validator
 from clickbot.bot_controller import BotController, BotState, StatusMessage
@@ -386,8 +387,8 @@ def main() -> None:
     """Main entry point for GUI application."""
     from clickbot.main import load_settings, setup_logging
 
-    # Load settings
-    settings_path = Path("config/settings.json")
+    # Load settings (copies default to %APPDATA% on first run when frozen)
+    settings_path = paths.ensure_user_config()
     try:
         settings = load_settings(settings_path)
     except FileNotFoundError:
