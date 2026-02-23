@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.8
+**Version:** 2.9
 **Date:** 2026-02-04
 **Last Updated:** 2026-02-23
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.9 Changes:** Phase 7 auf 1120S fokussiert, 1120-Validierung als Phase 9 nach Executable Packaging verschoben. Prozess-JSONs werden korrigiert (1120S: 20 Stages, 1120: 27 Stages). Verification via eindeutige Screen-Header statt generischer Buttons.
+>
 > **v2.8 Changes:** Neue Phase 7 (Step Validation & Speed Optimization) eingefügt - Validierung nach jedem Klick statt blinder Wartezeiten. Alte Phase 7 wird Phase 8.
 >
 > **v2.7 Changes:** Phase 6 (Loop Mode & State Tracking) als COMPLETE markiert - Loop-Modus funktioniert mit mehreren Clients, Duplikat-Vermeidung, Error-Recovery
@@ -1144,50 +1146,79 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 7: Step Validation & Speed Optimization ⬅️ NEXT
+### Phase 7: Step Validation & Speed Optimization (1120S) ⬅️ NEXT
 
-**Goal:** Zuverlässige Ausführung durch Validierung nach jedem Schritt, statt blinder Wartezeiten. Ermöglicht gleichzeitig schnellere Ausführung, da der Bot fortfährt sobald TaxAct bereit ist.
+**Goal:** Zuverlässige Ausführung des 1120S-Prozesses durch Screen-Validierung nach jedem Schritt. Eindeutige Screen-Header statt generischer Buttons als Verifikation. Dynamisches Polling statt fester Wartezeiten.
 
 **Problem:** Der Bot verwendet aktuell feste `wait_after`-Zeiten nach jedem Klick. Wenn TaxAct langsamer lädt als erwartet, klickt der Bot ins Leere oder auf den falschen Screen. Wenn TaxAct schneller lädt, wartet der Bot unnötig.
 
-**Lösung:** Nach jedem Schritt wird validiert, dass der erwartete nächste Screen tatsächlich erschienen ist. Der Bot wartet dynamisch bis TaxAct bereit ist (mit Timeout), statt feste Zeiten zu verwenden.
+**Lösung:** Jeder Step hat ein `verify_screen`-Template — ein eindeutiger Header-Text, der nur auf genau diesem Screen vorkommt. Nach jedem Klick wird gepollt bis der nächste Screen-Header erscheint.
 
 **Ansatz:**
 ```
 Step ausführen (Klick)
     │
     ▼
-┌─────────────────────────────────┐
-│ wait_for_next: Warte auf        │
-│ nächsten erwarteten Screen      │
-│ (Template Matching)             │
-└─────────────────────────────────┘
+┌──────────────────────────────────────────┐
+│ verify_screen: Warte auf eindeutigen     │
+│ Screen-Header des NÄCHSTEN Screens       │
+│ (z.B. "Tell Us About Your S Corporation")│
+└──────────────────────────────────────────┘
     │
-    ├─── Element gefunden ───→ Weiter zum nächsten Step
+    ├─── Header gefunden ────→ Weiter zum nächsten Step
     │    (typisch 0.3-1.5s)
     │
-    ├─── Timeout (z.B. 10s) ──→ Retry: Klick wiederholen
+    ├─── Timeout (10s) ──────→ Retry: Klick wiederholen
     │
-    └─── Max Retries ─────────→ Error + Recovery
+    └─── Max Retries (3x) ──→ Error + Recovery
 ```
 
+**Scope:** Nur 1120S. Der 1120-Prozess wird in Phase 9 mit Validierung versehen.
+
+**Verification-Screenshots:** `assets/verify/1120S/` (20 Screenshots, bereits vorhanden)
+
+**1120S Stages (20 konsolidierte Screens):**
+
+| Stage | Screen-Header | Verify-Template | Aktion |
+|-------|--------------|-----------------|--------|
+| 01 | "Add / Remove State(s)" | `01_popup_add_remove.png` | X klicken (conditional) |
+| 02 | "U.S. Income Tax Return for an S Corporation" | `02_s_corp_view.png` | E-File Menü |
+| 03 | "Submit Electronic Filing Return" | `03_efile_center.png` | "Submit Electronic Filing Return" |
+| 04 | "File Extension" | `04_file_extension.png` | Checkbox + Continue |
+| 05 | "We'll walk you through filing an extension" | `05_extension_intro.png` | Continue (grün) |
+| 06 | "Tell Us About Your S Corporation" | `06_s_corp_name.png` | Continue |
+| 07 | "address information" | `07_address.png` | Continue |
+| 08 | "EIN" | `08_ein.png` | Continue |
+| 09 | "return based on a calendar year" | `09_calendar_year.png` | Continue |
+| 10 | "Who is signing the return?" | `10_who_signing.png` | Continue |
+| 11 | "The ERO must read and acknowledge" | `11_ero_statement.png` | Continue |
+| 12 | "Get Notified About Your Extension" | `12_email_notification.png` | Continue |
+| 13 | "Help Us Calculate Your Extension Payment" | `13_extension_payment.png` | Scroll + Continue |
+| 14 | "Almost Done! Let's Review for Alerts" | `14_review_alerts.png` | Start Alerts |
+| 15 | "You're Good to Go!" | `15_good_to_go.png` | Continue |
+| 16 | "Okay, it's finally time to E-File" | `16_efile_confirm.png` | Submit E-File |
+| 17 | "Done!" | `17_done.png` | Continue |
+| 18 | "Would You Like to File a State Extension?" | `18_state_extension.png` | Continue |
+| 19 | "Filing Extension - Complete" | `19_filing_complete.png` | New Return |
+| 20 | "Would you like to add a new TaxAct 2025 client" | `20_add_client.png` | Cancel |
+
 **Deliverables:**
-- ⬜ `wait_for_next` Feld in Prozess-JSON: Definiert welches Element nach dem Step erscheinen soll
-- ⬜ `wait_for_element()` Funktion in `vision.py`: Pollt bis Element sichtbar (mit Timeout)
-- ⬜ Retry-Mechanismus in `process_executor.py`: Klick wiederholen wenn Screen nicht gewechselt hat
-- ⬜ Timeout-Konfiguration in `settings.json` (z.B. `validation.poll_interval_ms`, `validation.timeout_s`, `validation.max_retries`)
-- ⬜ Aktualisierung von `1120S.json` mit `wait_for_next` für jeden Step
-- ⬜ Aktualisierung von `1120.json` mit `wait_for_next` für jeden Step
+- ⬜ `wait_for_element()` Funktion in `vision.py`: Pollt bis Element sichtbar (3Hz, Timeout)
+- ⬜ `verify_screen` Feld in `1120S.json`: Eindeutiger Screen-Header als Verifikation
+- ⬜ `_wait_and_verify()` in `process_executor.py`: Post-Click Validierung mit Retry
+- ⬜ Validation-Konfiguration in `settings.json`
+- ⬜ 1120S.json komplett überarbeitet: 20 Stages, `verify_screen` pro Stage, unnötiger Step 21 entfernt
 - ⬜ Entfernung/Reduzierung der festen `wait_after`-Zeiten
 - ⬜ Performance-Messung: Durchschnittliche Zeit pro Client vorher/nachher
 
 **Validation:**
-- Bot validiert nach jedem Schritt, dass TaxAct korrekt reagiert hat
+- Bot validiert nach jedem Schritt via eindeutigen Screen-Header
 - Bot wartet dynamisch statt feste Zeiten
-- Bot erkennt wenn ein Klick nicht registriert wurde und wiederholt ihn
-- Durchschnittliche Zeit pro Client reduziert sich
-- Fehlerrate bei Loop-Mode sinkt signifikant
-- Bot läuft stabil über 10+ Clients ohne Fehler
+- Bot erkennt verpasste Klicks und wiederholt sie
+- Bot läuft stabil über 10+ 1120S-Clients ohne Fehler
+- Durchschnittliche Zeit pro Client sinkt
+
+**Plan:** `.agents/plans/phase-7-step-validation.md`
 
 ---
 
@@ -1208,6 +1239,59 @@ Step ausführen (Klick)
 - Alle Funktionen identisch zur Python-Version
 - Dateigröße akzeptabel (< 200MB)
 - Keine Antivirus-Warnungen (Code-Signing optional)
+
+---
+
+### Phase 9: 1120 Process Validation & Optimization
+
+**Goal:** Step-Validierung für den 1120-Prozess, analog zu Phase 7 (1120S)
+
+**Scope:** Übertragung des in Phase 7 implementierten Validierungs-Frameworks auf den 1120-Prozess.
+
+**Deliverables:**
+- ⬜ Verification-Screenshots für 1120 aufnehmen (`assets/verify/1120/` — 27 Stages)
+- ⬜ `1120.json` komplett überarbeiten: 27 konsolidierte Stages mit `verify_screen`
+- ⬜ Officer-Felder Eingabe-Logik validieren und testen
+- ⬜ Error/Omission Handling (Stage 23e) implementieren
+- ⬜ E2E-Test: 10+ 1120-Clients im Loop ohne Fehler
+
+**1120 Stages (27 Screens):**
+
+| Stage | Screen-Header |
+|-------|--------------|
+| 01 | "Add / Remove State(s)" |
+| 02 | "U.S. Corporation Income Tax Return" |
+| 03 | "Submit Electronic Filing Return" |
+| 04 | "File Extension" |
+| 05 | "Filing Extension Step - Federal Extension" |
+| 06 | "Form 7004 - Application for Automatic Extension" |
+| 07 | "Form 7004 - Corporation Name" |
+| 08 | "Form 7004 - Homeowners Association" |
+| 09 | "Form 7004 - Address" |
+| 10 | "Form 7004 - Federal ID Number" |
+| 11 | "Form 7004 - Fiscal Year" |
+| 12 | "Form 7004 - Today's Date" |
+| 13 | "Form 7004 - No Office in the United States" |
+| 14 | "Form 7004 - Section 1.6081-5" |
+| 15 | "Form 7004 - Tax Liability" |
+| 16 | "Form 7004 - Payment Amount" |
+| 17 | "Form 7004 - Print Form 7004" |
+| 18 | "Form 7004 E-File - Acknowledgement Status" |
+| 19 | "Form 7004 E-File - Signing Officer Information" |
+| 20 | "E-filing - Officer's Signature" |
+| 21 | "Form 7004 E-File - ERO Signature" |
+| 22 | "Form 7004 E-File - Federal E-File Alerts" |
+| 23 | "Form 7004 E-File - Passed Alerts" / "Error or Omission" |
+| 24 | "Form 7004 E-File - Submit Form 7004" |
+| 25 | "Form 7004 E-File - E-File Successful" |
+| 26 | "Filing Extension - Complete" |
+| 27 | "Would you like to add a new TaxAct 2025 client" |
+
+**Validation:**
+- Bot validiert jeden 1120-Screen via eindeutigen Header
+- Officer-Felder werden korrekt ausgefüllt
+- Error/Omission wird erkannt und Client übersprungen
+- Bot läuft stabil über 10+ 1120-Clients ohne Fehler
 
 ---
 
