@@ -636,9 +636,10 @@ def get_column_positions() -> Optional[Dict[str, Tuple[int, int]]]:
     """
     columns = {}
 
-    # Column header templates to find (return_type excluded: set by user in GUI)
+    # Column header templates to find
     header_templates = {
         "client_name": "common/column_header_client_name.png",
+        "return_type": "common/column_header_return_type.png",
         "fed_ef_status": "common/column_header_fed_ef_status.png",
     }
 
@@ -819,7 +820,14 @@ def _scan_visible_clients(
             logger.debug(f"Row {row_index}: {client_name} already processed, skipping")
             continue
 
-        # Found a match — return_type comes from user selection, not OCR
+        # Step 3: Read return_type to filter — only process clients matching selected type
+        raw_return_type = _read_single_cell("return_type", row_y, column_positions, settings)
+        ocr_return_type = normalize_return_type(raw_return_type)
+
+        if ocr_return_type != selected_return_type:
+            logger.debug(f"Row {row_index}: {client_name} return type '{ocr_return_type}' != selected '{selected_return_type}', skipping")
+            continue
+
         logger.debug(f"Row {row_index}: name='{client_name}', type='{selected_return_type}', status_empty=True")
 
         # Use dynamic column position for click target
@@ -831,7 +839,7 @@ def _scan_visible_clients(
             row_index=row_index,
             y_position=row_y,
             client_name=client_name,
-            return_type=selected_return_type,
+            return_type=selected_return_type,  # process is determined by GUI, not OCR
             fed_ef_status=""
         )
 
