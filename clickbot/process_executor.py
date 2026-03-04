@@ -616,6 +616,10 @@ class ProcessExecutor:
                 logger.info("  -> Verification aborted: stop signal")
                 return False
 
+            self._send_log(
+                f"DEBUG verify: waiting for {verify_image} "
+                f"(attempt {retry + 1}/{max_retries}, timeout={timeout}s)"
+            )
             logger.info(
                 f"  -> Verifying: {verify_base}/{verify_image} "
                 f"(timeout={timeout}s, attempt {retry + 1}/{max_retries})"
