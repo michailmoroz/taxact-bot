@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+import pyautogui
+
 from clickbot import sounds
 from clickbot import window_validator
 from clickbot import vision
@@ -196,16 +198,10 @@ class BotController:
             if clients_processed > 0:
                 sounds.play_iteration()
 
-            # Scroll client list to top before each scan (clients with empty Fed EF
-            # Status are at the top; after processing a client, TaxAct leaves the
-            # list scrolled down to the just-processed client)
+            # Scroll client list to top via Ctrl+Home (instant, reliable regardless of list size)
             scroll_top = self.settings.get("loop", {}).get("scroll_to_top", {})
-            if scroll_top:
-                executor.scroll(
-                    scroll_top.get("amount", 9999),
-                    x=scroll_top.get("x", 400),
-                    y=scroll_top.get("y", 500)
-                )
+            if scroll_top.get("enabled", True):
+                pyautogui.hotkey('ctrl', 'home')
                 time.sleep(scroll_top.get("delay_s", 0.3))
 
             # Find next unprocessed client

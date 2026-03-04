@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.11
+**Version:** 2.12
 **Date:** 2026-02-04
-**Last Updated:** 2026-02-23
+**Last Updated:** 2026-03-04
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.12 Changes:** Phase 9 (GUI Return-Type Selection) als COMPLETE markiert — Segmented-Button in GUI für manuelle Return-Type-Auswahl (1120/1120S/1040), OCR-basierte Return-Type-Erkennung aus Tabelle entfernt. Phase 10 (1040 Process) als NEXT hinzugefügt. Alte Phase 9 (1120 Validation) wird Phase 11.
+>
 > **v2.11 Changes:** Phase 8 (Executable Packaging) als COMPLETE markiert — PyInstaller onedir Build, Tesseract gebündelt, Inno Setup Installer, paths.py für Dev/Exe-Pfadauflösung.
 >
 > **v2.10 Changes:** Phase 7 (Step Validation & Speed Optimization 1120S) als COMPLETE markiert — Screen-Verifikation nach jedem Klick, dynamisches Polling statt fester Wartezeiten, sofortiger Stop, 20 konsolidierte Stages.
@@ -49,10 +51,11 @@ Das Tool löst das Problem manueller, zeitaufwändiger Klickarbeit für Steuerbe
 |-------------|------|--------------|
 | **1120** | Form 1120 | U.S. Corporation Income Tax Return |
 | **1120S** | Form 1120-S | U.S. Income Tax Return for an S Corporation |
+| **1040** | Form 1040 | U.S. Individual Income Tax Return |
 
-Der Bot erkennt **automatisch** den Return-Type jedes Clients aus der Client-Tabelle via OCR und wählt die entsprechende Klickabfolge. Der Benutzer muss den Return-Type nicht manuell auswählen.
+Der Benutzer wählt den Return-Type **manuell in der GUI** über einen Segmented-Button (1120 / 1120S / 1040) vor dem Start aus. Der Bot verwendet diesen für alle Clients im aktuellen Durchlauf.
 
-**MVP Goal:** Ein funktionierender Bot mit GUI, der automatisch den Return-Type erkennt, die passende Klickabfolge ausführt und im Loop-Modus mehrere Clients verschiedener Return-Types nacheinander bearbeitet, ohne denselben Client doppelt zu verarbeiten.
+**MVP Goal:** Ein funktionierender Bot mit GUI, der über manuelle Return-Type-Auswahl die passende Klickabfolge ausführt und im Loop-Modus mehrere Clients nacheinander bearbeitet, ohne denselben Client doppelt zu verarbeiten.
 
 ---
 
@@ -109,12 +112,13 @@ Automatisierung des TaxAct E-File-Extension-Prozesses für Return-Types 1120 und
 - ✅ Bedingte Logik (If/Else) basierend auf Bildschirminhalt
 - ✅ Rückkehr zum Client Manager nach jeder Iteration
 
-#### Multi-Return-Type Support (NEU in v2.0)
-- ✅ **Automatische Return-Type Erkennung** via OCR aus Client-Tabelle
+#### Multi-Return-Type Support (NEU in v2.0, aktualisiert v2.12)
+- ✅ **Manuelle Return-Type Auswahl** via GUI Segmented-Button (ersetzt OCR-Erkennung seit v2.12)
 - ✅ Unterstützung für **Form 1120** (Corporation)
 - ✅ Unterstützung für **Form 1120S** (S-Corporation)
+- ⬜ Unterstützung für **Form 1040** (Individual) — Phase 10
 - ✅ Separate Klickabfolgen pro Return-Type (JSON-Konfiguration)
-- ✅ Dynamische Prozess-Auswahl basierend auf erkanntem Return-Type
+- ✅ Dynamische Prozess-Auswahl basierend auf GUI-Auswahl
 
 #### Client Tracking
 - ✅ In-Memory Client-Tracking (Set zur Laufzeit)
@@ -128,8 +132,9 @@ Automatisierung des TaxAct E-File-Extension-Prozesses für Return-Types 1120 und
 - ✅ Hotkey-Steuerung (Start, Stop, Pause)
 - ✅ Konfigurierbarer Dev-Mode (ein/ausschaltbar)
 
-#### GUI (NEU in v2.0)
-- ✅ **Desktop-Anwendung** mit Tkinter
+#### GUI (NEU in v2.0, aktualisiert v2.12)
+- ✅ **Desktop-Anwendung** mit CustomTkinter
+- ✅ **Return-Type Selector** - Segmented-Button (1120 / 1120S / 1040) vor Start wählbar
 - ✅ **Start Bot Button** - Startet den Automatisierungsprozess
 - ✅ **5-Sekunden Countdown** - Zeit zum Wechseln zu TaxAct
 - ✅ **Status-Anzeige** - Zeigt aktuellen Client und Return-Type
@@ -239,10 +244,10 @@ Automatisierung des TaxAct E-File-Extension-Prozesses für Return-Types 1120 und
 
 ---
 
-**US-9: Automatische Return-Type Erkennung (NEU v2.0)**
-> Als Steuerberater möchte ich, dass der Bot automatisch den Return-Type (1120 oder 1120S) jedes Clients erkennt, so dass ich nicht für jeden Return-Type den Bot separat starten muss.
+**US-9: Return-Type Auswahl via GUI (aktualisiert v2.12)**
+> Als Steuerberater möchte ich den Return-Type (1120, 1120S oder 1040) in der GUI auswählen, so dass der Bot die passende Klickabfolge für alle Clients im Durchlauf verwendet.
 
-*Beispiel:* Die Client-Liste enthält 50 Clients - 30x Form 1120 und 20x Form 1120S. Der Bot scannt die "Return Type" Spalte, erkennt automatisch den Typ und führt die passende Klickabfolge aus.
+*Beispiel:* Ich wähle "1120S" im Segmented-Button, klicke "Start Bot" und der Bot bearbeitet alle Clients mit leerem Fed EF Status als 1120S-Returns.
 
 ---
 
@@ -486,16 +491,15 @@ find_element(target)
 **Purpose:** Liest Text vom Bildschirm, erkennt Return-Type
 
 **Operations:**
-- `scan_client_table()` - Liest Client-Namen, Return-Type und Fed EF Status
+- `scan_client_table()` - Liest Client-Namen und Fed EF Status
 - `read_region(x, y, width, height)` - OCR für definierten Bereich
 - `is_field_empty(region)` - Prüft ob Textfeld leer ist
-- `get_return_type(client_row)` - Erkennt Return-Type (1120, 1120S) aus Tabellenzeile
 
 **Key Features:**
 - Tesseract OCR Integration
 - Region-basiertes Scanning (nicht ganzer Screen)
 - Preprocessing für bessere Erkennung
-- **Return-Type Erkennung** aus Client-Tabelle (Spalte "Return Type")
+- Return-Type wird seit v2.12 **nicht mehr via OCR** gelesen (GUI-Auswahl)
 
 ---
 
@@ -627,18 +631,13 @@ Bot Start
 
 **Process Selection Flow:**
 ```
-Client gefunden (Fed EF Status leer)
+GUI: Benutzer wählt Return-Type (1120 / 1120S / 1040)
     │
     ▼
-┌─────────────────────────┐
-│ vision.get_return_type()│
-└─────────────────────────┘
+load_process(selected_return_type)
     │
-    ├─── "1120" ──────────→ load_process("1120")
-    │
-    ├─── "1120S" ─────────→ load_process("1120S")
-    │
-    └─── Unbekannt ───────→ ERROR + skip client
+    ▼
+Client gefunden (Fed EF Status leer) → Prozess ausführen
 ```
 
 ---
@@ -658,6 +657,7 @@ Client gefunden (Fed EF Status leer)
 | Element | Beschreibung |
 |---------|--------------|
 | **Titel** | "TaxAct E-File Extension Bot" |
+| **Return-Type Selector** | Segmented-Button: "1120" / "1120S" / "1040" (Default: "1120S") |
 | **Start Button** | Großer grüner Button "Start Bot" |
 | **Stop Button** | Roter Button "Stop" (während Ausführung) |
 | **Countdown** | 5-4-3-2-1 Anzeige vor Start |
@@ -951,9 +951,9 @@ def validate_startup() -> Tuple[bool, str]  # (success, error_message)
 
 Der MVP ist erfolgreich wenn:
 1. Eine vollständige Iteration (1 Client) fehlerfrei durchläuft
-2. Der Bot **automatisch den Return-Type erkennt** (1120 vs 1120S)
+2. Der Bot den **vom Benutzer gewählten Return-Type** korrekt verwendet
 3. Der Bot die **passende Klickabfolge** für jeden Return-Type ausführt
-4. Der Loop-Modus mehrere Clients **verschiedener Return-Types** nacheinander bearbeitet
+4. Der Loop-Modus mehrere Clients nacheinander bearbeitet
 5. Kein Client doppelt bearbeitet wird
 6. Der Bot zuverlässig zum Ausgangspunkt zurückkehrt
 7. Die **GUI** funktioniert (Start, Stop, Countdown, Status)
@@ -969,7 +969,7 @@ Der MVP ist erfolgreich wenn:
 **Core Process:**
 - ✅ Bot startet bei Client Manager Screen
 - ✅ Bot identifiziert Client mit leerem Fed EF Status
-- ✅ **Bot erkennt Return-Type (1120 oder 1120S) via OCR**
+- ✅ **Bot verwendet vom Benutzer gewählten Return-Type (GUI)**
 - ✅ **Bot lädt passende Prozess-Definition**
 - ✅ Bot navigiert durch alle 20+ Screens (je nach Return-Type)
 - ✅ Bot füllt leere Officer-Felder aus
@@ -993,7 +993,7 @@ Der MVP ist erfolgreich wenn:
 |--------|--------|
 | Success Rate pro Iteration | > 95% |
 | Korrekte Duplikat-Vermeidung | 100% |
-| **Return-Type Erkennung** | > 98% |
+| **Return-Type GUI-Auswahl** | 100% (manuell) |
 | Hotkey/Button Response Time | < 500ms |
 | OCR Accuracy | > 90% |
 
@@ -1205,7 +1205,79 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 9: 1120 Process Validation & Optimization ⬅️ NEXT
+### Phase 9: GUI Return-Type Selection ✅ COMPLETE
+
+**Goal:** Manuelle Return-Type-Auswahl in der GUI statt automatischer OCR-Erkennung aus der Tabelle
+
+**Deliverables:**
+- ✅ Segmented-Button in GUI (1120 / 1120S / 1040), Default "1120S"
+- ✅ `BotController` erhält `selected_return_type` als Parameter
+- ✅ `vision.find_next_client()` verwendet GUI-Auswahl statt OCR
+- ✅ `get_column_positions()` sucht nur noch `client_name` + `fed_ef_status` (kein `return_type`)
+- ✅ `_scan_visible_clients()` setzt `ClientRow.return_type` aus Parameter
+- ✅ Selector während Countdown/Running deaktiviert
+- ✅ Fensterhöhe angepasst
+- ✅ Unit Tests aktualisiert
+
+**Validation:**
+- ✅ GUI zeigt Segmented-Button mit 3 Optionen
+- ✅ Bot verwendet gewählten Return-Type für alle Clients
+- ✅ OCR für Fed EF Status + Client-Name weiterhin funktional
+- ✅ Alle bestehenden Tests bestehen
+
+**Plan:** `.agents/plans/phase-9-gui-return-type-selection.md`
+**Report:** `.agents/execution-reports/phase-9-gui-return-type-selection.md`
+
+---
+
+### Phase 10: 1040 Process + Ctrl+Home Scroll-to-Top ⬅️ NEXT
+
+**Goal:** Form 1040 E-File Extension Automatisierung (19 Stages) und zuverlässiger Scroll-to-Top via Ctrl+Home
+
+**Deliverables:**
+- ⬜ `config/processes/1040.json` — 19 Stages mit Screen-Verifikation
+- ⬜ Third-Party Designee Sub-Flow (konditional: 3 Felder füllen)
+- ⬜ Alerts-Ergebnis konditional: passed → weiter, sonst → Clients-Button
+- ⬜ Submit-Safeguard: successful → weiter, sonst → Clients-Button
+- ⬜ Ctrl+Home statt scroll für Scroll-to-Top nach jeder Iteration
+- ⬜ `config/settings.json` scroll_to_top vereinfacht
+- ⬜ E2E-Test: 1040-Clients im Loop ohne Fehler
+
+**1040 Stages (19 Screens):**
+
+| Stage | Screen | Action |
+|-------|--------|--------|
+| 01 | 1040 Formular-Ansicht | click E-File Menü |
+| 02 | E-File Center Popup | click Submit Electronic Filing |
+| 03 | Filing Screen | multi: File Extension + Continue |
+| 04 | Federal Extension | click Yes |
+| 05 | Form 4868 Application | click Complete Form 4868 |
+| 06 | Personal Data | click Continue |
+| 07 | Spouse | click Continue |
+| 08 | Address | click Continue |
+| 09 | Tax Liability | click Continue |
+| 10 | Payment Amount | click Continue |
+| 11 | Filing | click E-File (grün) |
+| 12 | Acknowledgement | click Continue |
+| 13 | Consent to Disclosure | click Agree |
+| 14 | Review Alerts | click Start Alerts |
+| 15 | Third-Party Designee (konditional) | if visible: fill 3 Felder + Continue + Start Alerts |
+| 16 | Passed Alerts (konditional) | if passed: Continue, else: Clients |
+| 17 | Submit E-File | click Submit (no_retry, timeout 30s) |
+| 18 | Successful (konditional) | if successful: Continue, else: Clients |
+| 19 | Filing Complete | click Clients-Button |
+
+**Validation:**
+- Bot durchläuft alle 19 Stages korrekt
+- Third-Party Designee Sub-Flow funktioniert konditional
+- Ctrl+Home springt zuverlässig zum Anfang der Client-Liste
+- 1120S- und 1120-Clients weiterhin unverändert funktionsfähig
+
+**Plan:** `.agents/plans/phase-10-1040-process.md`
+
+---
+
+### Phase 11: 1120 Process Validation & Optimization
 
 **Goal:** Step-Validierung für den 1120-Prozess, analog zu Phase 7 (1120S)
 
@@ -1271,7 +1343,6 @@ Der MVP ist erfolgreich wenn:
    - Auswahl Federal/State vor Start
 
 3. **Weitere Return-Types**
-   - Form 1040 (Individual)
    - Form 1065 (Partnership)
    - Einfaches Hinzufügen neuer JSON-Dateien
 
@@ -1381,24 +1452,18 @@ Der MVP ist erfolgreich wenn:
                            ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                     CLIENT MANAGER                           │
+│  GUI: Return-Type = "1120S" (vom Benutzer gewählt)           │
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │ Client Name     │ Return Type │ Fed EF Status          │ │
 │  ├─────────────────┼─────────────┼────────────────────────┤ │
-│  │ SANDMEYER INC   │ 1120        │ [leer] ← nächster      │ │
+│  │ SANDMEYER INC   │ 1120S       │ [leer] ← nächster      │ │
 │  │ SMITH LLC       │ 1120S       │ [leer]                 │ │
-│  │ JONES CORP      │ 1120        │ Submitted (skip)       │ │
+│  │ JONES CORP      │ 1120S       │ Submitted (skip)       │ │
 │  └────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
                            │
-         ┌─────────────────┴─────────────────┐
-         │                                   │
-         ▼                                   ▼
-  OCR: Return-Type = "1120"          OCR: Return-Type = "1120S"
-         │                                   │
-         ▼                                   ▼
-  load_process("1120")               load_process("1120S")
-         │                                   │
-         └─────────────────┬─────────────────┘
+                           ▼
+              load_process("1120S")  ← GUI-Auswahl
                            │
                            ▼
               [Form View (1120 oder 1120S)]
@@ -1523,7 +1588,9 @@ Screenshots sind nach Return-Type organisiert:
 | Form 7004 | IRS Form for Automatic Extension of Time to File |
 | Form 1120 | U.S. Corporation Income Tax Return |
 | Form 1120-S | U.S. Income Tax Return for an S Corporation |
-| Return-Type | Der Typ des Steuerformulars (1120, 1120S) - bestimmt die Klickabfolge |
+| Form 1040 | U.S. Individual Income Tax Return |
+| Form 4868 | Application for Automatic Extension of Time to File (Individual) |
+| Return-Type | Der Typ des Steuerformulars (1120, 1120S, 1040) - bestimmt die Klickabfolge |
 | ERO | Electronic Return Originator |
 | EFIN | Electronic Filing Identification Number |
 

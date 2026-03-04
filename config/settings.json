@@ -67,9 +67,7 @@
   },
   "loop": {
     "scroll_to_top": {
-      "x": 400,
-      "y": 500,
-      "amount": 9999,
+      "enabled": true,
       "delay_s": 0.3
     },
     "scroll_in_table": {
