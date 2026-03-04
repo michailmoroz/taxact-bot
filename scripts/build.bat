@@ -23,7 +23,7 @@ echo   OK
 echo.
 
 echo Step 3: Running PyInstaller...
-pyinstaller clickbot.spec --noconfirm
+python -m PyInstaller clickbot.spec --noconfirm
 if errorlevel 1 (
     echo.
     echo FAILED: PyInstaller build failed.
