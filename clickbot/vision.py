@@ -143,6 +143,51 @@ def load_template(
     return template
 
 
+def debug_match_confidence(
+    image_path: str,
+    base_path: Optional[str] = None
+) -> Tuple[Optional[float], bool, str]:
+    """Check template match confidence for debugging.
+
+    Takes a screenshot and returns the best match confidence without
+    any retry logic. Used to diagnose why verify_next fails.
+
+    Args:
+        image_path: Path to template image (relative to base_path)
+        base_path: Override base path for template loading
+
+    Returns:
+        Tuple of (max_confidence, template_loaded, full_path_str):
+        - max_confidence: Best match score (0.0-1.0), or None if template not loaded
+        - template_loaded: Whether the template file was found and loaded
+        - full_path_str: The resolved full path that was checked
+    """
+    root = Path(base_path) if base_path else Path(_config["screenshot_base_path"])
+    full_path = root / image_path
+    full_path_str = str(full_path)
+
+    if not full_path.exists():
+        return (None, False, full_path_str)
+
+    template = cv2.imread(full_path_str)
+    if template is None:
+        return (None, False, full_path_str)
+
+    screenshot = take_screenshot()
+    result = cv2.matchTemplate(screenshot, template, cv2.TM_CCOEFF_NORMED)
+    _, max_val, _, max_loc = cv2.minMaxLoc(result)
+
+    template_h, template_w = template.shape[:2]
+    screenshot_h, screenshot_w = screenshot.shape[:2]
+    logger.debug(
+        f"debug_match: {image_path} -> confidence={max_val:.4f}, "
+        f"template={template_w}x{template_h}, screen={screenshot_w}x{screenshot_h}, "
+        f"best_loc={max_loc}"
+    )
+
+    return (max_val, True, full_path_str)
+
+
 def find_element(
     image_path: str,
     confidence: Optional[float] = None,

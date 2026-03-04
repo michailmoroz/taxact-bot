@@ -604,6 +604,11 @@ class ProcessExecutor:
         max_retries = 1 if no_retry else validation_cfg.get("max_retries", 3)
         min_wait = validation_cfg.get("min_wait_after_ms", 200) / 1000
         verify_base = self._get_verify_base_path()
+        step_name = step.get("name", "unknown")
+        step_action = step.get("action", "unknown")
+        confidence_threshold = self.settings.get("vision", {}).get(
+            "confidence_threshold", 0.8
+        )
 
         for retry in range(max_retries):
             # Check stop signal before each retry
@@ -630,10 +635,54 @@ class ProcessExecutor:
                 logger.info("  -> Verification aborted: stop signal")
                 return False
 
+            # --- DEBUG: diagnose why verification failed ---
+            max_conf, tmpl_loaded, full_path = vision.debug_match_confidence(
+                verify_image, base_path=verify_base
+            )
+            if not tmpl_loaded:
+                debug_msg = (
+                    f"DEBUG verify FAIL: template NOT FOUND at {full_path}"
+                )
+            else:
+                debug_msg = (
+                    f"DEBUG verify FAIL: {verify_image} | "
+                    f"confidence={max_conf:.4f} vs threshold={confidence_threshold} | "
+                    f"path={full_path}"
+                )
+            logger.warning(debug_msg)
+            self._send_log(debug_msg)
+
+            # Also check if the click target from this step is still visible
+            target = step.get("target", {})
+            target_image = target.get("image") if isinstance(target, dict) else None
+            if target_image:
+                target_conf, target_loaded, target_path = vision.debug_match_confidence(
+                    target_image
+                )
+                if target_loaded:
+                    target_msg = (
+                        f"DEBUG click target: {target_image} | "
+                        f"confidence={target_conf:.4f} (still on screen?)"
+                    )
+                else:
+                    target_msg = (
+                        f"DEBUG click target: {target_image} NOT FOUND at {target_path}"
+                    )
+                logger.warning(target_msg)
+                self._send_log(target_msg)
+
             # Timeout: retry the click (unless no_retry is set)
             if retry < max_retries - 1:
-                logger.warning(f"  -> Screen not verified, retrying click...")
-                self._send_log(f"Retry {retry + 1}: {step.get('name', 'unknown')}")
+                if step_action in ("multi", "conditional", "scroll", "scroll_until_visible"):
+                    skip_msg = (
+                        f"DEBUG retry: action='{step_action}' -> "
+                        f"retry click SKIPPED (not supported for {step_action})"
+                    )
+                    logger.warning(skip_msg)
+                    self._send_log(skip_msg)
+                else:
+                    logger.warning(f"  -> Screen not verified, retrying click...")
+                self._send_log(f"Retry {retry + 1}: {step_name}")
                 self._retry_step_click(step)
 
         logger.error(f"  -> Verification FAILED after {max_retries} attempts")
