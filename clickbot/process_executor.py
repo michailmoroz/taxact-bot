@@ -636,40 +636,44 @@ class ProcessExecutor:
                 return False
 
             # --- DEBUG: diagnose why verification failed ---
-            max_conf, tmpl_loaded, full_path = vision.debug_match_confidence(
-                verify_image, base_path=verify_base
-            )
-            if not tmpl_loaded:
-                debug_msg = (
-                    f"DEBUG verify FAIL: template NOT FOUND at {full_path}"
+            try:
+                max_conf, tmpl_loaded, full_path = vision.debug_match_confidence(
+                    verify_image, base_path=verify_base
                 )
-            else:
-                debug_msg = (
-                    f"DEBUG verify FAIL: {verify_image} | "
-                    f"confidence={max_conf:.4f} vs threshold={confidence_threshold} | "
-                    f"path={full_path}"
-                )
-            logger.warning(debug_msg)
-            self._send_log(debug_msg)
-
-            # Also check if the click target from this step is still visible
-            target = step.get("target", {})
-            target_image = target.get("image") if isinstance(target, dict) else None
-            if target_image:
-                target_conf, target_loaded, target_path = vision.debug_match_confidence(
-                    target_image
-                )
-                if target_loaded:
-                    target_msg = (
-                        f"DEBUG click target: {target_image} | "
-                        f"confidence={target_conf:.4f} (still on screen?)"
+                if not tmpl_loaded:
+                    debug_msg = (
+                        f"DEBUG verify FAIL: template NOT FOUND at {full_path}"
                     )
                 else:
-                    target_msg = (
-                        f"DEBUG click target: {target_image} NOT FOUND at {target_path}"
+                    debug_msg = (
+                        f"DEBUG verify FAIL: {verify_image} | "
+                        f"confidence={max_conf:.4f} vs threshold={confidence_threshold} | "
+                        f"path={full_path}"
                     )
-                logger.warning(target_msg)
-                self._send_log(target_msg)
+                self._send_log(debug_msg)
+                logger.warning(debug_msg)
+
+                # Also check if the click target from this step is still visible
+                target = step.get("target", {})
+                target_image = target.get("image") if isinstance(target, dict) else None
+                if target_image:
+                    target_conf, target_loaded, target_path = vision.debug_match_confidence(
+                        target_image
+                    )
+                    if target_loaded:
+                        target_msg = (
+                            f"DEBUG click target: {target_image} | "
+                            f"confidence={target_conf:.4f} (still on screen?)"
+                        )
+                    else:
+                        target_msg = (
+                            f"DEBUG click target: {target_image} NOT FOUND at {target_path}"
+                        )
+                    self._send_log(target_msg)
+                    logger.warning(target_msg)
+            except Exception as e:
+                self._send_log(f"DEBUG EXCEPTION: {type(e).__name__}: {e}")
+                logger.error(f"Debug match failed: {e}", exc_info=True)
 
             # Timeout: retry the click (unless no_retry is set)
             if retry < max_retries - 1:
