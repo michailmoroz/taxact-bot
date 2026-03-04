@@ -23,10 +23,9 @@ SETTINGS = {
 }
 
 # Column positions as returned by get_column_positions()
-# (center_x, template_width)
+# (center_x, template_width) — return_type key removed (no longer scanned)
 COLUMN_POSITIONS = {
     "client_name": (100, 80),
-    "return_type": (490, 55),
     "fed_ef_status": (730, 90),
 }
 
@@ -87,35 +86,52 @@ class TestScanVisibleClientsOptimized:
         ]
 
         settings = {**SETTINGS, "client_table": {**SETTINGS["client_table"], "max_visible_rows": 2}}
-        result = vision._scan_visible_clients(settings, COLUMN_POSITIONS)
+        result = vision._scan_visible_clients(settings, COLUMN_POSITIONS, selected_return_type="1120S")
 
         row_data, click_pos, last_client = result
         assert row_data is None
         assert last_client == "SMITH LLC"
-        # return_type was never read for row 0
+        # return_type was never read (no OCR for that column)
         col_names = [c.args[0] for c in mock_read.call_args_list]
         assert "return_type" not in col_names
 
     @patch("clickbot.vision._read_single_cell")
-    @patch("clickbot.vision.normalize_return_type", return_value="1120S")
-    def test_reads_return_type_only_for_candidates(self, mock_norm, mock_read):
-        """return_type is only read when status is empty and client is new."""
-        # Row 0: status empty, name="NEW CLIENT", type="1120S"
+    def test_sets_return_type_from_parameter(self, mock_read):
+        """ClientRow.return_type is set from selected_return_type, not OCR."""
+        # Row 0: status empty, name="NEW CLIENT" — no return_type OCR call
         mock_read.side_effect = [
             "",             # row 0: fed_ef_status (empty!)
             "NEW CLIENT",   # row 0: client_name
-            "1120S",        # row 0: return_type (candidate!)
         ]
 
         settings = {**SETTINGS, "client_table": {**SETTINGS["client_table"], "max_visible_rows": 1}}
-        result = vision._scan_visible_clients(settings, COLUMN_POSITIONS)
+        result = vision._scan_visible_clients(
+            settings, COLUMN_POSITIONS, selected_return_type="1120S"
+        )
 
         row_data, click_pos, last_client = result
         assert row_data is not None
         assert row_data.client_name == "NEW CLIENT"
-        assert row_data.return_type == "1120S"
+        assert row_data.return_type == "1120S"  # from parameter, not OCR
         assert row_data.fed_ef_status == ""
-        assert mock_read.call_count == 3  # all 3 columns read
+        assert mock_read.call_count == 2  # only fed_ef_status + client_name
+
+    @patch("clickbot.vision._read_single_cell")
+    def test_selected_return_type_propagated_to_client_row(self, mock_read):
+        """Different selected_return_type values are correctly reflected in ClientRow."""
+        mock_read.side_effect = [
+            "",          # fed_ef_status empty
+            "CORP INC",  # client_name
+        ]
+
+        settings = {**SETTINGS, "client_table": {**SETTINGS["client_table"], "max_visible_rows": 1}}
+        result = vision._scan_visible_clients(
+            settings, COLUMN_POSITIONS, selected_return_type="1040"
+        )
+
+        row_data, _, _ = result
+        assert row_data is not None
+        assert row_data.return_type == "1040"
 
     @patch("clickbot.vision._read_single_cell")
     def test_skips_processed_client_with_two_reads(self, mock_read):
@@ -131,7 +147,9 @@ class TestScanVisibleClientsOptimized:
 
         settings = {**SETTINGS, "client_table": {**SETTINGS["client_table"], "max_visible_rows": 2}}
         result = vision._scan_visible_clients(
-            settings, COLUMN_POSITIONS, processed_clients={"DONE CLIENT"}
+            settings, COLUMN_POSITIONS,
+            processed_clients={"DONE CLIENT"},
+            selected_return_type="1120"
         )
 
         row_data, click_pos, last_client = result
@@ -141,9 +159,8 @@ class TestScanVisibleClientsOptimized:
         assert col_names == ["fed_ef_status", "client_name", "fed_ef_status", "client_name"]
 
     @patch("clickbot.vision._read_single_cell")
-    @patch("clickbot.vision.normalize_return_type", return_value="1120")
-    def test_mixed_rows_optimized(self, mock_norm, mock_read):
-        """Mix of filed, processed, and candidate rows uses minimal OCR."""
+    def test_mixed_rows_optimized(self, mock_read):
+        """Mix of filed, processed, and candidate rows uses minimal OCR (2 cols only)."""
         mock_read.side_effect = [
             "Accepted",     # row 0: fed_ef_status (filed)
             "CLIENT A",     # row 0: client_name (scroll tracking)
@@ -152,17 +169,19 @@ class TestScanVisibleClientsOptimized:
             "",             # row 2: fed_ef_status (empty!)
             "CLIENT C",     # row 2: client_name (processed)
             "",             # row 3: fed_ef_status (empty!)
-            "CLIENT D",     # row 3: client_name (new!)
-            "1120",         # row 3: return_type (candidate!)
+            "CLIENT D",     # row 3: client_name (new!) → match
         ]
 
         settings = {**SETTINGS, "client_table": {**SETTINGS["client_table"], "max_visible_rows": 4}}
         result = vision._scan_visible_clients(
-            settings, COLUMN_POSITIONS, processed_clients={"CLIENT C"}
+            settings, COLUMN_POSITIONS,
+            processed_clients={"CLIENT C"},
+            selected_return_type="1120"
         )
 
         row_data, click_pos, last_client = result
         assert row_data is not None
         assert row_data.client_name == "CLIENT D"
-        # Total: 9 OCR calls instead of 12 (4 rows × 3 cols)
-        assert mock_read.call_count == 9
+        assert row_data.return_type == "1120"  # from parameter
+        # Total: 8 OCR calls (2 cols × 4 rows) — no return_type column
+        assert mock_read.call_count == 8

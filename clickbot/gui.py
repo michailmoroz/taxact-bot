@@ -68,12 +68,12 @@ class BotGUI(ctk.CTk):
         gui_settings = self.settings.get("gui", {})
 
         self.title("TaxAct E-File Extension Bot")
-        self.geometry(f"{gui_settings.get('window_width', 500)}x{gui_settings.get('window_height', 600)}")
-        self.minsize(400, 500)
+        self.geometry(f"{gui_settings.get('window_width', 500)}x{gui_settings.get('window_height', 650)}")
+        self.minsize(400, 550)
 
         # Configure grid weights for responsive layout
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(3, weight=1)  # Log area expands
+        self.grid_rowconfigure(4, weight=1)  # Log area expands
 
         # Handle window close
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -87,6 +87,20 @@ class BotGUI(ctk.CTk):
             text="TaxAct E-File Extension Bot",
             font=ctk.CTkFont(size=20, weight="bold")
         )
+
+        # Return Type Frame
+        self.return_type_frame = ctk.CTkFrame(self)
+        self.return_type_label = ctk.CTkLabel(
+            self.return_type_frame,
+            text="Return Type:",
+            font=ctk.CTkFont(size=13, weight="bold")
+        )
+        self.return_type_selector = ctk.CTkSegmentedButton(
+            self.return_type_frame,
+            values=["1120", "1120S", "1040"],
+            font=ctk.CTkFont(size=13)
+        )
+        self.return_type_selector.set("1120S")
 
         # Control Frame (Start/Stop Button, Countdown)
         self.control_frame = ctk.CTkFrame(self)
@@ -149,23 +163,29 @@ class BotGUI(ctk.CTk):
         self.header_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
         self.title_label.pack(pady=10)
 
+        # Return Type Selector
+        self.return_type_frame.grid(row=1, column=0, padx=20, pady=(0, 5), sticky="ew")
+        self.return_type_label.pack(side="left", padx=(10, 8), pady=10)
+        self.return_type_selector.pack(side="left", padx=(0, 10), pady=10)
+
         # Control
-        self.control_frame.grid(row=1, column=0, padx=20, pady=10, sticky="ew")
+        self.control_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
         self.start_button.pack(pady=20, padx=40, fill="x")
         # Countdown labels initially hidden
 
         # Status
-        self.status_frame.grid(row=2, column=0, padx=20, pady=10, sticky="new")
+        self.status_frame.grid(row=3, column=0, padx=20, pady=10, sticky="new")
         self.status_label.pack(anchor="w", padx=10, pady=(10, 5))
         self.taxact_status_label.pack(anchor="w", padx=10, pady=2)
         self.progress_label.pack(anchor="w", padx=10, pady=(2, 10))
 
         # Log
-        self.log_frame.grid(row=3, column=0, padx=20, pady=(10, 20), sticky="nsew")
+        self.log_frame.grid(row=4, column=0, padx=20, pady=(10, 20), sticky="nsew")
         self.log_frame.grid_columnconfigure(0, weight=1)
         self.log_frame.grid_rowconfigure(1, weight=1)
         self.log_label.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
         self.log_textbox.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
+
 
     def _log(self, message: str) -> None:
         """Add a message to the log textbox.
@@ -193,6 +213,9 @@ class BotGUI(ctk.CTk):
         """Start the countdown sequence."""
         self.gui_state = GUIState.COUNTDOWN
         self._countdown_value = self.settings.get("gui", {}).get("countdown_seconds", 5)
+
+        # Disable return type selector during countdown/running
+        self.return_type_selector.configure(state="disabled")
 
         # Update button
         self.start_button.configure(
@@ -244,6 +267,9 @@ class BotGUI(ctk.CTk):
         self.countdown_label.pack_forget()
         self.countdown_hint.pack_forget()
 
+        # Re-enable return type selector
+        self.return_type_selector.configure(state="normal")
+
         # Reset button
         self.start_button.pack_forget()
         self.start_button.configure(
@@ -268,7 +294,9 @@ class BotGUI(ctk.CTk):
 
     def _start_bot(self) -> None:
         """Start the bot after countdown."""
-        self.controller = BotController(self.settings)
+        selected_return_type = self.return_type_selector.get()
+        self.controller = BotController(self.settings, selected_return_type=selected_return_type)
+        self._log(f"Return type selected: {selected_return_type}")
 
         # Validate TaxAct first
         success, message = self.controller.validate_taxact()

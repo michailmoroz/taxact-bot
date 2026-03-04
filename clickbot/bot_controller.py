@@ -43,19 +43,21 @@ class BotController:
     The GUI polls get_messages() to receive updates.
     """
 
-    def __init__(self, settings: dict):
+    def __init__(self, settings: dict, selected_return_type: str = "1120S"):
         """Initialize the bot controller.
 
         Args:
             settings: Settings dict from config/settings.json
+            selected_return_type: Return type chosen by user in GUI (e.g. "1120", "1120S", "1040")
         """
         self.settings = settings
+        self.selected_return_type = selected_return_type
         self.state = BotState.IDLE
         self.message_queue: queue.Queue[StatusMessage] = queue.Queue()
         self.stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
 
-        logger.debug("BotController initialized")
+        logger.debug(f"BotController initialized (return_type={selected_return_type})")
 
     def validate_taxact(self) -> tuple[bool, str]:
         """Validate TaxAct is ready for automation.
@@ -194,12 +196,25 @@ class BotController:
             if clients_processed > 0:
                 sounds.play_iteration()
 
+            # Scroll client list to top before each scan (clients with empty Fed EF
+            # Status are at the top; after processing a client, TaxAct leaves the
+            # list scrolled down to the just-processed client)
+            scroll_top = self.settings.get("loop", {}).get("scroll_to_top", {})
+            if scroll_top:
+                executor.scroll(
+                    scroll_top.get("amount", 9999),
+                    x=scroll_top.get("x", 400),
+                    y=scroll_top.get("y", 500)
+                )
+                time.sleep(scroll_top.get("delay_s", 0.3))
+
             # Find next unprocessed client
             self._send_status("Scanning client table...")
             self._send_log("Looking for unprocessed client...")
 
             client_result = vision.find_next_client(
                 self.settings,
+                selected_return_type=self.selected_return_type,
                 processed_clients=tracker.processed
             )
 
@@ -247,7 +262,7 @@ class BotController:
                 self.stop_event
             )
 
-            result = process_executor.execute(client_row.return_type)
+            result = process_executor.execute(self.selected_return_type)
 
             if result.success:
                 self._send_log(f"Completed: {client_row.client_name} ({result.steps_completed}/{result.total_steps} steps)")

@@ -41,7 +41,7 @@
   },
   "gui": {
     "window_width": 500,
-    "window_height": 600,
+    "window_height": 650,
     "countdown_seconds": 5,
     "appearance_mode": "dark",
     "color_theme": "blue"
@@ -66,6 +66,12 @@
     "verify_base_path": "assets/verify"
   },
   "loop": {
+    "scroll_to_top": {
+      "x": 400,
+      "y": 500,
+      "amount": 9999,
+      "delay_s": 0.3
+    },
     "scroll_in_table": {
       "x": 400,
       "y": 500,

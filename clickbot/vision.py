@@ -636,10 +636,9 @@ def get_column_positions() -> Optional[Dict[str, Tuple[int, int]]]:
     """
     columns = {}
 
-    # Column header templates to find
+    # Column header templates to find (return_type excluded: set by user in GUI)
     header_templates = {
         "client_name": "common/column_header_client_name.png",
-        "return_type": "common/column_header_return_type.png",
         "fed_ef_status": "common/column_header_fed_ef_status.png",
     }
 
@@ -762,20 +761,20 @@ def _scan_visible_clients(
     settings: dict,
     column_positions: Dict[str, Tuple[int, int]],
     processed_clients: Optional[set] = None,
-    target_return_type: Optional[str] = None
+    selected_return_type: str = "1120S"
 ) -> Optional[Tuple[ClientRow, Tuple[int, int], str]]:
     """Scan visible rows and find first matching client.
 
     Uses optimized read order to minimize OCR calls:
     1. fed_ef_status first — skip immediately if non-empty (1 OCR call)
     2. client_name — detect empty rows / already processed (2 OCR calls)
-    3. return_type — only for actual candidates (3 OCR calls)
+    Return type is NOT read via OCR — it is set from selected_return_type (user selection).
 
     Args:
         settings: Settings dict
         column_positions: Column positions from get_column_positions()
         processed_clients: Set of already processed client names to skip
-        target_return_type: Return type filter (optional)
+        selected_return_type: Return type chosen by user (set in ClientRow)
 
     Returns:
         Tuple of (ClientRow, click_position, last_client_name) or None.
@@ -820,39 +819,24 @@ def _scan_visible_clients(
             logger.debug(f"Row {row_index}: {client_name} already processed, skipping")
             continue
 
-        # Step 3: Read return_type only for actual candidates (3 OCR calls)
-        raw_return_type = _read_single_cell("return_type", row_y, column_positions, settings)
-        return_type = normalize_return_type(raw_return_type)
+        # Found a match — return_type comes from user selection, not OCR
+        logger.debug(f"Row {row_index}: name='{client_name}', type='{selected_return_type}', status_empty=True")
 
-        # Only accept known return types (1120 or 1120S)
-        is_valid_type = return_type in ("1120", "1120S")
-        if not is_valid_type:
-            logger.warning(f"Row {row_index}: unrecognized return type '{return_type}', skipping")
-            continue
+        # Use dynamic column position for click target
+        client_col_x, _ = column_positions["client_name"]
+        click_y = row_y + row_height // 2
+        click_pos = (client_col_x, click_y)
 
-        if target_return_type:
-            type_matches = target_return_type in return_type
-        else:
-            type_matches = True
+        row_data = ClientRow(
+            row_index=row_index,
+            y_position=row_y,
+            client_name=client_name,
+            return_type=selected_return_type,
+            fed_ef_status=""
+        )
 
-        logger.debug(f"Row {row_index}: name='{client_name}', type='{return_type}', status_empty=True, type_matches={type_matches}")
-
-        if type_matches:
-            # Found a match - use dynamic column position for click target
-            client_col_x, _ = column_positions["client_name"]
-            click_y = row_y + row_height // 2
-            click_pos = (client_col_x, click_y)
-
-            row_data = ClientRow(
-                row_index=row_index,
-                y_position=row_y,
-                client_name=client_name,
-                return_type=return_type,
-                fed_ef_status=""
-            )
-
-            logger.info(f"Found client: {client_name} ({return_type}) at row {row_index}")
-            return (row_data, click_pos, last_client_name)
+        logger.info(f"Found client: {client_name} ({selected_return_type}) at row {row_index}")
+        return (row_data, click_pos, last_client_name)
 
     # No match found, return last client name for scroll detection
     return (None, None, last_client_name)
@@ -860,7 +844,7 @@ def _scan_visible_clients(
 
 def find_next_client(
     settings: dict,
-    target_return_type: Optional[str] = None,
+    selected_return_type: str = "1120S",
     processed_clients: Optional[set] = None
 ) -> Optional[Tuple[ClientRow, Tuple[int, int]]]:
     """Find the next unprocessed client in the Client Manager table.
@@ -868,14 +852,14 @@ def find_next_client(
     Scans visible rows and returns the first client matching:
     - Not in processed_clients set
     - Empty Fed EF Status
-    - Return Type matches target_return_type (if specified)
+    Return type is NOT read via OCR — it is set from selected_return_type (user selection).
 
     If no matching client is visible, scrolls down and re-scans.
     Stops when end of list is detected or max scroll attempts reached.
 
     Args:
         settings: Settings dict from config/settings.json
-        target_return_type: Return type to filter for (optional, accepts any if None)
+        selected_return_type: Return type chosen by user in GUI (set in ClientRow)
         processed_clients: Set of client names to skip (already processed)
 
     Returns:
@@ -904,7 +888,7 @@ def find_next_client(
     for scroll_attempt in range(max_scroll_attempts + 1):  # +1 for initial scan without scroll
         # Scan visible rows
         result = _scan_visible_clients(
-            settings, column_positions, processed_clients, target_return_type
+            settings, column_positions, processed_clients, selected_return_type
         )
 
         row_data, click_pos, current_last_client = result
