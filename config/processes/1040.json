@@ -194,7 +194,7 @@
           },
           {
             "action": "click",
-            "target": { "image": "1040/start_alerts_green.png" },
+            "target": { "image": "1040/start_alerts_short.png" },
             "wait_after": 2.0
           }
         ]
