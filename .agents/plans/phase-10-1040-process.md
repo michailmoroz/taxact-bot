@@ -235,3 +235,14 @@ Der 1040-Prozess ist ähnlich wie 1120S — eine Sequenz von ~19 Klicks mit zwei
 - **Pfadauflösung**: `element_visible` Conditions und Click-Targets resolven gegen `screenshot_base_path` (`.agents/screenshots/buttons/`), `verify_screen`/`verify_next` gegen `verify_base_path` (`assets/verify/`). Deshalb kopiert Task 0 die benötigten Verify-Screenshots in den Buttons-Ordner.
 - **Ctrl+Home funktioniert nur wenn Client-Liste nicht fokussiert ist**: Nach stage 19 (clients_button click → base) ist die Liste nicht fokussiert → timing passt. Falls Problem auftritt, `delay_s` erhöhen
 - **`normalize_return_type` kein Blocker**: Da Phase 9 (GUI Return-Type Selection) bereits implementiert ist, wird `normalize_return_type` im Hauptflow nicht mehr aufgerufen. Der Return-Type kommt direkt aus der GUI-Auswahl.
+
+## Post-Implementation: Lessons Learned
+
+### TeamViewer vs. Remote Desktop Screenshots
+Alle Verify- und Button-Templates müssen mit **pyautogui auf dem Remote PC** aufgenommen werden (nicht via TeamViewer). TeamViewer komprimiert/skaliert Screenshots leicht, was zu Confidence-Scores von ~0.33 statt 0.8+ führt. Remote Desktop (RDP) rendert pixel-identisch und funktioniert.
+
+### Zwei Start-Alerts-Button-Varianten
+TaxAct zeigt nach dem Third-Party Designee Sub-Flow einen anderen Button-Text ("Start Alerts" statt "Start Form 4868 Alerts"). Stage 15 if_true nutzt daher `start_alerts_short.png`.
+
+### Offenes Problem: Preparer EF Wizard
+Bei manchen 1040-Clients erscheint nach Stage 11 (Filing → E-File Klick) ein unerwarteter "Preparer EF Wizard" Screen. Muss in einer Folge-Session geklärt werden. Siehe Execution Report für Details.
