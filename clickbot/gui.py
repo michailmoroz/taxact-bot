@@ -23,6 +23,38 @@ from clickbot.bot_controller import BotController, BotState, StatusMessage
 logger = logging.getLogger(__name__)
 
 
+# --- Design Tokens ---
+
+COLORS = {
+    "bg_primary":     "#1a1a1a",
+    "bg_card":        "#242424",
+    "bg_input":       "#2e2e2e",
+    "border_subtle":  "#2e2e2e",
+    "text_primary":   "#e5e5e5",
+    "text_secondary": "#999999",
+    "text_muted":     "#666666",
+    "accent":         "#2563eb",
+    "accent_hover":   "#1d4ed8",
+    "success":        "#22c55e",
+    "success_hover":  "#16a34a",
+    "warning":        "#f59e0b",
+    "warning_hover":  "#d97706",
+    "error":          "#ef4444",
+    "error_hover":    "#dc2626",
+}
+
+FONTS = {
+    "title":     ("Segoe UI Semibold", 18),
+    "section":   ("Segoe UI", 12),
+    "selector":  ("Segoe UI Semibold", 15),
+    "button":    ("Segoe UI Semibold", 15),
+    "body":      ("Segoe UI", 13),
+    "caption":   ("Segoe UI", 12),
+    "countdown": ("Segoe UI", 48),
+    "log":       ("Consolas", 12),
+}
+
+
 class GUIState(Enum):
     """GUI state enumeration."""
     READY = "ready"
@@ -68,8 +100,12 @@ class BotGUI(ctk.CTk):
         gui_settings = self.settings.get("gui", {})
 
         self.title("TaxAct E-File Extension Bot")
-        self.geometry(f"{gui_settings.get('window_width', 500)}x{gui_settings.get('window_height', 650)}")
-        self.minsize(400, 550)
+        self.geometry(
+            f"{gui_settings.get('window_width', 500)}"
+            f"x{gui_settings.get('window_height', 680)}"
+        )
+        self.minsize(420, 580)
+        self.configure(fg_color=COLORS["bg_primary"])
 
         # Configure grid weights for responsive layout
         self.grid_columnconfigure(0, weight=1)
@@ -80,111 +116,174 @@ class BotGUI(ctk.CTk):
 
     def _create_widgets(self) -> None:
         """Create all GUI widgets."""
-        # Header Frame
-        self.header_frame = ctk.CTkFrame(self)
+        # --- Header (compact, no frame) ---
         self.title_label = ctk.CTkLabel(
-            self.header_frame,
+            self,
             text="TaxAct E-File Extension Bot",
-            font=ctk.CTkFont(size=20, weight="bold")
+            font=ctk.CTkFont(family=FONTS["title"][0], size=FONTS["title"][1]),
+            text_color=COLORS["text_primary"],
+            anchor="w",
         )
 
-        # Return Type Frame
-        self.return_type_frame = ctk.CTkFrame(self)
+        # --- Return Type Hero Card ---
+        self.return_type_frame = ctk.CTkFrame(
+            self,
+            corner_radius=10,
+            fg_color=COLORS["bg_card"],
+            border_width=1,
+            border_color=COLORS["border_subtle"],
+        )
         self.return_type_label = ctk.CTkLabel(
             self.return_type_frame,
-            text="Return Type:",
-            font=ctk.CTkFont(size=13, weight="bold")
+            text="SELECT RETURN TYPE",
+            font=ctk.CTkFont(family=FONTS["section"][0], size=FONTS["section"][1]),
+            text_color=COLORS["text_secondary"],
         )
         self.return_type_selector = ctk.CTkSegmentedButton(
             self.return_type_frame,
             values=["1120", "1120S", "1040"],
-            font=ctk.CTkFont(size=13)
+            font=ctk.CTkFont(
+                family=FONTS["selector"][0], size=FONTS["selector"][1]
+            ),
+            height=42,
+            corner_radius=8,
+            selected_color=COLORS["accent"],
+            selected_hover_color=COLORS["accent_hover"],
+            unselected_color=COLORS["bg_input"],
+            unselected_hover_color="#3a3a3a",
+            text_color=COLORS["text_primary"],
         )
         self.return_type_selector.set("1120S")
 
-        # Control Frame (Start/Stop Button, Countdown)
-        self.control_frame = ctk.CTkFrame(self)
+        # --- Control Card (Start/Stop Button, Countdown) ---
+        self.control_frame = ctk.CTkFrame(
+            self,
+            corner_radius=10,
+            fg_color=COLORS["bg_card"],
+            border_width=1,
+            border_color=COLORS["border_subtle"],
+        )
         self.start_button = ctk.CTkButton(
             self.control_frame,
             text="Start Bot",
-            font=ctk.CTkFont(size=16, weight="bold"),
-            fg_color="green",
-            hover_color="darkgreen",
-            height=50,
-            command=self._on_start_click
+            font=ctk.CTkFont(
+                family=FONTS["button"][0], size=FONTS["button"][1]
+            ),
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"],
+            text_color=COLORS["text_primary"],
+            height=48,
+            corner_radius=8,
+            command=self._on_start_click,
         )
         self.countdown_label = ctk.CTkLabel(
             self.control_frame,
             text="",
-            font=ctk.CTkFont(size=48, weight="bold")
+            font=ctk.CTkFont(
+                family=FONTS["countdown"][0], size=FONTS["countdown"][1],
+                weight="bold"
+            ),
+            text_color=COLORS["text_primary"],
         )
         self.countdown_hint = ctk.CTkLabel(
             self.control_frame,
             text="Switch to TaxAct now!",
-            font=ctk.CTkFont(size=14)
+            font=ctk.CTkFont(family="Segoe UI", size=14),
+            text_color=COLORS["text_secondary"],
         )
 
-        # Status Frame
-        self.status_frame = ctk.CTkFrame(self)
+        # --- Status Card ---
+        self.status_frame = ctk.CTkFrame(
+            self,
+            corner_radius=10,
+            fg_color=COLORS["bg_card"],
+            border_width=1,
+            border_color=COLORS["border_subtle"],
+        )
         self.status_label = ctk.CTkLabel(
             self.status_frame,
             text="Status: Ready",
-            font=ctk.CTkFont(size=14)
+            font=ctk.CTkFont(family=FONTS["body"][0], size=FONTS["body"][1]),
+            text_color=COLORS["text_primary"],
         )
         self.taxact_status_label = ctk.CTkLabel(
             self.status_frame,
             text="TaxAct: Checking...",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
+            text_color=COLORS["text_secondary"],
         )
         self.progress_label = ctk.CTkLabel(
             self.status_frame,
             text="",
-            font=ctk.CTkFont(size=12)
+            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
+            text_color=COLORS["text_secondary"],
         )
 
-        # Log Frame
-        self.log_frame = ctk.CTkFrame(self)
+        # --- Log Card ---
+        self.log_frame = ctk.CTkFrame(
+            self,
+            corner_radius=10,
+            fg_color=COLORS["bg_card"],
+            border_width=1,
+            border_color=COLORS["border_subtle"],
+        )
         self.log_label = ctk.CTkLabel(
             self.log_frame,
             text="Log:",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            anchor="w"
+            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
+            text_color=COLORS["text_secondary"],
+            anchor="w",
         )
         self.log_textbox = ctk.CTkTextbox(
             self.log_frame,
             height=200,
             state="disabled",
-            wrap="word"
+            wrap="word",
+            font=ctk.CTkFont(family=FONTS["log"][0], size=FONTS["log"][1]),
+            fg_color=COLORS["bg_input"],
+            text_color=COLORS["text_primary"],
+            corner_radius=6,
         )
 
     def _setup_layout(self) -> None:
         """Arrange widgets using grid layout."""
-        # Header
-        self.header_frame.grid(row=0, column=0, padx=20, pady=(20, 10), sticky="ew")
-        self.title_label.pack(pady=10)
+        pad_x = 24
 
-        # Return Type Selector
-        self.return_type_frame.grid(row=1, column=0, padx=20, pady=(0, 5), sticky="ew")
-        self.return_type_label.pack(side="left", padx=(10, 8), pady=10)
-        self.return_type_selector.pack(side="left", padx=(0, 10), pady=10)
+        # Row 0 — Header (compact, left-aligned, no frame)
+        self.title_label.grid(
+            row=0, column=0, padx=pad_x, pady=(20, 4), sticky="w"
+        )
 
-        # Control
-        self.control_frame.grid(row=2, column=0, padx=20, pady=10, sticky="ew")
-        self.start_button.pack(pady=20, padx=40, fill="x")
+        # Row 1 — Return Type Hero Card
+        self.return_type_frame.grid(
+            row=1, column=0, padx=pad_x, pady=(8, 6), sticky="ew"
+        )
+        self.return_type_label.pack(padx=16, pady=(14, 4), anchor="center")
+        self.return_type_selector.pack(padx=16, pady=(4, 14), fill="x")
+
+        # Row 2 — Control Card
+        self.control_frame.grid(
+            row=2, column=0, padx=pad_x, pady=6, sticky="ew"
+        )
+        self.start_button.pack(pady=16, padx=16, fill="x")
         # Countdown labels initially hidden
 
-        # Status
-        self.status_frame.grid(row=3, column=0, padx=20, pady=10, sticky="new")
-        self.status_label.pack(anchor="w", padx=10, pady=(10, 5))
-        self.taxact_status_label.pack(anchor="w", padx=10, pady=2)
-        self.progress_label.pack(anchor="w", padx=10, pady=(2, 10))
+        # Row 3 — Status Card
+        self.status_frame.grid(
+            row=3, column=0, padx=pad_x, pady=6, sticky="new"
+        )
+        self.status_label.pack(anchor="w", padx=16, pady=(12, 4))
+        self.taxact_status_label.pack(anchor="w", padx=16, pady=2)
+        self.progress_label.pack(anchor="w", padx=16, pady=(2, 12))
 
-        # Log
-        self.log_frame.grid(row=4, column=0, padx=20, pady=(10, 20), sticky="nsew")
+        # Row 4 — Log Card (expands vertically)
+        self.log_frame.grid(
+            row=4, column=0, padx=pad_x, pady=(6, 20), sticky="nsew"
+        )
         self.log_frame.grid_columnconfigure(0, weight=1)
         self.log_frame.grid_rowconfigure(1, weight=1)
-        self.log_label.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
-        self.log_textbox.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
+        self.log_label.grid(row=0, column=0, padx=12, pady=(12, 4), sticky="w")
+        self.log_textbox.grid(row=1, column=0, padx=12, pady=(0, 12), sticky="nsew")
 
 
     def _log(self, message: str) -> None:
@@ -220,15 +319,15 @@ class BotGUI(ctk.CTk):
         # Update button
         self.start_button.configure(
             text="Cancel",
-            fg_color="orange",
-            hover_color="darkorange"
+            fg_color=COLORS["warning"],
+            hover_color=COLORS["warning_hover"],
         )
 
         # Show countdown
         self.start_button.pack_forget()
         self.countdown_label.pack(pady=10)
         self.countdown_hint.pack(pady=5)
-        self.start_button.pack(pady=10, padx=40, fill="x")
+        self.start_button.pack(pady=(10, 16), padx=16, fill="x")
 
         self._log(f"Countdown started ({self._countdown_value}s)")
         self._update_countdown()
@@ -274,10 +373,10 @@ class BotGUI(ctk.CTk):
         self.start_button.pack_forget()
         self.start_button.configure(
             text="Start Bot",
-            fg_color="green",
-            hover_color="darkgreen"
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"],
         )
-        self.start_button.pack(pady=20, padx=40, fill="x")
+        self.start_button.pack(pady=16, padx=16, fill="x")
 
         self.status_label.configure(text="Status: Ready")
 
@@ -286,8 +385,8 @@ class BotGUI(ctk.CTk):
         self.gui_state = GUIState.RUNNING
         self.start_button.configure(
             text="Stop",
-            fg_color="red",
-            hover_color="darkred"
+            fg_color=COLORS["error"],
+            hover_color=COLORS["error_hover"],
         )
 
     # --- Bot Control ---
@@ -388,7 +487,7 @@ class BotGUI(ctk.CTk):
         if self.settings.get("skip_taxact_validation", False):
             self.taxact_status_label.configure(
                 text="TaxAct: Validation skipped (Dev)",
-                text_color="orange"
+                text_color=COLORS["warning"],
             )
             self._log("TaxAct validation skipped (skip_taxact_validation=true)")
             return
@@ -400,13 +499,13 @@ class BotGUI(ctk.CTk):
         if window:
             self.taxact_status_label.configure(
                 text="TaxAct: Found",
-                text_color="green"
+                text_color=COLORS["success"],
             )
             self._log("TaxAct 2025 detected")
         else:
             self.taxact_status_label.configure(
                 text="TaxAct: Not found",
-                text_color="red"
+                text_color=COLORS["error"],
             )
             self._log("WARNING: TaxAct not found - please open it")
 

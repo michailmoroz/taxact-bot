@@ -41,7 +41,7 @@
   },
   "gui": {
     "window_width": 500,
-    "window_height": 650,
+    "window_height": 680,
     "countdown_seconds": 5,
     "appearance_mode": "dark",
     "color_theme": "blue"
