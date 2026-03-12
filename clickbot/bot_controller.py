@@ -198,9 +198,16 @@ class BotController:
             if clients_processed > 0:
                 sounds.play_iteration()
 
-            # Scroll client list to top via Ctrl+Home (instant, reliable regardless of list size)
+            # Scroll client list to top via Ctrl+Home
+            # Click in the table first to ensure it has focus (after returning
+            # from a process, focus may be on the menu bar or a button).
             scroll_top = self.settings.get("loop", {}).get("scroll_to_top", {})
             if scroll_top.get("enabled", True):
+                table_cfg = self.settings.get("loop", {}).get("scroll_in_table", {})
+                table_x = table_cfg.get("x", 400)
+                table_y = table_cfg.get("y", 500)
+                pyautogui.click(table_x, table_y)
+                time.sleep(0.2)
                 pyautogui.hotkey('ctrl', 'home')
                 time.sleep(scroll_top.get("delay_s", 0.3))
 
