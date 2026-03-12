@@ -12,6 +12,9 @@ __pycache__/
 *.pyo
 *.egg-info/
 
+# Per-machine settings (use settings.example.json as template)
+config/settings.json
+
 # Logs
 logs/
 
