@@ -117,19 +117,19 @@
     },
     {
       "id": 12,
-      "name": "handle_preparer_ef_wizard",
-      "description": "If Preparer EF Wizard appears, click Clients to bail out; otherwise continue",
+      "name": "handle_post_efile",
+      "description": "Check if Acknowledgement appeared; if not (Wizard/other), bail out to Client Manager",
       "action": "conditional",
       "condition": {
         "type": "element_visible",
-        "image": "1040/preparer_ef_wizard.png"
+        "image": "1040/acknowledgement_header.png"
       },
-      "if_true": {
+      "if_true": "continue",
+      "if_false": {
         "action": "click",
-        "description": "Click Clients button to return (Wizard case)",
+        "description": "Click Clients button to return (Wizard/unexpected screen)",
         "target": { "image": "common/clients_button.png" }
-      },
-      "if_false": "continue"
+      }
     },
     {
       "id": 13,
