@@ -126,9 +126,27 @@
       },
       "if_true": "continue",
       "if_false": {
-        "action": "click",
-        "description": "Click Clients button to return (Wizard/unexpected screen)",
-        "target": { "image": "common/clients_button.png" }
+        "action": "multi",
+        "description": "Bail out: click Clients, then dismiss save-changes dialog if it appears",
+        "actions": [
+          {
+            "action": "click",
+            "target": { "image": "common/clients_button.png" },
+            "wait_after": 1.5
+          },
+          {
+            "action": "conditional",
+            "condition": {
+              "type": "element_visible",
+              "image": "1040/no_default.png"
+            },
+            "if_true": {
+              "action": "click",
+              "target": { "image": "1040/no_default.png" }
+            },
+            "if_false": "continue"
+          }
+        ]
       }
     },
     {
