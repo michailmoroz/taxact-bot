@@ -144,7 +144,8 @@
               "action": "click",
               "target": { "image": "1040/no_default.png" }
             },
-            "if_false": "continue"
+            "if_false": "continue",
+            "wait_after": 5.0
           }
         ]
       }
