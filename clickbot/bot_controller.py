@@ -127,7 +127,8 @@ class BotController:
     def _recover_to_client_manager(self) -> None:
         """Navigate back to Client Manager after a process error.
 
-        Clicks the 'Clients' button in the top menu bar to return to base state.
+        Clicks the 'Clients' button in the top menu bar to return to base state,
+        then scrolls the client table to the top via Ctrl+Home.
         """
         self._send_status("Recovering: returning to Client Manager...")
         self._send_log("Clicking 'Clients' to return to base...")
@@ -146,6 +147,21 @@ class BotController:
         except Exception as e:
             logger.error(f"Recovery failed: {e}")
             self._send_error(f"Recovery failed: {e}")
+
+        # Scroll client table to top so next scan starts from the beginning
+        self._scroll_table_to_top()
+
+    def _scroll_table_to_top(self) -> None:
+        """Click into the client table and press Ctrl+Home to scroll to top."""
+        scroll_top = self.settings.get("loop", {}).get("scroll_to_top", {})
+        if scroll_top.get("enabled", True):
+            focus_x = scroll_top.get("focus_click_x", 200)
+            focus_y = scroll_top.get("focus_click_y", 300)
+            pyautogui.click(focus_x, focus_y)
+            time.sleep(0.2)
+            pyautogui.hotkey('ctrl', 'home')
+            time.sleep(scroll_top.get("delay_s", 0.3))
+            logger.debug("Scrolled client table to top")
 
     def _send_status(self, message: str) -> None:
         """Send status update to GUI."""
@@ -199,16 +215,7 @@ class BotController:
                 sounds.play_iteration()
 
             # Scroll client list to top via Ctrl+Home
-            # Click in the table to give it focus. Position is configurable
-            # via settings to avoid hitting context menus or other UI elements.
-            scroll_top = self.settings.get("loop", {}).get("scroll_to_top", {})
-            if scroll_top.get("enabled", True):
-                focus_x = scroll_top.get("focus_click_x", 200)
-                focus_y = scroll_top.get("focus_click_y", 300)
-                pyautogui.click(focus_x, focus_y)
-                time.sleep(0.2)
-                pyautogui.hotkey('ctrl', 'home')
-                time.sleep(scroll_top.get("delay_s", 0.3))
+            self._scroll_table_to_top()
 
             # Find next unprocessed client
             self._send_status("Scanning client table...")

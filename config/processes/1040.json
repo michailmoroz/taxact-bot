@@ -131,8 +131,8 @@
         "verify_next": "1040/13_consent_to_disclosure.png"
       },
       "if_false": {
-        "action": "multi",
-        "description": "Bail out: click Clients, then dismiss save-changes dialog if it appears",
+        "abort": true,
+        "description": "Bail out: click Clients, dismiss save-changes dialog, then stop process",
         "actions": [
           {
             "action": "click",
@@ -150,7 +150,7 @@
               "target": { "image": "1040/no_default.png" }
             },
             "if_false": "continue",
-            "wait_after": 5.0
+            "wait_after": 2.0
           }
         ]
       }

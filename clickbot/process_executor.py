@@ -429,6 +429,17 @@ class ProcessExecutor:
         if branch is None or branch == "continue":
             return True
 
+        # "abort" dict: execute actions then return False to stop the process
+        if isinstance(branch, dict) and branch.get("abort"):
+            logger.info("  -> Branch: abort after executing actions")
+            actions = branch.get("actions", [])
+            for sub in actions:
+                self._execute_step(sub, static_inputs)
+                sub_wait = sub.get("wait_after", 0.5)
+                if sub_wait > 0:
+                    time.sleep(sub_wait)
+            return False
+
         if isinstance(branch, dict):
             # Single step - inject detected position if action is "click_detected"
             if branch.get("action") == "click_detected" and detected_position:
