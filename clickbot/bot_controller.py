@@ -199,14 +199,15 @@ class BotController:
                 sounds.play_iteration()
 
             # Scroll client list to top via Ctrl+Home
-            # Click in the table first to ensure it has focus (after returning
-            # from a process, focus may be on the menu bar or a button).
+            # Click on the column header area to give the table focus without
+            # triggering any row context menus (the "..." popup).
             scroll_top = self.settings.get("loop", {}).get("scroll_to_top", {})
             if scroll_top.get("enabled", True):
-                table_cfg = self.settings.get("loop", {}).get("scroll_in_table", {})
-                table_x = table_cfg.get("x", 400)
-                table_y = table_cfg.get("y", 500)
-                pyautogui.click(table_x, table_y)
+                table_cfg = self.settings.get("client_table", {})
+                header_y = table_cfg.get("header_row_y", 145)
+                col_cfg = table_cfg.get("columns", {}).get("client_name", {})
+                header_x = col_cfg.get("x", 20) + 50
+                pyautogui.click(header_x, header_y)
                 time.sleep(0.2)
                 pyautogui.hotkey('ctrl', 'home')
                 time.sleep(scroll_top.get("delay_s", 0.3))
