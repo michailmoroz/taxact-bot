@@ -875,10 +875,10 @@ def _scan_visible_clients(
 
         logger.debug(f"Row {row_index}: name='{client_name}', type='{selected_return_type}', status_empty=True")
 
-        # Use dynamic column position for click target
+        # Use dynamic column position for click target (offset left to avoid "..." menu)
         client_col_x, _ = column_positions["client_name"]
         click_y = row_y + row_height // 2
-        click_pos = (client_col_x, click_y)
+        click_pos = (client_col_x - 20, click_y)
 
         row_data = ClientRow(
             row_index=row_index,
