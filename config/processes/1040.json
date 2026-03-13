@@ -118,14 +118,14 @@
     {
       "id": 12,
       "name": "handle_post_efile",
-      "description": "Check if Acknowledgement appeared; if not (Wizard/other), bail out to Client Manager",
+      "description": "Check if Preparer EF Wizard appeared; if so, bail out to Client Manager",
       "action": "conditional",
       "condition": {
         "type": "element_visible",
-        "image": "1040/acknowledgement_header.png"
+        "image": "1040/preparer_ef_wizard.png",
+        "confidence": 0.6
       },
-      "if_true": "continue",
-      "if_false": {
+      "if_true": {
         "action": "multi",
         "description": "Bail out: click Clients, then dismiss save-changes dialog if it appears",
         "actions": [
@@ -148,7 +148,8 @@
             "wait_after": 5.0
           }
         ]
-      }
+      },
+      "if_false": "continue"
     },
     {
       "id": 13,
