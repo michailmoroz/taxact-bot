@@ -347,7 +347,15 @@ class ProcessExecutor:
             # Check if element is visible
             image = condition.get("image")
             confidence = condition.get("confidence")
-            is_visible = vision.find_element(image, confidence, fallback_coords=None) is not None
+            # Support "verify" base_path to check against verify templates
+            cond_base_path = condition.get("base_path")
+            if cond_base_path == "verify":
+                cond_base_path = self._get_verify_base_path()
+            else:
+                cond_base_path = None
+            is_visible = vision.find_element(
+                image, confidence, fallback_coords=None, base_path=cond_base_path
+            ) is not None
 
             branch = "if_true" if is_visible else "if_false"
             logger.info(f"  -> Condition: {image} visible={is_visible} -> {branch}")

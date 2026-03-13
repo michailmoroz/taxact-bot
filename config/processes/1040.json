@@ -2,7 +2,7 @@
   "name": "Form 1040 E-File Extension",
   "return_type": "1040",
   "version": "1.0",
-  "description": "20-stage process with screen verification for Form 1040 (Individual)",
+  "description": "19-stage process with screen verification for Form 1040 (Individual)",
   "static_inputs": {},
   "stages": [
     {
@@ -118,14 +118,19 @@
     {
       "id": 12,
       "name": "handle_post_efile",
-      "description": "Check if Preparer EF Wizard appeared; if so, bail out to Client Manager",
+      "description": "If on Acknowledgement screen, click Continue; otherwise bail out (Wizard/other)",
       "action": "conditional",
       "condition": {
         "type": "element_visible",
-        "image": "1040/preparer_ef_wizard.png",
-        "confidence": 0.6
+        "image": "1040/12_acknowledgement.png",
+        "base_path": "verify"
       },
       "if_true": {
+        "action": "click",
+        "target": { "image": "common/continue_blue.png" },
+        "verify_next": "1040/13_consent_to_disclosure.png"
+      },
+      "if_false": {
         "action": "multi",
         "description": "Bail out: click Clients, then dismiss save-changes dialog if it appears",
         "actions": [
@@ -148,20 +153,10 @@
             "wait_after": 5.0
           }
         ]
-      },
-      "if_false": "continue"
+      }
     },
     {
       "id": 13,
-      "name": "click_continue_acknowledgement",
-      "description": "Continue on Acknowledgement screen",
-      "verify_screen": "1040/12_acknowledgement.png",
-      "action": "click",
-      "target": { "image": "common/continue_blue.png" },
-      "verify_next": "1040/13_consent_to_disclosure.png"
-    },
-    {
-      "id": 14,
       "name": "click_agree_consent",
       "description": "Click Agree on Consent to Disclosure screen",
       "verify_screen": "1040/13_consent_to_disclosure.png",
@@ -170,7 +165,7 @@
       "verify_next": "1040/14_alerts.png"
     },
     {
-      "id": 15,
+      "id": 14,
       "name": "click_start_alerts",
       "description": "Click Start Alerts button on Review Alerts screen",
       "verify_screen": "1040/14_alerts.png",
@@ -179,7 +174,7 @@
       "wait_after": 2.0
     },
     {
-      "id": 16,
+      "id": 15,
       "name": "handle_third_party_designee",
       "description": "If Third-Party Designee screen appears, fill 3 fields and re-run alerts; otherwise continue",
       "action": "conditional",
@@ -238,7 +233,7 @@
       "if_false": "continue"
     },
     {
-      "id": 17,
+      "id": 16,
       "name": "handle_alerts_result",
       "description": "Check if Passed Alerts or error - different actions",
       "action": "conditional",
@@ -258,7 +253,7 @@
       }
     },
     {
-      "id": 18,
+      "id": 17,
       "name": "click_submit_efile",
       "description": "Click Submit E-File button (no retry - dangerous!)",
       "verify_screen": "1040/16_submit.png",
@@ -269,7 +264,7 @@
       "verify_timeout": 30.0
     },
     {
-      "id": 19,
+      "id": 18,
       "name": "handle_submit_result",
       "description": "Check if E-File Successful or error - safeguard",
       "action": "conditional",
@@ -289,7 +284,7 @@
       }
     },
     {
-      "id": 20,
+      "id": 19,
       "name": "click_clients_complete",
       "description": "Click Clients button on Filing Complete screen to return to Client Manager",
       "verify_screen": "1040/18_complete.png",
