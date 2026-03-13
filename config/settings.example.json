@@ -68,7 +68,9 @@
   "loop": {
     "scroll_to_top": {
       "enabled": true,
-      "delay_s": 0.3
+      "delay_s": 0.3,
+      "focus_click_x": 200,
+      "focus_click_y": 300
     },
     "scroll_in_table": {
       "x": 400,
