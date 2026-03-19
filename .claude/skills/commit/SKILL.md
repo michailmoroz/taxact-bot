@@ -2,7 +2,7 @@
 name: commit
 description: Commit and push changes based on execution report
 argument-hint: "<execution-report-path>"
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 ---
 

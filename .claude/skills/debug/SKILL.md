@@ -2,7 +2,7 @@
 name: debug
 description: Structured debugging with root-cause analysis
 argument-hint: "<bug description>"
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 ---
 

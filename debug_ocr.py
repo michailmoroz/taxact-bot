@@ -8,15 +8,15 @@ Usage:
 
 Output files:
     debug_full_screenshot.png  - Full screen capture
-    debug_row_N_client_name.png - Client name cell for row N
-    debug_row_N_return_type.png - Return type cell for row N
-    debug_row_N_fed_ef_status.png - Fed EF status cell for row N
+    debug_row_N_COLUMN.png     - Cell crop for row N, column COLUMN
     debug_annotated.png - Full screenshot with colored rectangles showing all regions
 """
 import json
 import sys
 from pathlib import Path
 
+import cv2
+import numpy as np
 import pyautogui
 import pytesseract
 from PIL import Image, ImageDraw, ImageFont
@@ -37,7 +37,7 @@ first_data_row_y = table["first_data_row_y"]
 row_height = table["row_height"]
 columns = table["columns"]
 
-NUM_ROWS = 21  # How many rows to debug
+NUM_ROWS = 27  # How many rows to debug
 
 print("=" * 60)
 print("TaxAct Client Table OCR Debug")
@@ -63,12 +63,13 @@ draw = ImageDraw.Draw(annotated)
 # Colors for each column
 colors = {
     "client_name": (255, 0, 0),      # Red
+    "ssn_ein": (255, 165, 0),        # Orange
     "return_type": (0, 255, 0),      # Green
     "fed_ef_status": (0, 100, 255),  # Blue
 }
 
 print(f"\n{'Row':<5} {'Column':<20} {'Region (x,y,w,h)':<25} {'OCR Result'}")
-print("-" * 80)
+print("-" * 90)
 
 for row_idx in range(NUM_ROWS):
     row_y = first_data_row_y + (row_idx * row_height)
@@ -86,8 +87,13 @@ for row_idx in range(NUM_ROWS):
         filename = f"debug_row_{row_idx}_{col_name}.png"
         region.save(filename)
 
-        # OCR
-        text = pytesseract.image_to_string(region, lang="eng").strip()
+        # OCR with grayscale conversion (matches vision.py behavior)
+        # Raw RGB can fail on colored text (e.g. blue status text)
+        region_np = np.array(region)
+        region_gray = cv2.cvtColor(region_np, cv2.COLOR_RGB2GRAY)
+        region_pil = Image.fromarray(region_gray)
+        text = pytesseract.image_to_string(region_pil, lang="eng").strip()
+
         # Take first non-empty line (like the bot does)
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         result = lines[0] if lines else ""
@@ -110,5 +116,5 @@ for row_idx in range(NUM_ROWS):
 # Save annotated screenshot
 annotated.save("debug_annotated.png")
 print(f"\n-> debug_annotated.png (full screenshot with colored region boxes)")
-print(f"   Red = client_name, Green = return_type, Blue = fed_ef_status")
+print(f"   Red = client_name, Orange = ssn_ein, Green = return_type, Blue = fed_ef_status")
 print(f"\nDone! Check the debug_*.png files to verify regions are correct.")

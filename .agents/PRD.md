@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.12
+**Version:** 2.13
 **Date:** 2026-02-04
-**Last Updated:** 2026-03-04
+**Last Updated:** 2026-03-19
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.13 Changes:** Neue Phase 10 (Preprocessing & CSV Client Tracking) eingefügt — GUI-Button "Preprocessing" scannt komplette TaxAct-Tabelle und erstellt CSV mit Client/ID/Return Type/Status. CSV-basiertes Tracking mit Composite Key (Name+SSN/EIN), Duplikat-Deduplizierung, File-Picker in GUI. Status-Werte: TODO/DONE/FAIL. Bisherige Phase 10 (1040 Process) wird Phase 11, Phase 11 (1120 Validation) wird Phase 12.
+>
 > **v2.12 Changes:** Phase 9 (GUI Return-Type Selection) als COMPLETE markiert — Segmented-Button in GUI für manuelle Return-Type-Auswahl (1120/1120S/1040), OCR-basierte Return-Type-Erkennung aus Tabelle entfernt. Phase 10 (1040 Process) als NEXT hinzugefügt. Alte Phase 9 (1120 Validation) wird Phase 11.
 >
 > **v2.11 Changes:** Phase 8 (Executable Packaging) als COMPLETE markiert — PyInstaller onedir Build, Tesseract gebündelt, Inno Setup Installer, paths.py für Dev/Exe-Pfadauflösung.
@@ -116,7 +118,7 @@ Automatisierung des TaxAct E-File-Extension-Prozesses für Return-Types 1120 und
 - ✅ **Manuelle Return-Type Auswahl** via GUI Segmented-Button (ersetzt OCR-Erkennung seit v2.12)
 - ✅ Unterstützung für **Form 1120** (Corporation)
 - ✅ Unterstützung für **Form 1120S** (S-Corporation)
-- ⬜ Unterstützung für **Form 1040** (Individual) — Phase 10
+- ⬜ Unterstützung für **Form 1040** (Individual) — Phase 11
 - ✅ Separate Klickabfolgen pro Return-Type (JSON-Konfiguration)
 - ✅ Dynamische Prozess-Auswahl basierend auf GUI-Auswahl
 
@@ -125,6 +127,19 @@ Automatisierung des TaxAct E-File-Extension-Prozesses für Return-Types 1120 und
 - ✅ Duplikat-Vermeidung über Client-Namen
 - ✅ Scrollen in Client-Liste wenn nötig
 - ✅ Automatische Erkennung wenn alle Clients bearbeitet wurden
+
+#### Preprocessing & CSV Client Tracking (NEU in v2.13)
+- ⬜ **GUI "Preprocessing" Button** — scannt komplette TaxAct-Tabelle und exportiert als CSV
+- ⬜ **CSV-Spalten**: Client (Name), ID (SSN/EIN), Return Type, Status
+- ⬜ **Composite Primary Key**: Client + ID — Duplikate aus TaxAct werden dedupliziert
+- ⬜ **CSV-Dateiname**: `clients_YYYY-MM-DD-HH-MM-SS.csv` unter `C:\TaxActBot\logs\`
+- ⬜ **Status-Werte**: `TODO` (leer), `DONE` (bearbeitet), `FAIL` (Fehler bei Bearbeitung)
+- ⬜ **Post-Iteration Update**: Client-Status in CSV nach jeder Iteration aktualisieren
+- ⬜ **File-Picker in GUI**: Label + Browse-Button, Standard: letzte generierte Datei
+- ⬜ **Bot-Start nur mit CSV**: Fehler wenn keine CSV geladen
+- ⬜ **Return Type per OCR** aus Tabelle lesen (beim Preprocessing)
+- ⬜ **SSN/EIN-Spalte** per OCR auslesen (neuer Column-Header-Template + settings.json Eintrag)
+- ⬜ **Duplikat-Schutz**: Wenn Client+ID als DONE markiert ist, wird auch ein TaxAct-Duplikat übersprungen
 
 #### User Experience
 - ✅ Cursor-Visualisierung im Dev-Mode (farbiger Indikator)
@@ -1230,7 +1245,100 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 10: 1040 Process + Ctrl+Home Scroll-to-Top ⬅️ NEXT
+### Phase 10: Preprocessing & CSV Client Tracking ⬅️ NEXT
+
+**Goal:** GUI-Button "Preprocessing" der die komplette TaxAct Client-Tabelle scannt, als CSV exportiert und als persistentes Client-Tracking für Bot-Durchläufe dient. CSV-basierter File-Picker in der GUI. Post-Iteration Status-Updates (DONE/FAIL).
+
+**Deliverables:**
+- ⬜ **GUI: Preprocessing-Button** — oberhalb "Start Bot", gleiche Größe, andere Farbe (z.B. blau/accent)
+- ⬜ **GUI: CSV File-Picker** — Label mit aktuellem Dateipfad + Browse-Button (Windows File Explorer Dialog)
+- ⬜ **GUI: Standard-Datei beim Start** — letzte generierte CSV automatisch laden
+- ⬜ **GUI: Bot-Start blockiert** wenn keine CSV geladen → Fehlermeldung
+- ⬜ **SSN/EIN Spalte in settings.json** — neue `columns.ssn_ein` Konfiguration in `client_table`
+- ⬜ **Column-Header-Template** — Screenshot `common/column_header_ssn_ein.png` erstellen
+- ⬜ **Preprocessor-Modul** (`clickbot/preprocessor.py`) — Tabelle komplett scannen via OCR (analog `debug_ocr.py`, nutzt `settings.json:client_table`)
+- ⬜ **CSV-Export** — Spalten: `Client`, `ID`, `Return Type`, `Status` → `C:\TaxActBot\logs\clients_YYYY-MM-DD-HH-MM-SS.csv`
+- ⬜ **Composite Primary Key** — `Client + ID (SSN/EIN)` zur Identifikation, Duplikate deduplizieren
+- ⬜ **Status-Logik beim Preprocessing** — Fed EF Status leer → `TODO`, nicht leer → `DONE`
+- ⬜ **State-Modul Refactoring** — `state.py` von `Set[str]` auf CSV-basiertes Tracking umstellen (Name+ID Key)
+- ⬜ **Post-Iteration Update** — Bot markiert Client in CSV als `DONE` (Erfolg) oder `FAIL` (Fehler/Abbruch)
+- ⬜ **Duplikat-Schutz** — Wenn Client+ID als `DONE` markiert → auch TaxAct-Duplikate überspringen
+- ⬜ **Bot-Controller Integration** — `find_next_client()` nutzt CSV statt in-memory Set, `_run()` updated CSV nach jeder Iteration
+- ⬜ **Erneutes Preprocessing** — überschreibt bestehende CSV (generiert neue Datei mit Timestamp)
+
+**Preprocessing-Flow:**
+```
+User klickt "Preprocessing" in GUI
+    │
+    ▼
+Bot ist auf Client Manager Base (Tabelle sichtbar)
+    │
+    ▼
+Scroll to Top (Ctrl+Home)
+    │
+    ▼
+Für jede sichtbare Seite:
+    ├─ Für jede Zeile (via settings.json client_table):
+    │   ├─ OCR: Client Name
+    │   ├─ OCR: SSN/EIN (ID)
+    │   ├─ OCR: Return Type
+    │   └─ OCR: Fed EF Status
+    │
+    ├─ Zeile leer → Ende der Tabelle
+    └─ Scroll down → nächste Seite
+    │
+    ▼
+Deduplizierung: Client+ID als Key, erste Instanz behalten
+    │
+    ▼
+CSV schreiben: C:\TaxActBot\logs\clients_2026-03-19-14-30-00.csv
+    │
+    ▼
+GUI: File-Picker aktualisiert auf neue Datei
+```
+
+**CSV-Format:**
+```csv
+Client,ID,Return Type,Status
+SANDMEYER INC,12-3456789,1120S,TODO
+SMITH LLC,98-7654321,1120,DONE
+JONES CORP,11-2233445,1040,TODO
+```
+
+**Bot-Run-Flow (mit CSV):**
+```
+User wählt Return Type + klickt "Start Bot"
+    │
+    ▼
+CSV laden (aus File-Picker Pfad)
+    │
+    ▼
+Filtern: Return Type == GUI-Auswahl AND Status == TODO
+    │
+    ▼
+Für jeden Client:
+    ├─ In TaxAct-Tabelle finden (via Name+ID matching)
+    ├─ Prozess ausführen
+    ├─ Erfolg → CSV: Status = DONE
+    └─ Fehler → CSV: Status = FAIL
+```
+
+**Validation:**
+- Preprocessing scannt komplette Tabelle korrekt (alle Spalten)
+- CSV wird korrekt geschrieben mit deduplizierten Einträgen
+- File-Picker zeigt korrekte Datei an
+- Bot startet nur mit geladener CSV
+- Post-Iteration Status-Updates funktionieren (DONE/FAIL)
+- Duplikate in TaxAct werden korrekt übersprungen
+- 1120S/1120/1040 Prozesse weiterhin funktionsfähig
+
+**Abhängigkeiten:**
+- Screenshot für `common/column_header_ssn_ein.png` muss vom User bereitgestellt werden
+- `settings.json:client_table.columns.ssn_ein` muss kalibriert werden
+
+---
+
+### Phase 11: 1040 Process + Ctrl+Home Scroll-to-Top
 
 **Goal:** Form 1040 E-File Extension Automatisierung (19 Stages) und zuverlässiger Scroll-to-Top via Ctrl+Home
 
@@ -1277,7 +1385,7 @@ Der MVP ist erfolgreich wenn:
 
 ---
 
-### Phase 11: 1120 Process Validation & Optimization
+### Phase 12: 1120 Process Validation & Optimization
 
 **Goal:** Step-Validierung für den 1120-Prozess, analog zu Phase 7 (1120S)
 

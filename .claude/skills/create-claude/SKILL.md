@@ -2,7 +2,7 @@
 name: create-claude
 description: Create a comprehensive CLAUDE.md with interview and auto-detection
 argument-hint: "[update]"
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 ---
 

@@ -2,7 +2,7 @@
 name: research
 description: Deep dive research on technology or codebase topics
 argument-hint: "<topic or question>"
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 ---
 

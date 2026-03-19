@@ -2,7 +2,7 @@
 name: planning
 description: Create a comprehensive implementation plan for a feature
 argument-hint: "<feature-description>"
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 ---
 
@@ -136,6 +136,28 @@ After implementation, manually verify:
 ## Notes
 
 {Any additional context, warnings, or considerations}
+
+## Confidence Score: {X}/10
+
+**One-pass implementation confidence** — likelihood that this plan can be executed successfully on the first attempt without additional research or clarification.
+
+| Factor | Rating | Notes |
+|--------|--------|-------|
+| **Codebase Patterns** | {0-10} | Are there clear, reusable patterns in the project? |
+| **External Knowledge** | {0-10} | Does implementation require knowledge outside the codebase? (higher = less needed) |
+| **Risk** | {0-10} | How likely is it that something breaks or edge cases appear? (higher = lower risk) |
+| **Dependencies** | {0-10} | How many modules/files are affected? Cascade effects? (higher = fewer) |
+| **Clarity** | {0-10} | Are requirements unambiguous? (higher = clearer) |
+| **Testability** | {0-10} | Can the result be reliably validated? (higher = easier to test) |
+
+**Overall: {X}/10** — {One sentence justification}
+
+Score guide:
+- **9-10**: Trivial, clear patterns, no external knowledge needed
+- **7-8**: Well-plannable, known patterns, minimal risk
+- **5-6**: Feasible, but some uncertainties or external dependencies
+- **3-4**: Risky, lots of external knowledge needed or unclear requirements
+- **1-2**: Very uncertain, many unknowns, high failure probability
 ```
 
 ---
@@ -162,10 +184,10 @@ Use action keywords:
 ### Validation Commands
 
 Each task should have a validation command:
-- `npm run lint`
-- `npm run typecheck`
-- `npm run test -- {specific test}`
-- `grep -r "pattern" src/` (to verify changes exist)
+- `ruff check clickbot/`
+- `mypy clickbot/`
+- `pytest tests/unit/{specific_test}.py -v`
+- `grep -r "pattern" clickbot/` (to verify changes exist)
 
 ---
 
@@ -175,6 +197,7 @@ Each task should have a validation command:
 2. **Summarize** the plan for the user:
    - Number of tasks
    - Estimated complexity (Low/Medium/High)
+   - **Confidence Score (X/10)** with one-sentence justification
    - Key risks or considerations
 3. **Ask** if user wants to proceed with `/execute` or make changes
 
@@ -192,6 +215,7 @@ Each task should have a validation command:
 - **New Packages**: jsonwebtoken, bcrypt
 - **Breaking Changes**: No
 - **Complexity**: Medium
+- **Confidence Score**: 7/10 — Clear patterns exist, but session handling has edge cases
 
 ### Key Considerations
 - Requires database migration

@@ -2,7 +2,7 @@
 name: execute
 description: Execute an implementation plan with testing and validation
 argument-hint: "<plan-file-path>"
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 ---
 

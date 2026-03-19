@@ -2,7 +2,7 @@
 name: prime
 description: Load project context and provide summary
 argument-hint: "[focus: full|status|structure]"
-disable-model-invocation: true
+disable-model-invocation: false
 user-invocable: true
 ---
 
