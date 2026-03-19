@@ -16,6 +16,7 @@ from typing import List, Optional
 
 import tkinter as tk
 
+import keyboard
 import pyautogui
 
 from clickbot import paths
@@ -130,7 +131,7 @@ def preprocess_table(
         time.sleep(0.3)
 
         # Scroll to top of table
-        pyautogui.hotkey('ctrl', 'home')
+        keyboard.press_and_release('ctrl+home')
         time.sleep(0.3)
 
         # Re-click to ensure table focus after scroll
@@ -192,7 +193,7 @@ def preprocess_table(
                 send_log(f"Scanned {row_num + 1} rows...")
 
             # Press down arrow to move to next row
-            pyautogui.press('down')
+            keyboard.press_and_release('down')
             time.sleep(arrow_key_delay)
 
             # Track visual row position
