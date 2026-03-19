@@ -63,6 +63,7 @@ FONTS = {
 class GUIState(Enum):
     """GUI state enumeration."""
     READY = "ready"
+    PREPROCESSING_COUNTDOWN = "preprocessing_countdown"
     PREPROCESSING = "preprocessing"
     COUNTDOWN = "countdown"
     RUNNING = "running"
@@ -221,6 +222,22 @@ class BotGUI(ctk.CTk):
             font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
             text_color=COLORS["text_secondary"],
         )
+        # Preprocessing countdown labels (initially hidden)
+        self.preproc_countdown_label = ctk.CTkLabel(
+            self.preprocessing_frame,
+            text="",
+            font=ctk.CTkFont(
+                family=FONTS["countdown"][0], size=FONTS["countdown"][1],
+                weight="bold"
+            ),
+            text_color=COLORS["text_primary"],
+        )
+        self.preproc_countdown_hint = ctk.CTkLabel(
+            self.preprocessing_frame,
+            text="Switch to TaxAct now!",
+            font=ctk.CTkFont(family="Segoe UI", size=14),
+            text_color=COLORS["text_secondary"],
+        )
 
         # --- Control Card (Start/Stop Button, Countdown) ---
         self.control_frame = ctk.CTkFrame(
@@ -377,18 +394,72 @@ class BotGUI(ctk.CTk):
     # --- Preprocessing ---
 
     def _on_preprocessing_click(self) -> None:
-        """Handle preprocessing button click."""
-        if self.gui_state != GUIState.READY:
-            return
+        """Handle preprocessing button click — routes by current state."""
+        if self.gui_state == GUIState.READY:
+            self._start_preprocessing_countdown()
+        elif self.gui_state == GUIState.PREPROCESSING_COUNTDOWN:
+            self._cancel_preprocessing_countdown()
+        elif self.gui_state == GUIState.PREPROCESSING:
+            self._stop_preprocessing()
 
-        self.gui_state = GUIState.PREPROCESSING
+    def _start_preprocessing_countdown(self) -> None:
+        """Start countdown before preprocessing scan."""
+        self.gui_state = GUIState.PREPROCESSING_COUNTDOWN
+        self._countdown_value = self.settings.get("gui", {}).get("countdown_seconds", 5)
 
-        # Disable controls
-        self.preprocessing_button.configure(text="Scanning...", state="disabled")
+        # Disable other controls
         self.start_button.configure(state="disabled")
         self.return_type_selector.configure(state="disabled")
         self.csv_browse_button.configure(state="disabled")
 
+        # Show countdown in preprocessing card
+        self.preprocessing_button.pack_forget()
+        self.preproc_countdown_label.pack(pady=10)
+        self.preproc_countdown_hint.pack(pady=5)
+        self.preprocessing_button.configure(
+            text="Cancel",
+            fg_color=COLORS["warning"],
+            hover_color=COLORS["warning_hover"],
+        )
+        self.preprocessing_button.pack(pady=(10, 8), padx=16, fill="x")
+
+        self._log(f"Preprocessing countdown ({self._countdown_value}s)")
+        self._update_preprocessing_countdown()
+
+    def _update_preprocessing_countdown(self) -> None:
+        """Tick the preprocessing countdown."""
+        if self._countdown_value > 0 and self.gui_state == GUIState.PREPROCESSING_COUNTDOWN:
+            self.preproc_countdown_label.configure(text=str(self._countdown_value))
+            self._countdown_value -= 1
+            self._countdown_id = self.after(1000, self._update_preprocessing_countdown)
+        elif self.gui_state == GUIState.PREPROCESSING_COUNTDOWN:
+            self._finish_preprocessing_countdown()
+
+    def _cancel_preprocessing_countdown(self) -> None:
+        """Cancel preprocessing countdown and return to ready."""
+        if self._countdown_id:
+            self.after_cancel(self._countdown_id)
+            self._countdown_id = None
+
+        self._log("Preprocessing countdown cancelled")
+        self._reset_preprocessing_button()
+        self._set_ready_state()
+
+    def _finish_preprocessing_countdown(self) -> None:
+        """Countdown done — hide countdown labels and start scanning."""
+        self.preproc_countdown_label.pack_forget()
+        self.preproc_countdown_hint.pack_forget()
+
+        # Switch button to Stop
+        self.preprocessing_button.pack_forget()
+        self.preprocessing_button.configure(
+            text="Stop Scan",
+            fg_color=COLORS["error"],
+            hover_color=COLORS["error_hover"],
+        )
+        self.preprocessing_button.pack(pady=(16, 8), padx=16, fill="x")
+
+        self.gui_state = GUIState.PREPROCESSING
         self.status_label.configure(text="Status: Preprocessing...")
 
         # Setup message queue and stop event for preprocessing thread
@@ -406,6 +477,12 @@ class BotGUI(ctk.CTk):
 
         # Start polling for preprocessing messages
         self._poll_preprocessing()
+
+    def _stop_preprocessing(self) -> None:
+        """Stop a running preprocessing scan."""
+        if self._preprocessing_stop is not None:
+            self._preprocessing_stop.set()
+        self._log("Preprocessing stopped by user")
 
     def _poll_preprocessing(self) -> None:
         """Poll preprocessing message queue."""
@@ -450,19 +527,26 @@ class BotGUI(ctk.CTk):
         else:
             sounds.play_error()
 
-        # Re-enable controls
-        self.preprocessing_button.configure(text="Scan Client Table", state="normal")
-        self.start_button.configure(state="normal")
-        self.return_type_selector.configure(state="normal")
-        self.csv_browse_button.configure(state="normal")
-
-        self.gui_state = GUIState.READY
-        self.status_label.configure(text="Status: Ready")
+        self._reset_preprocessing_button()
+        self._set_ready_state()
 
         # Cleanup
         self._preprocessing_queue = None
         self._preprocessing_stop = None
         self._preprocessing_thread = None
+
+    def _reset_preprocessing_button(self) -> None:
+        """Reset preprocessing button to default appearance and position."""
+        self.preproc_countdown_label.pack_forget()
+        self.preproc_countdown_hint.pack_forget()
+        self.preprocessing_button.pack_forget()
+        self.preprocessing_button.configure(
+            text="Scan Client Table",
+            fg_color=COLORS["accent"],
+            hover_color=COLORS["accent_hover"],
+            state="normal",
+        )
+        self.preprocessing_button.pack(pady=(16, 8), padx=16, fill="x")
 
     # --- CSV File Management ---
 
