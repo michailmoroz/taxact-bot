@@ -816,8 +816,13 @@ def _read_single_cell(
 
     col_cfg = column_config.get(col_name, {})
     col_center_x, template_w = column_positions[col_name]
-    col_width = col_cfg.get("width", template_w)
-    cell_x = col_center_x - template_w // 2 - 5
+    # Use fixed x/width from settings if available, otherwise derive from template
+    if "x" in col_cfg:
+        cell_x = col_cfg["x"]
+        col_width = col_cfg.get("width", template_w)
+    else:
+        col_width = col_cfg.get("width", template_w)
+        cell_x = col_center_x - template_w // 2 - 5
 
     text = read_text_region(cell_x, row_y, col_width, row_height, preprocess=False)
     lines = [line.strip() for line in text.split('\n') if line.strip()]

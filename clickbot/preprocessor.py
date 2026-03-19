@@ -71,17 +71,6 @@ def preprocess_table(
         send_status("Preprocessing: scanning table...")
         send_log("Starting preprocessing...")
 
-        # Scroll table to top via Ctrl+Home
-        scroll_top = settings.get("loop", {}).get("scroll_to_top", {})
-        if scroll_top.get("enabled", True):
-            focus_x = scroll_top.get("focus_click_x", 200)
-            focus_y = scroll_top.get("focus_click_y", 300)
-            pyautogui.click(focus_x, focus_y)
-            time.sleep(0.2)
-            pyautogui.hotkey('ctrl', 'home')
-            time.sleep(scroll_top.get("delay_s", 0.3))
-            logger.debug("Scrolled client table to top")
-
         if stop_event.is_set():
             return None
 
@@ -104,8 +93,8 @@ def preprocess_table(
         preprocessing_settings = settings.get("preprocessing", {})
         arrow_key_delay = preprocessing_settings.get("arrow_key_delay_s", 0.3)
 
-        # Click on first row to select it
-        first_click_y = first_data_row_y + row_height // 2
+        # Click on first row to give table focus (Y - 60 to hit the row reliably)
+        first_click_y = first_data_row_y + row_height // 2 - 60
         client_col_x, _ = column_positions["client_name"]
         pyautogui.click(client_col_x, first_click_y)
         time.sleep(0.3)

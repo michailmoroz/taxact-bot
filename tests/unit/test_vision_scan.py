@@ -108,9 +108,8 @@ class TestReadSingleCell:
         )
 
         assert result == "SMITH LLC"
-        # cell_x = center_x - template_w // 2 - 5 = 100 - 40 - 5 = 55
-        # col_width from settings = 330
-        mock_ocr.assert_called_once_with(55, 202, 330, 32, preprocess=False)
+        # Fixed x from settings (x=20), col_width from settings = 330
+        mock_ocr.assert_called_once_with(20, 202, 330, 32, preprocess=False)
 
     @patch("clickbot.vision.read_text_region")
     def test_returns_first_nonempty_line(self, mock_ocr):
