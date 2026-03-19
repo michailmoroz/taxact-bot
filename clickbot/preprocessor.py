@@ -134,6 +134,7 @@ def preprocess_table(
         time.sleep(0.3)
 
         # Re-click to ensure table focus after scroll
+        _show_click_splash(focus_x, focus_y)
         pyautogui.click(focus_x, focus_y)
         time.sleep(0.3)
 
