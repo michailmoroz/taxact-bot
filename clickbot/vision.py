@@ -629,7 +629,10 @@ import re
 
 # Pattern: any digit + "120" + optional trailing character
 # Matches: 1120, 1120S, 4120, 41205, 11208, etc.
-_RETURN_TYPE_PATTERN = re.compile(r'\d120(.)?')
+_RETURN_TYPE_1120_PATTERN = re.compile(r'\d120(.)?')
+
+# Pattern: 1040 (OCR may misread as 4040, 1O40, etc.)
+_RETURN_TYPE_1040_PATTERN = re.compile(r'[14]\d?40')
 
 
 def normalize_return_type(ocr_value: str) -> str:
@@ -638,15 +641,13 @@ def normalize_return_type(ocr_value: str) -> str:
     OCR commonly misreads characters in the return type column:
     - First "1" misread as "4" (4120 -> 1120)
     - Trailing "S" misread as "5" or "8" (11205/11208 -> 1120S)
-
-    Rule: match pattern <digit>120 (covers 1120, 4120, etc.).
-    If any character follows, classify as "1120S", otherwise "1120".
+    - "1040" misread as "4040" or similar
 
     Args:
         ocr_value: Raw OCR result for return type
 
     Returns:
-        Normalized return type: "1120" or "1120S"
+        Normalized return type: "1120", "1120S", or "1040"
     """
     # Clean up OCR result: take first non-empty line
     lines = [line.strip() for line in ocr_value.split('\n') if line.strip()]
@@ -655,7 +656,12 @@ def normalize_return_type(ocr_value: str) -> str:
     # Strip all whitespace for matching
     compact = cleaned.replace(" ", "")
 
-    match = _RETURN_TYPE_PATTERN.search(compact)
+    # Check for 1040 first (before 1120, since "1040" won't match \d120)
+    if _RETURN_TYPE_1040_PATTERN.search(compact):
+        logger.debug(f"Return type '{cleaned}' -> '1040'")
+        return "1040"
+
+    match = _RETURN_TYPE_1120_PATTERN.search(compact)
     if match:
         trailing = match.group(1)
         if trailing:
