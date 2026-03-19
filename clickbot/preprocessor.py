@@ -14,6 +14,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
+import tkinter as tk
+
 import pyautogui
 
 from clickbot import paths
@@ -34,6 +36,33 @@ class ClientRecord:
 
 
 CSV_COLUMNS = ["Client", "ID", "Return Type", "Status"]
+
+
+def _show_click_splash(x: int, y: int, size: int = 30, duration_ms: int = 400) -> None:
+    """Show a brief red circle splash at the click position.
+
+    Args:
+        x: Screen X coordinate (center of splash)
+        y: Screen Y coordinate (center of splash)
+        size: Diameter of the splash circle in pixels
+        duration_ms: How long the splash is visible in milliseconds
+    """
+    try:
+        root = tk.Tk()
+        root.overrideredirect(True)
+        root.attributes("-topmost", True)
+        root.attributes("-transparentcolor", "black")
+        root.geometry(f"{size}x{size}+{x - size // 2}+{y - size // 2}")
+        root.configure(bg="black")
+
+        canvas = tk.Canvas(root, width=size, height=size, bg="black", highlightthickness=0)
+        canvas.pack()
+        canvas.create_oval(2, 2, size - 2, size - 2, fill="red", outline="red")
+
+        root.after(duration_ms, root.destroy)
+        root.mainloop()
+    except Exception:
+        pass  # Non-critical, don't break preprocessing
 
 
 def preprocess_table(
@@ -96,6 +125,7 @@ def preprocess_table(
         # Click on first row to give table focus (Y - 60 to hit the row reliably)
         first_click_y = first_data_row_y + row_height // 2 - 60
         client_col_x, _ = column_positions["client_name"]
+        _show_click_splash(client_col_x, first_click_y)
         pyautogui.click(client_col_x, first_click_y)
         time.sleep(0.3)
 
