@@ -17,6 +17,7 @@ from typing import List, Optional
 import pyautogui
 
 from clickbot import paths
+from clickbot import sounds
 from clickbot import vision
 from clickbot.bot_controller import StatusMessage
 
@@ -156,6 +157,7 @@ def preprocess_table(
                     return_type=return_type,
                     status=status,
                 ))
+                sounds.play_iteration()
 
             # Log progress every 10 clients
             if (row_num + 1) % 10 == 0:
