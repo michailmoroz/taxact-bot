@@ -122,11 +122,11 @@ def preprocess_table(
         preprocessing_settings = settings.get("preprocessing", {})
         arrow_key_delay = preprocessing_settings.get("arrow_key_delay_s", 0.3)
 
-        # Click on first row to give table focus (Y - 60 to hit the row reliably)
-        first_click_y = first_data_row_y + row_height // 2 - 60
-        client_col_x, _ = column_positions["client_name"]
-        _show_click_splash(client_col_x, first_click_y)
-        pyautogui.click(client_col_x, first_click_y)
+        # Click on table to give it keyboard focus
+        focus_x = preprocessing_settings.get("focus_click_x", 200)
+        focus_y = preprocessing_settings.get("focus_click_y", 161)
+        _show_click_splash(focus_x, focus_y)
+        pyautogui.click(focus_x, focus_y)
         time.sleep(0.3)
 
         # Scan rows one by one using arrow key navigation
