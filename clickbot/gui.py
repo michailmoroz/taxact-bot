@@ -321,22 +321,22 @@ class BotGUI(ctk.CTk):
             row=0, column=0, padx=pad_x, pady=(20, 4), sticky="w"
         )
 
-        # Row 1 — Return Type Hero Card
-        self.return_type_frame.grid(
-            row=1, column=0, padx=pad_x, pady=(8, 6), sticky="ew"
-        )
-        self.return_type_label.pack(padx=16, pady=(14, 4), anchor="center")
-        self.return_type_selector.pack(padx=16, pady=(4, 14), fill="x")
-
-        # Row 2 — Preprocessing Card
+        # Row 1 — Preprocessing Card
         self.preprocessing_frame.grid(
-            row=2, column=0, padx=pad_x, pady=6, sticky="ew"
+            row=1, column=0, padx=pad_x, pady=(8, 6), sticky="ew"
         )
         self.preprocessing_button.pack(pady=(16, 8), padx=16, fill="x")
         self.csv_file_frame.pack(padx=16, fill="x")
         self.csv_path_label.pack(side="left", expand=True, fill="x")
         self.csv_browse_button.pack(side="right", padx=(8, 0))
         self.csv_status_label.pack(padx=16, pady=(4, 12), anchor="w")
+
+        # Row 2 — Return Type Hero Card
+        self.return_type_frame.grid(
+            row=2, column=0, padx=pad_x, pady=6, sticky="ew"
+        )
+        self.return_type_label.pack(padx=16, pady=(14, 4), anchor="center")
+        self.return_type_selector.pack(padx=16, pady=(4, 14), fill="x")
 
         # Row 3 — Control Card
         self.control_frame.grid(
