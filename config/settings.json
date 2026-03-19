@@ -69,8 +69,8 @@
   "preprocessing": {
     "csv_output_dir": "C:/TaxActBot/logs",
     "arrow_key_delay_s": 0.3,
-    "focus_click_x": 200,
-    "focus_click_y": 161
+    "focus_click_x": 130,
+    "focus_click_y": 220
   },
   "loop": {
     "scroll_to_top": {

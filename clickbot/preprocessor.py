@@ -129,6 +129,14 @@ def preprocess_table(
         pyautogui.click(focus_x, focus_y)
         time.sleep(0.3)
 
+        # Scroll to top of table
+        pyautogui.hotkey('ctrl', 'home')
+        time.sleep(0.3)
+
+        # Re-click to ensure table focus after scroll
+        pyautogui.click(focus_x, focus_y)
+        time.sleep(0.3)
+
         # Scan rows one by one using arrow key navigation
         records: List[ClientRecord] = []
         seen_keys: set = set()
