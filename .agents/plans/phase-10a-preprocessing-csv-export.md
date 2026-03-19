@@ -57,7 +57,7 @@ Phase 10a erstellt die Preprocessing-Infrastruktur: GUI-Button, Tabelle scannen,
   ```json
   "preprocessing": {
     "csv_output_dir": "C:/TaxActBot/logs",
-    "scroll_delay_s": 0.5
+    "arrow_key_delay_s": 0.3
   }
   ```
   SSN/EIN-Spalte ist bereits in settings.json vorhanden (x=400, width=120).
@@ -88,6 +88,7 @@ Phase 10a erstellt die Preprocessing-Infrastruktur: GUI-Button, Tabelle scannen,
   2. Wenn `extra_columns` angegeben, werden diese zusätzlich zu den Standard-3 Spalten gesucht
   3. Template für SSN/EIN: `"ssn_ein": "common/column_header_ssn_ein.png"`
   4. Bestehender Aufruf ohne Parameter verhält sich identisch (keine Breaking Change)
+  5. **Harter Fehler bei extra_columns**: Wenn `extra_columns=["ssn_ein"]` angegeben und das SSN/EIN-Header-Template nicht gefunden wird → `get_column_positions()` gibt `None` zurück. Der Preprocessor bricht mit Fehlermeldung ab. Es wird NICHT ohne SSN/EIN weitergemacht.
 
   ```python
   def get_column_positions(
@@ -134,12 +135,20 @@ Phase 10a erstellt die Preprocessing-Infrastruktur: GUI-Button, Tabelle scannen,
      - Konfiguriert vision module (`vision.configure()`, `vision.configure_tesseract()`)
      - Scrollt Tabelle nach oben (Ctrl+Home, analog `bot_controller._scroll_table_to_top()`)
      - Findet Column-Headers via `get_column_positions(extra_columns=["ssn_ein"])`
-     - Iteriert zeilenweise (analog `debug_ocr.py:73-108`):
-       - Für jede Zeile: `_read_single_cell()` für alle 4 Spalten
-       - Leere `client_name` → Ende der sichtbaren Daten, stoppe Zeilen-Scan
+       - **Harter Fehler**: Wenn `get_column_positions()` `None` zurückgibt (z.B. SSN/EIN-Header nicht gefunden) → Fehlermeldung via message_queue, return None
+     - **Navigation via Pfeiltaste-Unten (row-by-row)**:
+       - Klickt auf ersten Client in Tabelle (`first_data_row_y + row_height // 2`)
+       - Trackt `current_visual_row` (startet bei 0)
+       - Berechnet Lese-Position: `row_y = first_data_row_y + (current_visual_row * row_height)`
+       - Liest alle 4 Spalten via `_read_single_cell()` an aktueller Y-Position:
+         - `client_name`, `ssn_ein` (ID), `return_type`, `fed_ef_status`
+       - Leere `client_name` → Ende der Tabelle, stoppe Scan
+       - End-Detection: Wenn `(client_name, client_id, return_type)` identisch zum vorherigen Eintrag → Ende erreicht
        - `return_type` normalisieren via `normalize_return_type()`
        - Speichert als `ClientRecord`
-     - Scrollt runter, wiederholt bis Ende (last_client_name unchanged detection, analog `find_next_client`)
+       - Drückt Pfeiltaste-Unten (`pyautogui.press('down')`)
+       - Wartet kurz (`preprocessing.arrow_key_delay_s`, Default 0.3s)
+       - `current_visual_row` inkrementiert bis `max_visible_rows - 1`, danach fix (Tabelle scrollt automatisch bei Pfeiltaste)
      - Fortschritts-Updates via `message_queue.put(StatusMessage("log", f"Scanned {count} clients..."))`
      - Dedupliziert via `(client_name, client_id, return_type)` als Set-Key
      - Status-Mapping: `fed_ef_status` leer → `TODO`, nicht leer → `DONE`
@@ -189,10 +198,21 @@ Phase 10a erstellt die Preprocessing-Infrastruktur: GUI-Button, Tabelle scannen,
   4. **Neue Methoden**:
      - `_on_preprocessing_click()`:
        - Setzt State auf PREPROCESSING
-       - Deaktiviert Buttons (Preprocessing + Start)
+       - Deaktiviert Buttons (Preprocessing + Start + Return-Type-Selector)
        - Startet Thread mit `preprocessor.preprocess_table()`
        - Startet Polling (wie `_start_polling`)
-       - Bei Completion: Lädt erstellte CSV, aktualisiert Labels
+       - **Während Preprocessing**: Preprocessing-Button zeigt "Scanning...", Log zeigt Fortschritt ("Scanned X clients...")
+       - **Bei Completion (Erfolg)**:
+         - Lädt erstellte CSV via `_load_csv_file(path)`
+         - `csv_path_label` zeigt neuen Dateipfad
+         - `csv_status_label` zeigt Counts: "X TODO, Y DONE"
+         - Log: "Preprocessing complete! Found X clients (Y TODO, Z DONE)"
+         - Sound: `sounds.play_complete()` für akustisches Feedback
+         - State zurück auf READY, alle Buttons wieder enabled
+       - **Bei Fehler** (z.B. Column Headers nicht gefunden):
+         - Log: "ERROR: Preprocessing failed — {error message}"
+         - Sound: `sounds.play_error()`
+         - State zurück auf READY
      - `_on_browse_csv()`:
        - `tkinter.filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")], initialdir="C:/TaxActBot/logs")`
        - Bei Auswahl: `_load_csv_file(path)`

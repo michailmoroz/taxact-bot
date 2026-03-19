@@ -62,7 +62,7 @@ Aktuell trackt der Bot Clients nur per Name in einem in-memory Set — keine Per
   ```json
   "preprocessing": {
     "csv_output_dir": "C:/TaxActBot/logs",
-    "scroll_delay_s": 0.5
+    "arrow_key_delay_s": 0.3
   }
   ```
 - **Pattern**: `settings.json:49-59` für bestehende Spalten-Konfiguration
@@ -78,11 +78,17 @@ Aktuell trackt der Bot Clients nur per Name in einem in-memory Set — keine Per
      - Hauptfunktion, wird im Thread ausgeführt
      - Scrollt Tabelle nach oben (Ctrl+Home)
      - Findet Column-Headers via Template Matching (`get_column_positions()` erweitert um `ssn_ein`)
-     - Iteriert zeilenweise (analog `debug_ocr.py:73-108`):
-       - Liest `client_name`, `ssn_ein`, `return_type`, `fed_ef_status` via `_read_single_cell()`
-       - Leere client_name → Ende der sichtbaren Daten
+       - **Harter Fehler**: Wenn Column-Headers (inkl. SSN/EIN) nicht gefunden → Fehlermeldung, return None
+     - **Navigation via Pfeiltaste-Unten (row-by-row)**:
+       - Klickt auf ersten Client in Tabelle (`first_data_row_y + row_height // 2`)
+       - Trackt `current_visual_row` (startet bei 0)
+       - Berechnet Lese-Position: `row_y = first_data_row_y + (current_visual_row * row_height)`
+       - Liest alle 4 Spalten via `_read_single_cell()`: `client_name`, `ssn_ein`, `return_type`, `fed_ef_status`
+       - Leere `client_name` → Ende der Tabelle
+       - End-Detection: Wenn `(client_name, client_id, return_type)` identisch zum vorherigen → Ende
        - Speichert Row-Daten in Liste
-     - Scrollt runter, wiederholt bis Ende (last_client_name unchanged detection)
+       - Drückt Pfeiltaste-Unten, wartet kurz (`preprocessing.arrow_key_delay_s`, Default 0.3s)
+       - `current_visual_row` inkrementiert bis `max_visible_rows - 1`, danach fix (Tabelle scrollt automatisch)
      - Dedupliziert via `(client_name, ssn_ein, return_type)` Composite Key
      - Status-Mapping: fed_ef_status leer → `TODO`, nicht leer → `DONE`
      - Schreibt CSV nach `C:\TaxActBot\logs\clients_YYYY-MM-DD-HH-MM-SS.csv`
@@ -115,8 +121,9 @@ Aktuell trackt der Bot Clients nur per Name in einem in-memory Set — keine Per
 - **Action**: UPDATE
 - **Implement**:
   1. `get_column_positions()` (L672-710): `header_templates` Dict erweitern um `"ssn_ein": "common/column_header_ssn_ein.png"`
-  2. Neue Funktion `get_column_positions_extended()` oder Parameter `include_ssn_ein=False` an bestehende Funktion, damit der normale Bot-Flow (find_next_client) nicht bricht wenn das SSN/EIN-Template noch fehlt. Empfehlung: optionalen Parameter `extra_columns: List[str] = None` hinzufügen.
-  3. `normalize_return_type()` muss auch `1040` korrekt erkennen — prüfen ob das aktuelle Regex-Pattern `\d120(.)?' ` auch "1040" matcht. Falls nicht, erweitern.
+  2. Optionaler Parameter `extra_columns: List[str] = None` an bestehende Funktion, damit der normale Bot-Flow (find_next_client) nicht bricht wenn das SSN/EIN-Template nicht benötigt wird.
+  3. **Harter Fehler bei extra_columns**: Wenn `extra_columns=["ssn_ein"]` angegeben und Template nicht gefunden → `get_column_positions()` gibt `None` zurück. Der Preprocessor bricht ab. Es wird NICHT ohne SSN/EIN weitergemacht.
+  4. `normalize_return_type()` muss auch `1040` korrekt erkennen — ✅ bereits gefixt (Pattern `[14]\d?40`).
 
 - **Pattern**: `vision.py:672-710` für bestehende Column-Header-Detection
 - **Depends on**: Task 1 (settings.json Spalte), User muss Screenshot `common/column_header_ssn_ein.png` bereitstellen
@@ -168,6 +175,7 @@ Aktuell trackt der Bot Clients nur per Name in einem in-memory Set — keine Per
   6. Matching-Logik: Row gilt als Match wenn `(client_name, client_id, return_type)` in todo_clients UND `fed_ef_status` leer
 
 - **Pattern**: `vision.py:806-895` für bestehende Scan-Logik
+- **WICHTIG — Return-Signatur beachten**: `_scan_visible_clients()` gibt ein **3-Tuple** zurück: `(ClientRow|None, click_pos|None, last_client_name: str)`. `find_next_client()` entpackt dieses 3-Tuple. Die Erweiterung muss dieses Format exakt beibehalten.
 - **Depends on**: Task 3, Task 4
 - **Validate**: `python -c "from clickbot.vision import ClientRow; r = ClientRow(0, 0, 'test', '1120S', '', client_id='12-345'); print('OK')"`
 
@@ -185,7 +193,7 @@ Aktuell trackt der Bot Clients nur per Name in einem in-memory Set — keine Per
      - Row-Nummern anpassen: Preprocessing-Card auf Row 2, Control-Card auf Row 3, Status Row 4, Log Row 5
      - `self.grid_rowconfigure(5, weight=1)` statt Row 4
   4. **Neue Methoden**:
-     - `_on_preprocessing_click()`: Startet Preprocessing (Countdown → Bot scannt Tabelle)
+     - `_on_preprocessing_click()`: Startet Preprocessing im Thread. **Während Preprocessing**: Button zeigt "Scanning...", Log zeigt Fortschritt. **Bei Completion**: Lädt CSV, aktualisiert Labels mit Counts (X TODO, Y DONE), Log: "Preprocessing complete! Found X clients (Y TODO, Z DONE)", Sound: `play_complete()`. **Bei Fehler**: Log mit Fehlermeldung, Sound: `play_error()`, zurück auf READY.
      - `_on_browse_csv()`: Öffnet `tkinter.filedialog.askopenfilename(filetypes=[("CSV", "*.csv")], initialdir="C:/TaxActBot/logs")`
      - `_load_csv_file(path)`: Lädt CSV, aktualisiert Label + Status
      - `_load_latest_csv()`: Sucht neueste `clients_*.csv` in `C:\TaxActBot\logs\`, lädt sie

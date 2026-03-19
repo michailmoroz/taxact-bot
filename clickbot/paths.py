@@ -70,6 +70,13 @@ def get_log_dir() -> Path:
     return log_dir
 
 
+def get_csv_dir() -> Path:
+    """Path to preprocessing CSV output directory."""
+    csv_dir = Path("C:/TaxActBot/logs")
+    csv_dir.mkdir(parents=True, exist_ok=True)
+    return csv_dir
+
+
 def get_assets_dir() -> Path:
     """Path to assets/ directory (read-only, bundled)."""
     return get_bundle_dir() / "assets"

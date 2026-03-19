@@ -675,24 +675,39 @@ def normalize_return_type(ocr_value: str) -> str:
     return cleaned
 
 
-def get_column_positions() -> Optional[Dict[str, Tuple[int, int]]]:
+def get_column_positions(
+    extra_columns: Optional[List[str]] = None
+) -> Optional[Dict[str, Tuple[int, int]]]:
     """Find X positions of table columns by matching header templates.
 
     Uses template matching to find column headers and returns their positions.
     The position includes both X coordinate and the template width for calculating
     the cell region to OCR.
 
+    Args:
+        extra_columns: Additional column names to detect beyond the standard 3.
+            Supported: ["ssn_ein"]. If specified and not found, returns None (hard error).
+
     Returns:
         Dict with column names and their (x_position, width) tuples, or None if headers not found
     """
     columns = {}
 
-    # Column header templates to find
+    # Standard column header templates
     header_templates = {
         "client_name": "common/column_header_client_name.png",
         "return_type": "common/column_header_return_type.png",
         "fed_ef_status": "common/column_header_fed_ef_status.png",
     }
+
+    # Add extra columns if requested
+    if extra_columns:
+        extra_map = {
+            "ssn_ein": "common/column_header_ssn_ein.png",
+        }
+        for col in extra_columns:
+            if col in extra_map:
+                header_templates[col] = extra_map[col]
 
     for col_name, template_path in header_templates.items():
         # Find header using template matching (no fallback)

@@ -1,6 +1,8 @@
 """Modern GUI for TaxAct E-File Extension Bot using CustomTkinter.
 
 Provides a user-friendly desktop interface with:
+- Preprocessing button to scan client table and export CSV
+- File picker for CSV selection
 - Start button with 5-second countdown
 - Stop button for immediate abort
 - Real-time status display
@@ -8,9 +10,12 @@ Provides a user-friendly desktop interface with:
 """
 
 import logging
+import queue
 import sys
+import threading
 from enum import Enum
 from pathlib import Path
+from tkinter import filedialog
 from typing import Optional
 
 import customtkinter as ctk
@@ -58,6 +63,7 @@ FONTS = {
 class GUIState(Enum):
     """GUI state enumeration."""
     READY = "ready"
+    PREPROCESSING = "preprocessing"
     COUNTDOWN = "countdown"
     RUNNING = "running"
 
@@ -82,6 +88,12 @@ class BotGUI(ctk.CTk):
         self.gui_state = GUIState.READY
         self.controller: Optional[BotController] = None
 
+        # Preprocessing state
+        self._csv_path: Optional[Path] = None
+        self._preprocessing_queue: Optional[queue.Queue] = None
+        self._preprocessing_stop: Optional[threading.Event] = None
+        self._preprocessing_thread: Optional[threading.Thread] = None
+
         # Timer IDs for cancellation
         self._countdown_id: Optional[str] = None
         self._polling_id: Optional[str] = None
@@ -90,6 +102,9 @@ class BotGUI(ctk.CTk):
         self._setup_window()
         self._create_widgets()
         self._setup_layout()
+
+        # Try to load latest CSV on startup
+        self._load_latest_csv()
 
         # Initial log entry
         self._log("Application started")
@@ -102,14 +117,14 @@ class BotGUI(ctk.CTk):
         self.title("TaxAct E-File Extension Bot")
         self.geometry(
             f"{gui_settings.get('window_width', 500)}"
-            f"x{gui_settings.get('window_height', 680)}"
+            f"x{gui_settings.get('window_height', 820)}"
         )
-        self.minsize(420, 580)
+        self.minsize(420, 680)
         self.configure(fg_color=COLORS["bg_primary"])
 
         # Configure grid weights for responsive layout
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(4, weight=1)  # Log area expands
+        self.grid_rowconfigure(5, weight=1)  # Log area expands (Row 5)
 
         # Handle window close
         self.protocol("WM_DELETE_WINDOW", self._on_close)
@@ -154,6 +169,58 @@ class BotGUI(ctk.CTk):
             text_color=COLORS["text_primary"],
         )
         self.return_type_selector.set("1120S")
+
+        # --- Preprocessing Card ---
+        self.preprocessing_frame = ctk.CTkFrame(
+            self,
+            corner_radius=10,
+            fg_color=COLORS["bg_card"],
+            border_width=1,
+            border_color=COLORS["border_subtle"],
+        )
+        self.preprocessing_button = ctk.CTkButton(
+            self.preprocessing_frame,
+            text="Scan Client Table",
+            font=ctk.CTkFont(
+                family=FONTS["button"][0], size=FONTS["button"][1]
+            ),
+            fg_color=COLORS["accent"],
+            hover_color=COLORS["accent_hover"],
+            text_color=COLORS["text_primary"],
+            height=48,
+            corner_radius=8,
+            command=self._on_preprocessing_click,
+        )
+        # CSV file picker row
+        self.csv_file_frame = ctk.CTkFrame(
+            self.preprocessing_frame,
+            fg_color="transparent",
+        )
+        self.csv_path_label = ctk.CTkLabel(
+            self.csv_file_frame,
+            text="No CSV loaded",
+            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
+            text_color=COLORS["text_muted"],
+            anchor="w",
+        )
+        self.csv_browse_button = ctk.CTkButton(
+            self.csv_file_frame,
+            text="Browse",
+            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
+            fg_color=COLORS["bg_input"],
+            hover_color="#3a3a3a",
+            text_color=COLORS["text_secondary"],
+            width=70,
+            height=28,
+            corner_radius=6,
+            command=self._on_browse_csv,
+        )
+        self.csv_status_label = ctk.CTkLabel(
+            self.preprocessing_frame,
+            text="",
+            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
+            text_color=COLORS["text_secondary"],
+        )
 
         # --- Control Card (Start/Stop Button, Countdown) ---
         self.control_frame = ctk.CTkFrame(
@@ -261,24 +328,34 @@ class BotGUI(ctk.CTk):
         self.return_type_label.pack(padx=16, pady=(14, 4), anchor="center")
         self.return_type_selector.pack(padx=16, pady=(4, 14), fill="x")
 
-        # Row 2 — Control Card
-        self.control_frame.grid(
+        # Row 2 — Preprocessing Card
+        self.preprocessing_frame.grid(
             row=2, column=0, padx=pad_x, pady=6, sticky="ew"
+        )
+        self.preprocessing_button.pack(pady=(16, 8), padx=16, fill="x")
+        self.csv_file_frame.pack(padx=16, fill="x")
+        self.csv_path_label.pack(side="left", expand=True, fill="x")
+        self.csv_browse_button.pack(side="right", padx=(8, 0))
+        self.csv_status_label.pack(padx=16, pady=(4, 12), anchor="w")
+
+        # Row 3 — Control Card
+        self.control_frame.grid(
+            row=3, column=0, padx=pad_x, pady=6, sticky="ew"
         )
         self.start_button.pack(pady=16, padx=16, fill="x")
         # Countdown labels initially hidden
 
-        # Row 3 — Status Card
+        # Row 4 — Status Card
         self.status_frame.grid(
-            row=3, column=0, padx=pad_x, pady=6, sticky="new"
+            row=4, column=0, padx=pad_x, pady=6, sticky="new"
         )
         self.status_label.pack(anchor="w", padx=16, pady=(12, 4))
         self.taxact_status_label.pack(anchor="w", padx=16, pady=2)
         self.progress_label.pack(anchor="w", padx=16, pady=(2, 12))
 
-        # Row 4 — Log Card (expands vertically)
+        # Row 5 — Log Card (expands vertically)
         self.log_frame.grid(
-            row=4, column=0, padx=pad_x, pady=(6, 20), sticky="nsew"
+            row=5, column=0, padx=pad_x, pady=(6, 20), sticky="nsew"
         )
         self.log_frame.grid_columnconfigure(0, weight=1)
         self.log_frame.grid_rowconfigure(1, weight=1)
@@ -297,11 +374,163 @@ class BotGUI(ctk.CTk):
         self.log_textbox.configure(state="disabled")
         self.log_textbox.see("end")  # Scroll to bottom
 
+    # --- Preprocessing ---
+
+    def _on_preprocessing_click(self) -> None:
+        """Handle preprocessing button click."""
+        if self.gui_state != GUIState.READY:
+            return
+
+        self.gui_state = GUIState.PREPROCESSING
+
+        # Disable controls
+        self.preprocessing_button.configure(text="Scanning...", state="disabled")
+        self.start_button.configure(state="disabled")
+        self.return_type_selector.configure(state="disabled")
+        self.csv_browse_button.configure(state="disabled")
+
+        self.status_label.configure(text="Status: Preprocessing...")
+
+        # Setup message queue and stop event for preprocessing thread
+        self._preprocessing_queue = queue.Queue()
+        self._preprocessing_stop = threading.Event()
+
+        from clickbot.preprocessor import preprocess_table
+
+        self._preprocessing_thread = threading.Thread(
+            target=preprocess_table,
+            args=(self.settings, self._preprocessing_queue, self._preprocessing_stop),
+            daemon=True,
+        )
+        self._preprocessing_thread.start()
+
+        # Start polling for preprocessing messages
+        self._poll_preprocessing()
+
+    def _poll_preprocessing(self) -> None:
+        """Poll preprocessing message queue."""
+        if self._preprocessing_queue is None:
+            return
+
+        try:
+            while True:
+                msg = self._preprocessing_queue.get_nowait()
+                self._handle_preprocessing_message(msg)
+        except queue.Empty:
+            pass
+
+        # Check if thread is still running
+        if (self._preprocessing_thread is not None
+                and not self._preprocessing_thread.is_alive()):
+            self._finish_preprocessing()
+        else:
+            self._polling_id = self.after(100, self._poll_preprocessing)
+
+    def _handle_preprocessing_message(self, msg: StatusMessage) -> None:
+        """Handle a message from the preprocessing thread."""
+        if msg.type == "log":
+            self._log(msg.message)
+        elif msg.type == "status":
+            self.status_label.configure(text=f"Status: {msg.message}")
+        elif msg.type == "error":
+            self._log(f"ERROR: {msg.message}")
+        elif msg.type == "complete":
+            # msg.message contains the CSV path on success
+            csv_path = Path(msg.message)
+            if csv_path.exists():
+                self._load_csv_file(csv_path)
+
+    def _finish_preprocessing(self) -> None:
+        """Finish preprocessing and restore GUI state."""
+        self._stop_polling()
+
+        # Check if preprocessing produced a valid CSV
+        if self._csv_path is not None:
+            sounds.play_complete()
+        else:
+            sounds.play_error()
+
+        # Re-enable controls
+        self.preprocessing_button.configure(text="Scan Client Table", state="normal")
+        self.start_button.configure(state="normal")
+        self.return_type_selector.configure(state="normal")
+        self.csv_browse_button.configure(state="normal")
+
+        self.gui_state = GUIState.READY
+        self.status_label.configure(text="Status: Ready")
+
+        # Cleanup
+        self._preprocessing_queue = None
+        self._preprocessing_stop = None
+        self._preprocessing_thread = None
+
+    # --- CSV File Management ---
+
+    def _on_browse_csv(self) -> None:
+        """Open file dialog to select a CSV file."""
+        csv_dir = self.settings.get("preprocessing", {}).get(
+            "csv_output_dir", "C:/TaxActBot/logs"
+        )
+        filepath = filedialog.askopenfilename(
+            filetypes=[("CSV files", "*.csv")],
+            initialdir=csv_dir,
+        )
+        if filepath:
+            self._load_csv_file(Path(filepath))
+
+    def _load_csv_file(self, csv_path: Path) -> None:
+        """Load a CSV file and update GUI labels.
+
+        Args:
+            csv_path: Path to the CSV file to load
+        """
+        from clickbot.preprocessor import load_csv
+
+        try:
+            records = load_csv(csv_path)
+        except Exception as e:
+            self._log(f"ERROR: Failed to load CSV: {e}")
+            return
+
+        self._csv_path = csv_path
+
+        # Update path label (show only filename)
+        self.csv_path_label.configure(
+            text=f".../{csv_path.name}",
+            text_color=COLORS["text_secondary"],
+        )
+
+        # Update status counts
+        todo = sum(1 for r in records if r.status == "TODO")
+        done = sum(1 for r in records if r.status == "DONE")
+        fail = sum(1 for r in records if r.status == "FAIL")
+        self.csv_status_label.configure(
+            text=f"{todo} TODO, {done} DONE, {fail} FAIL"
+        )
+
+        self._log(f"CSV loaded: {csv_path.name} ({len(records)} clients)")
+        logger.info(f"CSV loaded: {csv_path}")
+
+    def _load_latest_csv(self) -> None:
+        """Try to load the most recent CSV file on startup."""
+        from clickbot.preprocessor import get_latest_csv
+
+        csv_dir = Path(self.settings.get("preprocessing", {}).get(
+            "csv_output_dir", "C:/TaxActBot/logs"
+        ))
+        latest = get_latest_csv(csv_dir)
+        if latest is not None:
+            self._load_csv_file(latest)
+
     # --- State Machine ---
 
     def _on_start_click(self) -> None:
         """Handle start/stop button click."""
         if self.gui_state == GUIState.READY:
+            # Check CSV is loaded
+            if self._csv_path is None:
+                self._log("ERROR: No CSV file loaded. Run Preprocessing or load a CSV file.")
+                return
             self._start_countdown()
         elif self.gui_state == GUIState.COUNTDOWN:
             self._cancel_countdown()
@@ -313,8 +542,10 @@ class BotGUI(ctk.CTk):
         self.gui_state = GUIState.COUNTDOWN
         self._countdown_value = self.settings.get("gui", {}).get("countdown_seconds", 5)
 
-        # Disable return type selector during countdown/running
+        # Disable controls during countdown/running
         self.return_type_selector.configure(state="disabled")
+        self.preprocessing_button.configure(state="disabled")
+        self.csv_browse_button.configure(state="disabled")
 
         # Update button
         self.start_button.configure(
@@ -366,8 +597,10 @@ class BotGUI(ctk.CTk):
         self.countdown_label.pack_forget()
         self.countdown_hint.pack_forget()
 
-        # Re-enable return type selector
+        # Re-enable controls
         self.return_type_selector.configure(state="normal")
+        self.preprocessing_button.configure(state="normal")
+        self.csv_browse_button.configure(state="normal")
 
         # Reset button
         self.start_button.pack_forget()
@@ -473,6 +706,10 @@ class BotGUI(ctk.CTk):
 
         if self.controller and self.controller.get_state() != BotState.IDLE:
             self.controller.stop()
+
+        # Stop preprocessing if running
+        if self._preprocessing_stop is not None:
+            self._preprocessing_stop.set()
 
         self._stop_polling()
 

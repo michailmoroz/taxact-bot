@@ -82,6 +82,7 @@ Phase 10b baut auf Phase 10a auf. Das Preprocessing und die CSV-Infrastruktur ex
      - `get_column_positions()` mit `extra_columns=["ssn_ein"]` wenn todo_clients gegeben
 
 - **Pattern**: `vision.py:806-895` (`_scan_visible_clients`), `vision.py:898-971` (`find_next_client`)
+- **WICHTIG — Return-Signatur beachten**: `_scan_visible_clients()` gibt aktuell ein **3-Tuple** zurück: `(ClientRow|None, click_pos|None, last_client_name: str)`. `find_next_client()` entpackt dieses 3-Tuple in `row_data, click_pos, current_last_client`. Die Erweiterung um `todo_clients` muss dieses Format **exakt beibehalten** — sowohl die Aufrufe in `find_next_client()` (L949-953) als auch der Rückgabewert von `_scan_visible_clients()` (L898 + L901).
 - **Depends on**: Task 1
 - **Validate**: `python -c "from clickbot.vision import ClientRow; r = ClientRow(0, 0, 'test', '1120S', '', client_id='12-345'); print(r.client_id)"`
 

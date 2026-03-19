@@ -41,7 +41,7 @@
   },
   "gui": {
     "window_width": 500,
-    "window_height": 680,
+    "window_height": 820,
     "countdown_seconds": 5,
     "appearance_mode": "dark",
     "color_theme": "blue"
@@ -65,6 +65,10 @@
     "max_retries": 3,
     "min_wait_after_ms": 200,
     "verify_base_path": "assets/verify"
+  },
+  "preprocessing": {
+    "csv_output_dir": "C:/TaxActBot/logs",
+    "arrow_key_delay_s": 0.3
   },
   "loop": {
     "scroll_to_top": {

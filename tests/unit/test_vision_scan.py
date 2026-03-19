@@ -31,6 +31,70 @@ COLUMN_POSITIONS = {
 }
 
 
+class TestGetColumnPositionsExtraColumns:
+    """Tests for get_column_positions() extra_columns parameter."""
+
+    @patch("clickbot.vision.load_template")
+    @patch("clickbot.vision.find_element")
+    def test_without_extra_columns(self, mock_find, mock_load):
+        """get_column_positions() without extra_columns finds 3 standard columns."""
+        mock_find.return_value = (500, 100)
+        mock_template = type("MockTemplate", (), {"shape": (30, 80)})()
+        mock_load.return_value = mock_template
+
+        result = vision.get_column_positions()
+
+        assert result is not None
+        assert len(result) == 3
+        assert "client_name" in result
+        assert "return_type" in result
+        assert "fed_ef_status" in result
+        assert "ssn_ein" not in result
+
+    @patch("clickbot.vision.load_template")
+    @patch("clickbot.vision.find_element")
+    def test_with_ssn_ein_extra_column(self, mock_find, mock_load):
+        """get_column_positions(extra_columns=["ssn_ein"]) finds 4 columns."""
+        mock_find.return_value = (500, 100)
+        mock_template = type("MockTemplate", (), {"shape": (30, 80)})()
+        mock_load.return_value = mock_template
+
+        result = vision.get_column_positions(extra_columns=["ssn_ein"])
+
+        assert result is not None
+        assert len(result) == 4
+        assert "ssn_ein" in result
+
+    @patch("clickbot.vision.load_template")
+    @patch("clickbot.vision.find_element")
+    def test_extra_column_not_found_returns_none(self, mock_find, mock_load):
+        """get_column_positions returns None if extra column header not found."""
+        def find_side_effect(template_path, confidence=0.7, fallback_coords=None):
+            if "ssn_ein" in template_path:
+                return None  # SSN/EIN not found
+            return (500, 100)
+
+        mock_find.side_effect = find_side_effect
+        mock_template = type("MockTemplate", (), {"shape": (30, 80)})()
+        mock_load.return_value = mock_template
+
+        result = vision.get_column_positions(extra_columns=["ssn_ein"])
+        assert result is None  # Hard error
+
+    @patch("clickbot.vision.load_template")
+    @patch("clickbot.vision.find_element")
+    def test_unknown_extra_column_ignored(self, mock_find, mock_load):
+        """Unknown extra column names are silently ignored."""
+        mock_find.return_value = (500, 100)
+        mock_template = type("MockTemplate", (), {"shape": (30, 80)})()
+        mock_load.return_value = mock_template
+
+        result = vision.get_column_positions(extra_columns=["nonexistent_col"])
+
+        assert result is not None
+        assert len(result) == 3  # Only standard 3 columns
+
+
 class TestReadSingleCell:
     """Tests for _read_single_cell()."""
 
