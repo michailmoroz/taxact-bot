@@ -113,7 +113,6 @@ def preprocess_table(
         records: List[ClientRecord] = []
         seen_keys: set = set()
         current_visual_row = 0
-        prev_key = None
         max_rows = 5000  # Safety limit
 
         for row_num in range(max_rows):
@@ -146,14 +145,8 @@ def preprocess_table(
 
             return_type = vision.normalize_return_type(raw_return_type)
 
-            # End detection: same composite key as previous row
-            current_key = (client_name, client_id, return_type)
-            if current_key == prev_key:
-                logger.debug(f"Row {row_num}: same as previous row, end of table")
-                break
-            prev_key = current_key
-
             # Deduplicate
+            current_key = (client_name, client_id, return_type)
             if current_key not in seen_keys:
                 seen_keys.add(current_key)
                 status = "TODO" if not fed_ef_status else "DONE"
