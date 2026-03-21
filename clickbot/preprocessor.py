@@ -109,7 +109,7 @@ def preprocess_table(
 
             # Take PIL screenshot and read rows (debug_ocr.py approach)
             screenshot = pyautogui.screenshot()
-            start_row = overlap_rows if page_num > 0 else 0
+            start_row = 0
             rows = vision.read_all_rows_from_screenshot(
                 screenshot, settings, start_row=start_row
             )
