@@ -1,7 +1,10 @@
 """Unit tests for clickbot.preprocessor module."""
 
 import csv
+import queue
+import threading
 from pathlib import Path
+from unittest.mock import patch, MagicMock, call
 
 import pytest
 
@@ -11,6 +14,7 @@ from clickbot.preprocessor import (
     update_client_status,
     get_todo_clients,
     get_latest_csv,
+    preprocess_table,
     _write_csv,
 )
 
@@ -232,3 +236,307 @@ class TestStatusMapping:
         """Non-empty fed_ef_status should map to DONE."""
         status = "TODO" if not "Submitted" else "DONE"
         assert status == "DONE"
+
+
+# --- Fixtures for preprocess_table tests ---
+
+@pytest.fixture
+def base_settings(tmp_path):
+    """Minimal settings dict for preprocess_table tests."""
+    return {
+        "client_table": {
+            "row_height": 32,
+            "first_data_row_y": 205,
+            "max_visible_rows": 5,
+            "columns": {
+                "client_name": {"x": 20, "width": 340},
+                "ssn_ein": {"x": 400, "width": 120},
+                "return_type": {"x": 630, "width": 55},
+                "fed_ef_status": {"x": 800, "width": 117},
+            },
+        },
+        "preprocessing": {
+            "csv_output_dir": str(tmp_path),
+            "arrow_key_delay_s": 0.0,
+            "focus_click_x": 100,
+            "focus_click_y": 200,
+            "scroll_reset_row": 2,
+            "end_repeat_threshold": 4,
+        },
+        "ocr": {"tesseract_path": "", "language": "eng"},
+        "vision": {
+            "screenshot_base_path": "assets/buttons",
+            "confidence_threshold": 0.8,
+        },
+    }
+
+
+def _make_cell_reader(client_sequence):
+    """Create a mock _read_single_cell that returns data from a sequence.
+
+    Args:
+        client_sequence: List of (name, id, return_type, fed_ef_status) tuples.
+            Each call cycle reads 4 columns for one row.
+    """
+    call_index = [0]  # Mutable counter
+    row_index = [0]
+
+    def mock_read(col_name, row_y, column_positions, settings):
+        row = row_index[0]
+        if row >= len(client_sequence):
+            if col_name == "client_name":
+                return ""
+            return ""
+
+        data = client_sequence[row]
+        col_map = {
+            "client_name": data[0],
+            "ssn_ein": data[1],
+            "return_type": data[2],
+            "fed_ef_status": data[3],
+        }
+        result = col_map.get(col_name, "")
+
+        call_index[0] += 1
+        # Advance row after all 4 columns are read
+        if col_name == "fed_ef_status":
+            row_index[0] += 1
+
+        return result
+
+    return mock_read
+
+
+class TestPreprocessTableKeyPresses:
+    """Tests that preprocess_table uses pyautogui (not keyboard) for key events."""
+
+    @patch("clickbot.preprocessor._show_click_splash")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_uses_pyautogui_hotkey_for_ctrl_home(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_splash, base_settings
+    ):
+        """preprocess_table uses pyautogui.hotkey('ctrl', 'home') for scroll-to-top."""
+        mock_vision.get_column_positions.return_value = {
+            "client_name": (100, 200),
+            "ssn_ein": (400, 100),
+            "return_type": (630, 55),
+            "fed_ef_status": (800, 100),
+        }
+        # Return empty on first read to end immediately
+        mock_vision._read_single_cell.return_value = ""
+        mock_vision.normalize_return_type.return_value = ""
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        preprocess_table(base_settings, msg_queue, stop_event)
+
+        mock_pyautogui.hotkey.assert_called_with('ctrl', 'home')
+
+    @patch("clickbot.preprocessor._show_click_splash")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_uses_pyautogui_press_for_down_arrow(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_splash, base_settings
+    ):
+        """preprocess_table uses pyautogui.press('down') for arrow navigation."""
+        mock_vision.get_column_positions.return_value = {
+            "client_name": (100, 200),
+            "ssn_ein": (400, 100),
+            "return_type": (630, 55),
+            "fed_ef_status": (800, 100),
+        }
+
+        # Return 2 clients, then empty
+        clients = [
+            ("CLIENT A", "12-345", "1120S", ""),
+            ("CLIENT B", "98-765", "1120", ""),
+        ]
+        mock_vision._read_single_cell.side_effect = _make_cell_reader(clients)
+        mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        preprocess_table(base_settings, msg_queue, stop_event)
+
+        # Should have called press('down') for each row
+        down_calls = [c for c in mock_pyautogui.press.call_args_list
+                      if c == call('down')]
+        assert len(down_calls) == 2
+
+
+class TestPreprocessTableEndDetection:
+    """Tests for end-of-table detection via repeated identical reads."""
+
+    @patch("clickbot.preprocessor._show_click_splash")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_stops_after_threshold_identical_reads(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_splash, base_settings
+    ):
+        """Scan stops when client_name repeats end_repeat_threshold times."""
+        mock_vision.get_column_positions.return_value = {
+            "client_name": (100, 200),
+            "ssn_ein": (400, 100),
+            "return_type": (630, 55),
+            "fed_ef_status": (800, 100),
+        }
+
+        # 3 unique clients, then "LAST" repeated 5 times (threshold is 4)
+        clients = [
+            ("CLIENT A", "12-345", "1120S", ""),
+            ("CLIENT B", "98-765", "1120", ""),
+            ("CLIENT C", "55-555", "1040", ""),
+            ("LAST", "99-999", "1120S", ""),
+            ("LAST", "99-999", "1120S", ""),
+            ("LAST", "99-999", "1120S", ""),
+            ("LAST", "99-999", "1120S", ""),
+            ("LAST", "99-999", "1120S", ""),  # Should never be reached
+        ]
+        mock_vision._read_single_cell.side_effect = _make_cell_reader(clients)
+        mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        result = preprocess_table(base_settings, msg_queue, stop_event)
+
+        assert result is not None
+        records = load_csv(result)
+        # Should have 4 unique clients (A, B, C, LAST)
+        assert len(records) == 4
+
+    @patch("clickbot.preprocessor._show_click_splash")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_does_not_stop_for_fewer_repeats(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_splash, base_settings
+    ):
+        """Scan continues when repeats are below threshold."""
+        mock_vision.get_column_positions.return_value = {
+            "client_name": (100, 200),
+            "ssn_ein": (400, 100),
+            "return_type": (630, 55),
+            "fed_ef_status": (800, 100),
+        }
+
+        # "DUPE" repeated 3 times (below threshold of 4), then a new client
+        clients = [
+            ("DUPE", "11-111", "1120S", ""),
+            ("DUPE", "11-111", "1120S", ""),
+            ("DUPE", "11-111", "1120S", ""),
+            ("NEW CLIENT", "22-222", "1120", ""),
+        ]
+        mock_vision._read_single_cell.side_effect = _make_cell_reader(clients)
+        mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        result = preprocess_table(base_settings, msg_queue, stop_event)
+
+        assert result is not None
+        records = load_csv(result)
+        # Both unique clients should be in the CSV
+        names = [r.client_name for r in records]
+        assert "DUPE" in names
+        assert "NEW CLIENT" in names
+
+    @patch("clickbot.preprocessor._show_click_splash")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_empty_table_stops_immediately(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_splash, base_settings
+    ):
+        """Scan stops immediately when first client_name is empty."""
+        mock_vision.get_column_positions.return_value = {
+            "client_name": (100, 200),
+            "ssn_ein": (400, 100),
+            "return_type": (630, 55),
+            "fed_ef_status": (800, 100),
+        }
+        mock_vision._read_single_cell.return_value = ""
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        result = preprocess_table(base_settings, msg_queue, stop_event)
+
+        assert result is not None
+        records = load_csv(result)
+        assert len(records) == 0
+
+
+class TestPreprocessTableChunkScroll:
+    """Tests for chunk-scroll handling in scan loop."""
+
+    @patch("clickbot.preprocessor._show_click_splash")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_visual_row_resets_after_max(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_splash, base_settings
+    ):
+        """current_visual_row resets to scroll_reset_row after reaching max."""
+        # max_visible_rows=5, scroll_reset_row=2
+        mock_vision.get_column_positions.return_value = {
+            "client_name": (100, 200),
+            "ssn_ein": (400, 100),
+            "return_type": (630, 55),
+            "fed_ef_status": (800, 100),
+        }
+
+        # 7 unique clients (more than max_visible_rows=5)
+        clients = [
+            (f"CLIENT {i}", f"{i:02d}-000", "1120S", "")
+            for i in range(7)
+        ]
+        mock_vision._read_single_cell.side_effect = _make_cell_reader(clients)
+        mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        # Track the row_y values passed to _read_single_cell
+        row_ys = []
+        original_side_effect = mock_vision._read_single_cell.side_effect
+
+        def tracking_read(col_name, row_y, col_pos, settings):
+            if col_name == "client_name":
+                row_ys.append(row_y)
+            return original_side_effect(col_name, row_y, col_pos, settings)
+
+        mock_vision._read_single_cell.side_effect = tracking_read
+
+        preprocess_table(base_settings, msg_queue, stop_event)
+
+        # With max_visible_rows=5, row_height=32, first_data_row_y=205:
+        # Row 0: y=205 (visual_row=0)
+        # Row 1: y=237 (visual_row=1)
+        # Row 2: y=269 (visual_row=2)
+        # Row 3: y=301 (visual_row=3)
+        # Row 4: y=333 (visual_row=4=max-1) → next: reset to scroll_reset_row=2
+        # Row 5: y=269 (visual_row=2=scroll_reset_row)
+        # Row 6: y=301 (visual_row=3)
+        # Row 7: y=333 (visual_row=4=max-1, empty read → break)
+        expected = [205, 237, 269, 301, 333, 269, 301, 333]
+        assert row_ys == expected

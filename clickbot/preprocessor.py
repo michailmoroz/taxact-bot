@@ -16,7 +16,6 @@ from typing import List, Optional
 
 import tkinter as tk
 
-import keyboard
 import pyautogui
 
 from clickbot import paths
@@ -122,6 +121,8 @@ def preprocess_table(
 
         preprocessing_settings = settings.get("preprocessing", {})
         arrow_key_delay = preprocessing_settings.get("arrow_key_delay_s", 0.3)
+        scroll_reset_row = preprocessing_settings.get("scroll_reset_row", 8)
+        end_repeat_threshold = preprocessing_settings.get("end_repeat_threshold", 4)
 
         # Click on table to give it keyboard focus
         focus_x = preprocessing_settings.get("focus_click_x", 200)
@@ -131,7 +132,7 @@ def preprocess_table(
         time.sleep(0.3)
 
         # Scroll to top of table
-        keyboard.press_and_release('ctrl+home')
+        pyautogui.hotkey('ctrl', 'home')
         time.sleep(0.3)
 
         # Re-click to ensure table focus after scroll
@@ -143,6 +144,8 @@ def preprocess_table(
         records: List[ClientRecord] = []
         seen_keys: set = set()
         current_visual_row = 0
+        prev_client_name = ""
+        repeat_count = 0
         max_rows = 5000  # Safety limit
 
         for row_num in range(max_rows):
@@ -162,6 +165,20 @@ def preprocess_table(
             if not client_name:
                 logger.debug(f"Row {row_num}: empty client_name, end of table")
                 break
+
+            # End-of-table detection: N identical reads in a row = table end
+            if client_name == prev_client_name:
+                repeat_count += 1
+                if repeat_count >= end_repeat_threshold:
+                    logger.info(
+                        f"End of table detected: '{client_name}' "
+                        f"read {repeat_count + 1} times"
+                    )
+                    send_log(f"End of table reached (after {row_num + 1} rows)")
+                    break
+            else:
+                repeat_count = 0
+            prev_client_name = client_name
 
             client_id = vision._read_single_cell(
                 "ssn_ein", row_y, column_positions, settings
@@ -193,13 +210,16 @@ def preprocess_table(
                 send_log(f"Scanned {row_num + 1} rows...")
 
             # Press down arrow to move to next row
-            keyboard.press_and_release('down')
+            pyautogui.press('down')
             time.sleep(arrow_key_delay)
 
             # Track visual row position
             if current_visual_row < max_visible_rows - 1:
                 current_visual_row += 1
-            # else: stays at bottom, table auto-scrolls
+            else:
+                # TaxAct chunk-scrolls: the focused row jumps from the bottom
+                # to a middle position (e.g., row 20 becomes row 9).
+                current_visual_row = scroll_reset_row
 
         if stop_event.is_set():
             return None

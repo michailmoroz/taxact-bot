@@ -47,15 +47,15 @@
     "color_theme": "blue"
   },
   "client_table": {
-    "row_height": 32,
+    "row_height": 43.5,
     "header_row_y": 145,
-    "first_data_row_y": 205,
-    "max_visible_rows": 27,
+    "first_data_row_y": 215,
+    "max_visible_rows": 20,
     "columns": {
       "client_name": { "x": 20, "width": 340 },
-      "ssn_ein": { "x": 415, "width": 120 },
+      "ssn_ein": { "x": 420, "width": 120 },
       "return_type": { "x": 630, "width": 55 },
-      "fed_ef_status": { "x": 800, "width": 117 }
+      "fed_ef_status": { "x": 830, "width": 117 }
     }
   },
   "validation": {
@@ -70,7 +70,9 @@
     "csv_output_dir": "C:/TaxActBot/logs",
     "arrow_key_delay_s": 0.3,
     "focus_click_x": 130,
-    "focus_click_y": 220
+    "focus_click_y": 220,
+    "scroll_reset_row": 8,
+    "end_repeat_threshold": 4
   },
   "loop": {
     "scroll_to_top": {
