@@ -884,7 +884,17 @@ def read_all_rows_from_screenshot(
         if not cell_values[0]:
             continue
 
-        rows.append((cell_values[0], cell_values[1], cell_values[2], cell_values[3]))
+        # Clean OCR artifacts from client name
+        client_name = cell_values[0]
+        if client_name.startswith("â€˜"):
+            client_name = client_name[len("â€˜"):]
+
+        # Fix SSN/EIN missing leading zero: XX-XX-XXXX → 0XX-XX-XXXX
+        ssn_ein = cell_values[1]
+        if re.match(r"^\d{2}-\d{2}-\d{4}$", ssn_ein):
+            ssn_ein = "0" + ssn_ein
+
+        rows.append((client_name, ssn_ein, cell_values[2], cell_values[3]))
 
     logger.debug(
         f"Read {len(rows)} rows from screenshot (start_row={start_row})"

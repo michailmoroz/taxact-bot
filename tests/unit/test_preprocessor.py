@@ -375,7 +375,7 @@ class TestPreprocessTablePageScan:
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """Page 2+ passes start_row=overlap_rows, page 1 passes start_row=0."""
+        """All pages pass start_row=0 to scan all visible rows."""
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [("CLIENT A", "12-345", "1120S", "")]
@@ -390,11 +390,11 @@ class TestPreprocessTablePageScan:
 
         preprocess_table(base_settings, msg_queue, stop_event)
 
-        # Verify start_row arguments: page 0 → 0, page 1 → 2, page 2 → 2
+        # Verify start_row arguments: always 0 (scan all rows, rely on dedup)
         calls = mock_vision.read_all_rows_from_screenshot.call_args_list
         assert calls[0] == call("fake_pil_screenshot", base_settings, start_row=0)
-        assert calls[1] == call("fake_pil_screenshot", base_settings, start_row=2)
-        assert calls[2] == call("fake_pil_screenshot", base_settings, start_row=2)
+        assert calls[1] == call("fake_pil_screenshot", base_settings, start_row=0)
+        assert calls[2] == call("fake_pil_screenshot", base_settings, start_row=0)
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
