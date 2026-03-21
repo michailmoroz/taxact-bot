@@ -335,9 +335,7 @@ class TestPreprocessTableKeyPresses:
 
         preprocess_table(base_settings, msg_queue, stop_event)
 
-        mock_pydirectinput.keyDown.assert_called_with('ctrl')
-        mock_pydirectinput.press.assert_called_with('home')
-        mock_pydirectinput.keyUp.assert_called_with('ctrl')
+        mock_pyautogui.hotkey.assert_called_with('ctrl', 'home')
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")

@@ -102,11 +102,9 @@ def preprocess_table(
         pyautogui.click(focus_x, focus_y)
         time.sleep(0.3)
 
-        # Scroll to top of table (pydirectinput sends proper scan codes +
-        # KEYEVENTF_EXTENDEDKEY flag via SendInput, which TaxAct requires)
-        pydirectinput.keyDown('ctrl')
-        pydirectinput.press('home')
-        pydirectinput.keyUp('ctrl')
+        # Scroll to top of table (pyautogui.hotkey works for Ctrl+Home,
+        # confirmed in bot_controller._scroll_table_to_top)
+        pyautogui.hotkey('ctrl', 'home')
         time.sleep(0.5)
 
         # Re-click to ensure table has keyboard focus after scroll
