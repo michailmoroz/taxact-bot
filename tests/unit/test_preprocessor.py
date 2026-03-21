@@ -310,14 +310,13 @@ def _make_cell_reader(client_sequence):
 class TestPreprocessTableKeyPresses:
     """Tests that preprocess_table uses pyautogui (not keyboard) for key events."""
 
-    @patch("clickbot.preprocessor._show_click_splash")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
     def test_uses_pyautogui_hotkey_for_ctrl_home(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
-        mock_splash, base_settings
+        base_settings
     ):
         """preprocess_table uses pyautogui.hotkey('ctrl', 'home') for scroll-to-top."""
         mock_vision.get_column_positions.return_value = {
@@ -337,14 +336,13 @@ class TestPreprocessTableKeyPresses:
 
         mock_pyautogui.hotkey.assert_called_with('ctrl', 'home')
 
-    @patch("clickbot.preprocessor._show_click_splash")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
     def test_uses_pyautogui_press_for_down_arrow(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
-        mock_splash, base_settings
+        base_settings
     ):
         """preprocess_table uses pyautogui.press('down') for arrow navigation."""
         mock_vision.get_column_positions.return_value = {
@@ -376,14 +374,13 @@ class TestPreprocessTableKeyPresses:
 class TestPreprocessTableEndDetection:
     """Tests for end-of-table detection via repeated identical reads."""
 
-    @patch("clickbot.preprocessor._show_click_splash")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
     def test_stops_after_threshold_identical_reads(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
-        mock_splash, base_settings
+        base_settings
     ):
         """Scan stops when client_name repeats end_repeat_threshold times."""
         mock_vision.get_column_positions.return_value = {
@@ -417,14 +414,13 @@ class TestPreprocessTableEndDetection:
         # Should have 4 unique clients (A, B, C, LAST)
         assert len(records) == 4
 
-    @patch("clickbot.preprocessor._show_click_splash")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
     def test_does_not_stop_for_fewer_repeats(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
-        mock_splash, base_settings
+        base_settings
     ):
         """Scan continues when repeats are below threshold."""
         mock_vision.get_column_positions.return_value = {
@@ -456,14 +452,13 @@ class TestPreprocessTableEndDetection:
         assert "DUPE" in names
         assert "NEW CLIENT" in names
 
-    @patch("clickbot.preprocessor._show_click_splash")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
     def test_empty_table_stops_immediately(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
-        mock_splash, base_settings
+        base_settings
     ):
         """Scan stops immediately when first client_name is empty."""
         mock_vision.get_column_positions.return_value = {
@@ -487,14 +482,13 @@ class TestPreprocessTableEndDetection:
 class TestPreprocessTableChunkScroll:
     """Tests for chunk-scroll handling in scan loop."""
 
-    @patch("clickbot.preprocessor._show_click_splash")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
     def test_visual_row_resets_after_max(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
-        mock_splash, base_settings
+        base_settings
     ):
         """current_visual_row resets to scroll_reset_row after reaching max."""
         # max_visible_rows=5, scroll_reset_row=2
