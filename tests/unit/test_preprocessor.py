@@ -494,19 +494,19 @@ class TestPreprocessTableEndDetection:
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """Scan stops when last client is unchanged after 3 scroll attempts."""
+        """Scan stops when last client is unchanged after 6 scroll attempts."""
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [
             ("CLIENT A", "12-345", "1120S", ""),
             ("LAST", "99-999", "1120S", ""),
         ]
-        # Pages 2-4 all end with "LAST" → stale_count reaches 3
+        # Pages 2-7 all end with "LAST" → stale_count reaches 6
         page_stale = [
             ("LAST", "99-999", "1120S", ""),
         ]
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
-            [page1, page_stale, page_stale, page_stale]
+            [page1] + [page_stale] * 6
         )
         mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
@@ -519,8 +519,8 @@ class TestPreprocessTableEndDetection:
         records = load_csv(result)
         # Only 2 unique clients (A and LAST)
         assert len(records) == 2
-        # Should have read 4 pages (page1 + 3 stale)
-        assert mock_pyautogui.screenshot.call_count == 4
+        # Should have read 7 pages (page1 + 6 stale)
+        assert mock_pyautogui.screenshot.call_count == 7
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
@@ -595,12 +595,12 @@ class TestPreprocessTableEndDetection:
             ("CLIENT A", "12-345", "1120S", ""),
             ("CLIENT B", "98-765", "1120", ""),
         ]
-        # 3 stale pages (same last as page_new) → should stop
+        # 6 stale pages (same last as page_new) → should stop
         page_stale_b = [("CLIENT B", "98-765", "1120", "")]
 
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
-            [page1, page_stale_a, page_stale_a, page_new,
-             page_stale_b, page_stale_b, page_stale_b]
+            [page1, page_stale_a, page_stale_a, page_new]
+            + [page_stale_b] * 6
         )
         mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
@@ -612,5 +612,5 @@ class TestPreprocessTableEndDetection:
         assert result is not None
         records = load_csv(result)
         assert len(records) == 2
-        # 7 pages total: p1 + 2 stale + new + 3 stale
-        assert mock_pyautogui.screenshot.call_count == 7
+        # 10 pages total: p1 + 2 stale + new + 6 stale
+        assert mock_pyautogui.screenshot.call_count == 10

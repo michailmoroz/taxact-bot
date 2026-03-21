@@ -148,7 +148,7 @@ def preprocess_table(
 
             if last_client_on_page == prev_last_client:
                 stale_count += 1
-                if stale_count >= 3:
+                if stale_count >= 6:
                     logger.info(
                         f"End of table detected: last client '{last_client_on_page}' "
                         f"unchanged after {stale_count} scroll attempts"
