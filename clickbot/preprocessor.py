@@ -86,7 +86,7 @@ def preprocess_table(
         post_scroll_delay = preprocessing_settings.get("post_scroll_delay_s", 0.5)
         overlap_rows = preprocessing_settings.get("overlap_rows", 9)
         scroll_first_page = preprocessing_settings.get("scroll_first_page", 20)
-        scroll_next_pages = preprocessing_settings.get("scroll_next_pages", 11)
+        scroll_next_pages = preprocessing_settings.get("scroll_next_pages", 1)
 
         # Click on first row to give table keyboard focus
         focus_x = preprocessing_settings.get("focus_click_x", 200)
