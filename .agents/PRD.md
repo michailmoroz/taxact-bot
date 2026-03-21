@@ -1267,16 +1267,19 @@ Der MVP ist erfolgreich wenn:
 - ✅ **GUI: Preprocessing-Button** — "Scan Client Table", oberhalb "Start Bot", Farbe blau/accent, height=48
 - ✅ **GUI: CSV File-Picker** — Label mit aktuellem Dateipfad + Browse-Button (Windows File Explorer)
 - ✅ **GUI: Standard-Datei beim Start** — letzte generierte CSV automatisch laden via `get_latest_csv()`
-- ✅ **Preprocessor-Modul** (`clickbot/preprocessor.py`) — Tabelle row-by-row scannen via Pfeiltaste-Unten + OCR
+- ✅ **Preprocessor-Modul** (`clickbot/preprocessor.py`) — Tabelle page-by-page scannen: Screenshot → OCR → Refocus-Click → Down-Arrow, alle 20 Rows pro Seite, Dedup via `seen_keys`
 - ✅ **CSV-Export** — Spalten: `Client`, `ID`, `Return Type`, `Status` → `C:\TaxActBot\logs\clients_YYYY-MM-DD-HH-MM-SS.csv`
 - ✅ **Deduplizierung** — `(Name, ID, Return Type)` als Composite Key, nur erster Eintrag
-- ✅ **Status-Logik** — Fed EF Status leer → `TODO`, nicht leer → `DONE`
-- ✅ **vision.py** — `get_column_positions(extra_columns=["ssn_ein"])` mit hartem Fehler bei fehlendem Template
+- ✅ **Status-Logik** — Fed EF Status leer → `TODO`, nicht leer → tatsächlicher Status-Text (z.B. "Submitted")
+- ✅ **OCR-Bereinigung** — Unicode Smart Quotes (`''"" `) vom Anfang, Trailing-Zeichen (`.,_`) vom Ende der Client-Namen entfernen; SSN/EIN Leading Zero Korrektur (`XX-XX-XXXX` → `0XX-XX-XXXX`)
+- ✅ **Refocus-Click** — `pyautogui.click(refocus_click_x/y)` vor jedem Scroll, verhindert Focus-Verlust auf TaxAct-Tabelle
+- ✅ **Debug-Screenshot** — bei 0 gelesenen Rows wird Screenshot als `debug_page_XX.png` gespeichert + GUI-Log-Meldung
+- ✅ **vision.py** — `read_all_rows_from_screenshot()` mit PIL-Ansatz (debug_ocr.py), Koordinaten direkt aus Settings
 - ✅ **paths.py** — `get_csv_dir()` Convenience-Funktion
 - ✅ **Erneutes Preprocessing** — generiert neue Datei mit Timestamp
 - ✅ **GUI: PREPROCESSING State** — Buttons disabled während Scan, Completion-Sound + Counts-Anzeige
 - ✅ **GUI: Bot-Start blockiert** wenn keine CSV geladen → Fehlermeldung
-- ✅ **24 Unit Tests** (20 preprocessor + 4 vision extra_columns), 84/84 gesamt bestanden
+- ✅ **93 Unit Tests** bestanden
 
 **Plan:** `.agents/plans/phase-10a-preprocessing-csv-export.md` (Confidence: 9/10)
 **Report:** `.agents/execution-reports/phase-10a-preprocessing-csv-export.md`
