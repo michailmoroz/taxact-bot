@@ -884,9 +884,10 @@ def read_all_rows_from_screenshot(
         if not cell_values[0]:
             continue
 
-        # Clean OCR artifacts from client name (smart quotes)
+        # Clean OCR artifacts from client name
         client_name = cell_values[0]
         client_name = client_name.lstrip("\u2018\u2019\u201c\u201d")
+        client_name = client_name.rstrip(".,_")
 
         # Fix SSN/EIN missing leading zero: XX-XX-XXXX → 0XX-XX-XXXX
         ssn_ein = cell_values[1]
