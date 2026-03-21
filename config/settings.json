@@ -74,7 +74,9 @@
     "scroll_first_page": 20,
     "scroll_next_pages": 1,
     "focus_click_x": 130,
-    "focus_click_y": 220
+    "focus_click_y": 220,
+	"refocus_click_x": 200,
+	"refocus_click_y": 1065
   },
   "loop": {
     "scroll_to_top": {

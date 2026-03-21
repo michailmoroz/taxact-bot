@@ -261,10 +261,8 @@ def base_settings(tmp_path):
             "arrow_key_delay_s": 0.0,
             "post_scroll_delay_s": 0.0,
             "overlap_rows": 2,
-            "scroll_first_page": 5,
-            "scroll_next_pages": 3,
-            "focus_click_x": 100,
-            "focus_click_y": 200,
+            "refocus_click_x": 200,
+            "refocus_click_y": 1065,
         },
         "ocr": {"tesseract_path": "", "language": "eng"},
     }
@@ -429,11 +427,11 @@ class TestPreprocessTableKeyPresses:
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
-    def test_first_page_uses_scroll_first_page(
+    def test_one_down_press_per_page(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """First page scrolls scroll_first_page times (5 in test settings)."""
+        """Each page gets exactly 1 down-arrow press to scroll."""
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [("CLIENT A", "12-345", "1120S", "")]
@@ -447,21 +445,20 @@ class TestPreprocessTableKeyPresses:
 
         preprocess_table(base_settings, msg_queue, stop_event)
 
-        # scroll_first_page=5, so should press down 5 times after page 0
         down_calls = [c for c in mock_pydirectinput.press.call_args_list
                       if c == call('down')]
-        assert len(down_calls) == 5
+        assert len(down_calls) == 1
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
-    def test_subsequent_pages_use_scroll_next_pages(
+    def test_refocus_click_before_each_scroll(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """Pages after the first scroll scroll_next_pages times (3 in test settings)."""
+        """Each page gets a refocus click before the down-arrow press."""
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [("CLIENT A", "12-345", "1120S", "")]
@@ -476,10 +473,17 @@ class TestPreprocessTableKeyPresses:
 
         preprocess_table(base_settings, msg_queue, stop_event)
 
-        # Page 0: scroll_first_page=5, Page 1: scroll_next_pages=3, total=8
+        # 2 pages with data → 2 refocus clicks (one per page before scroll)
+        refocus_x = base_settings["preprocessing"]["refocus_click_x"]
+        refocus_y = base_settings["preprocessing"]["refocus_click_y"]
+        click_calls = [c for c in mock_pyautogui.click.call_args_list
+                       if c == call(refocus_x, refocus_y)]
+        assert len(click_calls) == 2
+
+        # 2 down-arrow presses (one per page)
         down_calls = [c for c in mock_pydirectinput.press.call_args_list
                       if c == call('down')]
-        assert len(down_calls) == 5 + 3
+        assert len(down_calls) == 2
 
 
 class TestPreprocessTableEndDetection:
@@ -494,19 +498,19 @@ class TestPreprocessTableEndDetection:
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """Scan stops when last client is unchanged after 6 scroll attempts."""
+        """Scan stops when last client is unchanged after 3 scroll attempts."""
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [
             ("CLIENT A", "12-345", "1120S", ""),
             ("LAST", "99-999", "1120S", ""),
         ]
-        # Pages 2-7 all end with "LAST" → stale_count reaches 6
+        # Pages 2-4 all end with "LAST" → stale_count reaches 3
         page_stale = [
             ("LAST", "99-999", "1120S", ""),
         ]
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
-            [page1] + [page_stale] * 6
+            [page1] + [page_stale] * 3
         )
         mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
@@ -519,8 +523,8 @@ class TestPreprocessTableEndDetection:
         records = load_csv(result)
         # Only 2 unique clients (A and LAST)
         assert len(records) == 2
-        # Should have read 7 pages (page1 + 6 stale)
-        assert mock_pyautogui.screenshot.call_count == 7
+        # Should have read 4 pages (page1 + 3 stale)
+        assert mock_pyautogui.screenshot.call_count == 4
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
@@ -595,12 +599,12 @@ class TestPreprocessTableEndDetection:
             ("CLIENT A", "12-345", "1120S", ""),
             ("CLIENT B", "98-765", "1120", ""),
         ]
-        # 6 stale pages (same last as page_new) → should stop
+        # 3 stale pages (same last as page_new) → should stop
         page_stale_b = [("CLIENT B", "98-765", "1120", "")]
 
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
             [page1, page_stale_a, page_stale_a, page_new]
-            + [page_stale_b] * 6
+            + [page_stale_b] * 3
         )
         mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
@@ -612,5 +616,5 @@ class TestPreprocessTableEndDetection:
         assert result is not None
         records = load_csv(result)
         assert len(records) == 2
-        # 10 pages total: p1 + 2 stale + new + 6 stale
-        assert mock_pyautogui.screenshot.call_count == 10
+        # 7 pages total: p1 + 2 stale + new + 3 stale
+        assert mock_pyautogui.screenshot.call_count == 7

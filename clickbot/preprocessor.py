@@ -85,14 +85,8 @@ def preprocess_table(
         arrow_key_delay = preprocessing_settings.get("arrow_key_delay_s", 0.3)
         post_scroll_delay = preprocessing_settings.get("post_scroll_delay_s", 0.5)
         overlap_rows = preprocessing_settings.get("overlap_rows", 9)
-        scroll_first_page = preprocessing_settings.get("scroll_first_page", 20)
-        scroll_next_pages = preprocessing_settings.get("scroll_next_pages", 1)
-
-        # Click on first row to give table keyboard focus
-        focus_x = preprocessing_settings.get("focus_click_x", 200)
-        focus_y = preprocessing_settings.get("focus_click_y", 161)
-        pyautogui.click(focus_x, focus_y)
-        time.sleep(0.3)
+        refocus_x = preprocessing_settings.get("refocus_click_x", 200)
+        refocus_y = preprocessing_settings.get("refocus_click_y", 1065)
 
         # Page-by-page scan
         records: List[ClientRecord] = []
@@ -148,7 +142,7 @@ def preprocess_table(
 
             if last_client_on_page == prev_last_client:
                 stale_count += 1
-                if stale_count >= 6:
+                if stale_count >= 3:
                     logger.info(
                         f"End of table detected: last client '{last_client_on_page}' "
                         f"unchanged after {stale_count} scroll attempts"
@@ -163,17 +157,15 @@ def preprocess_table(
                 send_log("Preprocessing stopped by user")
                 return None
 
-            # Scroll down: first page needs more presses (cursor at top),
-            # subsequent pages need fewer (cursor already at bottom)
-            scroll_count = scroll_first_page if page_num == 0 else scroll_next_pages
-            for _ in range(scroll_count):
-                if stop_event.is_set():
-                    send_log("Preprocessing stopped by user")
-                    return None
-                pydirectinput.press('down')
-                time.sleep(arrow_key_delay)
+            # Re-focus table (click last visible row) then scroll down
+            pyautogui.click(refocus_x, refocus_y)
+            time.sleep(0.2)
 
-            # Wait for TaxAct to finish rendering after scroll
+            if stop_event.is_set():
+                send_log("Preprocessing stopped by user")
+                return None
+
+            pydirectinput.press('down')
             time.sleep(post_scroll_delay)
 
         if stop_event.is_set():
