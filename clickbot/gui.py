@@ -415,6 +415,9 @@ class BotGUI(ctk.CTk):
         # Show countdown in preprocessing card
         self.preprocessing_button.pack_forget()
         self.preproc_countdown_label.pack(pady=10)
+        self.preproc_countdown_hint.configure(
+            text="Scroll to top of client list, then switch to TaxAct!"
+        )
         self.preproc_countdown_hint.pack(pady=5)
         self.preprocessing_button.configure(
             text="Cancel",
@@ -423,6 +426,7 @@ class BotGUI(ctk.CTk):
         )
         self.preprocessing_button.pack(pady=(10, 8), padx=16, fill="x")
 
+        self._log("Make sure client list is scrolled to the top before scan starts!")
         self._log(f"Preprocessing countdown ({self._countdown_value}s)")
         self._update_preprocessing_countdown()
 

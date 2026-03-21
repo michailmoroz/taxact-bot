@@ -20,7 +20,6 @@ import pyautogui
 from clickbot import paths
 from clickbot import sounds
 from clickbot import vision
-from clickbot import winkeys
 from clickbot.bot_controller import StatusMessage
 
 logger = logging.getLogger(__name__)
@@ -97,18 +96,9 @@ def preprocess_table(
         scroll_reset_row = preprocessing_settings.get("scroll_reset_row", 8)
         end_repeat_threshold = preprocessing_settings.get("end_repeat_threshold", 4)
 
-        # Click on table to give it keyboard focus
+        # Click on first row to give table keyboard focus
         focus_x = preprocessing_settings.get("focus_click_x", 200)
         focus_y = preprocessing_settings.get("focus_click_y", 161)
-        pyautogui.click(focus_x, focus_y)
-        time.sleep(0.3)
-
-        # Scroll to top of table (atomic SendInput with proper scan codes
-        # and KEYEVENTF_EXTENDEDKEY — pyautogui/pydirectinput both fail here)
-        winkeys.send_ctrl_home()
-        time.sleep(0.5)
-
-        # Re-click to ensure table has keyboard focus after scroll
         pyautogui.click(focus_x, focus_y)
         time.sleep(0.3)
 
