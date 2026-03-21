@@ -20,6 +20,7 @@ import pyautogui
 from clickbot import paths
 from clickbot import sounds
 from clickbot import vision
+from clickbot import winkeys
 from clickbot.bot_controller import StatusMessage
 
 logger = logging.getLogger(__name__)
@@ -102,9 +103,9 @@ def preprocess_table(
         pyautogui.click(focus_x, focus_y)
         time.sleep(0.3)
 
-        # Scroll to top of table (pyautogui.hotkey works for Ctrl+Home,
-        # confirmed in bot_controller._scroll_table_to_top)
-        pyautogui.hotkey('ctrl', 'home')
+        # Scroll to top of table (atomic SendInput with proper scan codes
+        # and KEYEVENTF_EXTENDEDKEY — pyautogui/pydirectinput both fail here)
+        winkeys.send_ctrl_home()
         time.sleep(0.5)
 
         # Re-click to ensure table has keyboard focus after scroll

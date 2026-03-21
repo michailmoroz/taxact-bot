@@ -38,6 +38,7 @@ a = Analysis(
         'cv2',
         'PIL._tkinter_finder',
         'pydirectinput',
+        'clickbot.winkeys',
     ],
     hookspath=[],
     hooksconfig={},
