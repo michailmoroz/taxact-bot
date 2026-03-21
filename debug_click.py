@@ -1,13 +1,13 @@
 """Debug script to calibrate the re-focus click position for preprocessing.
 
-Shows a red splash at the configured click position so you can see
-exactly where the bot would click to re-focus the TaxAct table.
+Shows a red splash at the configured refocus_click position so you can see
+exactly where the bot would click to re-focus the TaxAct table before scrolling.
 
 Usage:
     1. Open TaxAct Client Manager on the primary monitor
     2. Run: python debug_click.py
-    3. A red circle will flash at the current focus_click position
-    4. Adjust focus_click_x / focus_click_y in config/settings.json
+    3. Press SPACE to see red splash at current position
+    4. Adjust refocus_click_x / refocus_click_y in config/settings.json
     5. Re-run to verify the new position
 
 Controls:
@@ -15,6 +15,7 @@ Controls:
     - Press Q to quit
     - Press C to click at the position (actually sends a click)
 """
+import ctypes
 import json
 import threading
 import time
@@ -24,24 +25,27 @@ from pathlib import Path
 import keyboard
 import pyautogui
 
+# Fix DPI scaling so tkinter coordinates match pyautogui coordinates
+ctypes.windll.user32.SetProcessDPIAware()
+
 # Load settings
 settings_path = Path(__file__).parent / "config" / "settings.json"
 with open(settings_path) as f:
     settings = json.load(f)
 
 preprocessing = settings.get("preprocessing", {})
-focus_x = preprocessing.get("focus_click_x", 200)
-focus_y = preprocessing.get("focus_click_y", 161)
+refocus_x = preprocessing.get("refocus_click_x", 200)
+refocus_y = preprocessing.get("refocus_click_y", 900)
 
-print(f"=== Debug Click Position ===")
-print(f"Current position: ({focus_x}, {focus_y})")
+print(f"=== Debug Re-Focus Click Position ===")
+print(f"Current position: ({refocus_x}, {refocus_y})")
 print(f"")
 print(f"Controls:")
 print(f"  SPACE  = Show red splash at position (no click)")
 print(f"  C      = Show red splash AND click")
 print(f"  Q      = Quit")
 print(f"")
-print(f"Edit config/settings.json -> preprocessing.focus_click_x / focus_click_y")
+print(f"Edit config/settings.json -> preprocessing.refocus_click_x / refocus_click_y")
 
 
 def show_splash(x: int, y: int, radius: int = 20, duration_ms: int = 600) -> None:
@@ -87,15 +91,15 @@ def show_splash(x: int, y: int, radius: int = 20, duration_ms: int = 600) -> Non
 
 
 def on_space():
-    print(f"  Splash at ({focus_x}, {focus_y})")
-    show_splash(focus_x, focus_y)
+    print(f"  Splash at ({refocus_x}, {refocus_y})")
+    show_splash(refocus_x, refocus_y)
 
 
 def on_click():
-    print(f"  Splash + Click at ({focus_x}, {focus_y})")
-    show_splash(focus_x, focus_y)
+    print(f"  Splash + Click at ({refocus_x}, {refocus_y})")
+    show_splash(refocus_x, refocus_y)
     time.sleep(0.1)
-    pyautogui.click(focus_x, focus_y)
+    pyautogui.click(refocus_x, refocus_y)
 
 
 print("\nWaiting for input...")
