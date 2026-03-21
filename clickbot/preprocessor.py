@@ -109,7 +109,20 @@ def preprocess_table(
             )
 
             if not rows:
-                logger.debug(f"Page {page_num}: no rows found, end of table")
+                # Save debug screenshot for diagnosis
+                debug_path = Path(preprocessing_settings.get(
+                    "csv_output_dir", "C:/TaxActBot/logs"
+                )) / f"debug_page_{page_num + 1}.png"
+                try:
+                    screenshot.save(str(debug_path))
+                    send_log(
+                        f"Page {page_num + 1}: 0 rows found — stopped. "
+                        f"Screenshot saved: {debug_path.name}"
+                    )
+                    logger.info(f"Debug screenshot saved: {debug_path}")
+                except Exception as e:
+                    send_log(f"Page {page_num + 1}: 0 rows found — stopped.")
+                    logger.warning(f"Could not save debug screenshot: {e}")
                 break
 
             # Process each row from this page
