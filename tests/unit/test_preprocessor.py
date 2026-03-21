@@ -240,6 +240,14 @@ class TestStatusMapping:
 
 # --- Fixtures for preprocess_table tests ---
 
+MOCK_COLUMN_POSITIONS = {
+    "client_name": (100, 200),
+    "ssn_ein": (400, 100),
+    "return_type": (630, 55),
+    "fed_ef_status": (800, 100),
+}
+
+
 @pytest.fixture
 def base_settings(tmp_path):
     """Minimal settings dict for preprocess_table tests."""
@@ -258,10 +266,9 @@ def base_settings(tmp_path):
         "preprocessing": {
             "csv_output_dir": str(tmp_path),
             "arrow_key_delay_s": 0.0,
+            "post_scroll_delay_s": 0.0,
             "focus_click_x": 100,
             "focus_click_y": 200,
-            "scroll_reset_row": 2,
-            "end_repeat_threshold": 4,
         },
         "ocr": {"tesseract_path": "", "language": "eng"},
         "vision": {
@@ -271,114 +278,168 @@ def base_settings(tmp_path):
     }
 
 
-def _make_cell_reader(client_sequence):
-    """Create a mock _read_single_cell that returns data from a sequence.
+def _make_page_reader(pages):
+    """Create a mock read_all_rows_from_screenshot that returns pages.
 
     Args:
-        client_sequence: List of (name, id, return_type, fed_ef_status) tuples.
-            Each call cycle reads 4 columns for one row.
+        pages: List of pages, each page is a list of
+               (name, id, return_type, fed_ef_status) tuples.
     """
-    call_index = [0]  # Mutable counter
-    row_index = [0]
+    page_index = [0]
 
-    def mock_read(col_name, row_y, column_positions, settings):
-        row = row_index[0]
-        if row >= len(client_sequence):
-            if col_name == "client_name":
-                return ""
-            return ""
-
-        data = client_sequence[row]
-        col_map = {
-            "client_name": data[0],
-            "ssn_ein": data[1],
-            "return_type": data[2],
-            "fed_ef_status": data[3],
-        }
-        result = col_map.get(col_name, "")
-
-        call_index[0] += 1
-        # Advance row after all 4 columns are read
-        if col_name == "fed_ef_status":
-            row_index[0] += 1
-
-        return result
+    def mock_read(screenshot, column_positions, settings):
+        idx = page_index[0]
+        page_index[0] += 1
+        if idx >= len(pages):
+            return []
+        return list(pages[idx])
 
     return mock_read
 
 
-class TestPreprocessTableKeyPresses:
-    """Tests that preprocess_table uses correct key input methods."""
+class TestPreprocessTablePageScan:
+    """Tests for page-based scanning with one screenshot per page."""
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
-    def test_uses_pydirectinput_press_for_down_arrow(
+    def test_reads_all_rows_from_single_screenshot(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """preprocess_table uses pydirectinput.press('down') for arrow navigation."""
-        mock_vision.get_column_positions.return_value = {
-            "client_name": (100, 200),
-            "ssn_ein": (400, 100),
-            "return_type": (630, 55),
-            "fed_ef_status": (800, 100),
-        }
+        """take_screenshot is called once per page, not once per cell."""
+        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
+        mock_vision.normalize_return_type.side_effect = lambda x: x
 
-        # Return 2 clients, then empty
-        clients = [
+        page1 = [
             ("CLIENT A", "12-345", "1120S", ""),
             ("CLIENT B", "98-765", "1120", ""),
         ]
-        mock_vision._read_single_cell.side_effect = _make_cell_reader(clients)
+        # Page 2 returns same last client → stale but only 1x, so page 3 needed
+        # Use empty page to stop
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [page1, []]
+        )
+        mock_vision.take_screenshot.return_value = "fake_screenshot"
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        result = preprocess_table(base_settings, msg_queue, stop_event)
+
+        assert result is not None
+        records = load_csv(result)
+        assert len(records) == 2
+        # take_screenshot called once for page 1, once for page 2 (empty)
+        assert mock_vision.take_screenshot.call_count == 2
+
+    @patch("clickbot.preprocessor.pydirectinput")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_deduplicates_overlapping_rows_between_pages(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_pydirectinput, base_settings
+    ):
+        """Overlapping rows between pages are deduplicated."""
+        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        page1 = [
+            ("CLIENT A", "12-345", "1120S", ""),
+            ("CLIENT B", "98-765", "1120", ""),
+            ("CLIENT C", "55-555", "1040", ""),
+        ]
+        # Page 2 overlaps B and C, adds D and E
+        page2 = [
+            ("CLIENT B", "98-765", "1120", ""),   # overlap
+            ("CLIENT C", "55-555", "1040", ""),   # overlap
+            ("CLIENT D", "44-444", "1120S", ""),
+            ("CLIENT E", "33-333", "1120", "Submitted"),
+        ]
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [page1, page2, []]
+        )
+        mock_vision.take_screenshot.return_value = "fake_screenshot"
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        result = preprocess_table(base_settings, msg_queue, stop_event)
+
+        assert result is not None
+        records = load_csv(result)
+        assert len(records) == 5
+        names = [r.client_name for r in records]
+        assert names == ["CLIENT A", "CLIENT B", "CLIENT C", "CLIENT D", "CLIENT E"]
+        # CLIENT E has non-empty status → DONE
+        assert records[4].status == "DONE"
+
+
+class TestPreprocessTableKeyPresses:
+    """Tests that preprocess_table scrolls with pydirectinput."""
+
+    @patch("clickbot.preprocessor.pydirectinput")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_presses_down_arrow_max_visible_rows_times_per_page(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_pydirectinput, base_settings
+    ):
+        """After reading a page, presses down arrow max_visible_rows times."""
+        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
+        mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        page1 = [("CLIENT A", "12-345", "1120S", "")]
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [page1, []]
+        )
+        mock_vision.take_screenshot.return_value = "fake_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
 
         preprocess_table(base_settings, msg_queue, stop_event)
 
-        # Should have called press('down') for each row
+        # max_visible_rows=5, so should press down 5 times after page 1
         down_calls = [c for c in mock_pydirectinput.press.call_args_list
                       if c == call('down')]
-        assert len(down_calls) == 2
+        assert len(down_calls) == 5
 
 
 class TestPreprocessTableEndDetection:
-    """Tests for end-of-table detection via repeated identical reads."""
+    """Tests for end-of-table detection via stale last-client check."""
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
-    def test_stops_after_threshold_identical_reads(
+    def test_stale_detection_after_three_identical_last_clients(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """Scan stops when client_name repeats end_repeat_threshold times."""
-        mock_vision.get_column_positions.return_value = {
-            "client_name": (100, 200),
-            "ssn_ein": (400, 100),
-            "return_type": (630, 55),
-            "fed_ef_status": (800, 100),
-        }
+        """Scan stops when last client is unchanged after 3 scroll attempts."""
+        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
+        mock_vision.normalize_return_type.side_effect = lambda x: x
 
-        # 3 unique clients, then "LAST" repeated 5 times (threshold is 4)
-        clients = [
+        page1 = [
             ("CLIENT A", "12-345", "1120S", ""),
-            ("CLIENT B", "98-765", "1120", ""),
-            ("CLIENT C", "55-555", "1040", ""),
             ("LAST", "99-999", "1120S", ""),
-            ("LAST", "99-999", "1120S", ""),
-            ("LAST", "99-999", "1120S", ""),
-            ("LAST", "99-999", "1120S", ""),
-            ("LAST", "99-999", "1120S", ""),  # Should never be reached
         ]
-        mock_vision._read_single_cell.side_effect = _make_cell_reader(clients)
-        mock_vision.normalize_return_type.side_effect = lambda x: x
+        # Pages 2-4 all end with "LAST" → stale_count reaches 3
+        page_stale = [
+            ("LAST", "99-999", "1120S", ""),
+        ]
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [page1, page_stale, page_stale, page_stale]
+        )
+        mock_vision.take_screenshot.return_value = "fake_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -387,35 +448,31 @@ class TestPreprocessTableEndDetection:
 
         assert result is not None
         records = load_csv(result)
-        # Should have 4 unique clients (A, B, C, LAST)
-        assert len(records) == 4
+        # Only 2 unique clients (A and LAST)
+        assert len(records) == 2
+        # Should have read 4 pages (page1 + 3 stale)
+        assert mock_vision.take_screenshot.call_count == 4
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
-    def test_does_not_stop_for_fewer_repeats(
+    def test_does_not_stop_if_last_client_changes(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """Scan continues when repeats are below threshold."""
-        mock_vision.get_column_positions.return_value = {
-            "client_name": (100, 200),
-            "ssn_ein": (400, 100),
-            "return_type": (630, 55),
-            "fed_ef_status": (800, 100),
-        }
-
-        # "DUPE" repeated 3 times (below threshold of 4), then a new client
-        clients = [
-            ("DUPE", "11-111", "1120S", ""),
-            ("DUPE", "11-111", "1120S", ""),
-            ("DUPE", "11-111", "1120S", ""),
-            ("NEW CLIENT", "22-222", "1120", ""),
-        ]
-        mock_vision._read_single_cell.side_effect = _make_cell_reader(clients)
+        """Scan continues when last client changes between pages."""
+        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        page1 = [("CLIENT A", "12-345", "1120S", "")]
+        page2 = [("CLIENT B", "98-765", "1120", "")]
+        page3 = [("CLIENT C", "55-555", "1040", "")]
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [page1, page2, page3, []]
+        )
+        mock_vision.take_screenshot.return_value = "fake_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -424,10 +481,7 @@ class TestPreprocessTableEndDetection:
 
         assert result is not None
         records = load_csv(result)
-        # Both unique clients should be in the CSV
-        names = [r.client_name for r in records]
-        assert "DUPE" in names
-        assert "NEW CLIENT" in names
+        assert len(records) == 3
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
@@ -438,14 +492,10 @@ class TestPreprocessTableEndDetection:
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """Scan stops immediately when first client_name is empty."""
-        mock_vision.get_column_positions.return_value = {
-            "client_name": (100, 200),
-            "ssn_ein": (400, 100),
-            "return_type": (630, 55),
-            "fed_ef_status": (800, 100),
-        }
-        mock_vision._read_single_cell.return_value = ""
+        """Scan stops immediately when first page has no rows."""
+        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
+        mock_vision.read_all_rows_from_screenshot.return_value = []
+        mock_vision.take_screenshot.return_value = "fake_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -455,61 +505,46 @@ class TestPreprocessTableEndDetection:
         assert result is not None
         records = load_csv(result)
         assert len(records) == 0
-
-
-class TestPreprocessTableChunkScroll:
-    """Tests for chunk-scroll handling in scan loop."""
+        # No scrolling should have happened
+        assert mock_pydirectinput.press.call_count == 0
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
-    def test_visual_row_resets_after_max(
+    def test_stale_resets_when_new_client_appears(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """current_visual_row resets to scroll_reset_row after reaching max."""
-        # max_visible_rows=5, scroll_reset_row=2
-        mock_vision.get_column_positions.return_value = {
-            "client_name": (100, 200),
-            "ssn_ein": (400, 100),
-            "return_type": (630, 55),
-            "fed_ef_status": (800, 100),
-        }
-
-        # 7 unique clients (more than max_visible_rows=5)
-        clients = [
-            (f"CLIENT {i}", f"{i:02d}-000", "1120S", "")
-            for i in range(7)
-        ]
-        mock_vision._read_single_cell.side_effect = _make_cell_reader(clients)
+        """Stale counter resets when a new last client appears."""
+        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        page1 = [("CLIENT A", "12-345", "1120S", "")]
+        # 2 stale pages (same last as page1)
+        page_stale_a = [("CLIENT A", "12-345", "1120S", "")]
+        # New client appears → resets stale
+        page_new = [
+            ("CLIENT A", "12-345", "1120S", ""),
+            ("CLIENT B", "98-765", "1120", ""),
+        ]
+        # 3 stale pages (same last as page_new) → should stop
+        page_stale_b = [("CLIENT B", "98-765", "1120", "")]
+
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [page1, page_stale_a, page_stale_a, page_new,
+             page_stale_b, page_stale_b, page_stale_b]
+        )
+        mock_vision.take_screenshot.return_value = "fake_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
 
-        # Track the row_y values passed to _read_single_cell
-        row_ys = []
-        original_side_effect = mock_vision._read_single_cell.side_effect
+        result = preprocess_table(base_settings, msg_queue, stop_event)
 
-        def tracking_read(col_name, row_y, col_pos, settings):
-            if col_name == "client_name":
-                row_ys.append(row_y)
-            return original_side_effect(col_name, row_y, col_pos, settings)
-
-        mock_vision._read_single_cell.side_effect = tracking_read
-
-        preprocess_table(base_settings, msg_queue, stop_event)
-
-        # With max_visible_rows=5, row_height=32, first_data_row_y=205:
-        # Row 0: y=205 (visual_row=0)
-        # Row 1: y=237 (visual_row=1)
-        # Row 2: y=269 (visual_row=2)
-        # Row 3: y=301 (visual_row=3)
-        # Row 4: y=333 (visual_row=4=max-1) → next: reset to scroll_reset_row=2
-        # Row 5: y=269 (visual_row=2=scroll_reset_row)
-        # Row 6: y=301 (visual_row=3)
-        # Row 7: y=333 (visual_row=4=max-1, empty read → break)
-        expected = [205, 237, 269, 301, 333, 269, 301, 333]
-        assert row_ys == expected
+        assert result is not None
+        records = load_csv(result)
+        assert len(records) == 2
+        # 7 pages total: p1 + 2 stale + new + 3 stale
+        assert mock_vision.take_screenshot.call_count == 7

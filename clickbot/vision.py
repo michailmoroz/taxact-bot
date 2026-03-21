@@ -829,6 +829,76 @@ def _read_single_cell(
     return lines[0] if lines else ""
 
 
+def read_all_rows_from_screenshot(
+    screenshot: np.ndarray,
+    column_positions: Dict[str, Tuple[int, int]],
+    settings: dict,
+) -> List[Tuple[str, str, str, str]]:
+    """Read all visible table rows from a single screenshot.
+
+    Unlike _read_single_cell() which takes a new screenshot per cell,
+    this function crops all cells from one pre-captured screenshot.
+    This avoids OCR issues caused by the row-selection highlight.
+
+    Args:
+        screenshot: Full-screen screenshot as BGR numpy array
+        column_positions: Dict from get_column_positions()
+        settings: Settings dict for column config
+
+    Returns:
+        List of (client_name, ssn_ein, return_type, fed_ef_status) tuples.
+        Stops at the first row where client_name is empty.
+    """
+    table_settings = settings.get("client_table", {})
+    column_config = table_settings.get("columns", {})
+    row_height = table_settings.get("row_height", 25)
+    first_data_row_y = table_settings.get("first_data_row_y", 205)
+    max_visible_rows = table_settings.get("max_visible_rows", 20)
+
+    col_names = ["client_name", "ssn_ein", "return_type", "fed_ef_status"]
+    rows: List[Tuple[str, str, str, str]] = []
+
+    for row_idx in range(max_visible_rows):
+        row_y = int(round(first_data_row_y + row_idx * row_height))
+        rh = int(round(row_height))
+
+        cell_values: List[str] = []
+        for col_name in col_names:
+            col_cfg = column_config.get(col_name, {})
+            col_center_x, template_w = column_positions[col_name]
+
+            if "x" in col_cfg:
+                cell_x = col_cfg["x"]
+                col_width = col_cfg.get("width", template_w)
+            else:
+                col_width = col_cfg.get("width", template_w)
+                cell_x = col_center_x - template_w // 2 - 5
+
+            # Crop from screenshot (numpy array is [y:y+h, x:x+w])
+            y1 = max(0, row_y)
+            y2 = min(screenshot.shape[0], row_y + rh)
+            x1 = max(0, cell_x)
+            x2 = min(screenshot.shape[1], cell_x + col_width)
+            crop = screenshot[y1:y2, x1:x2]
+
+            # Grayscale + OCR (matches vision.py read_text_region behavior)
+            gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+            pil_image = Image.fromarray(gray)
+            text = pytesseract.image_to_string(pil_image, lang="eng").strip()
+
+            lines = [line.strip() for line in text.split("\n") if line.strip()]
+            cell_values.append(lines[0] if lines else "")
+
+        # Empty client_name = end of visible data
+        if not cell_values[0]:
+            break
+
+        rows.append((cell_values[0], cell_values[1], cell_values[2], cell_values[3]))
+
+    logger.debug(f"Read {len(rows)} rows from screenshot")
+    return rows
+
+
 def _scan_visible_clients(
     settings: dict,
     column_positions: Dict[str, Tuple[int, int]],

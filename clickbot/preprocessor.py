@@ -1,7 +1,8 @@
 """Preprocessing module for scanning TaxAct client table and exporting to CSV.
 
-Scans the complete TaxAct Client Manager table row-by-row using arrow key
-navigation, extracts client data via OCR, deduplicates, and writes to CSV.
+Scans the TaxAct Client Manager table page-by-page: takes one screenshot
+per visible page, reads all rows via OCR, then scrolls down using arrow
+keys and repeats. Deduplicates overlapping rows between pages.
 """
 
 import csv
@@ -44,8 +45,10 @@ def preprocess_table(
 ) -> Optional[Path]:
     """Scan the complete TaxAct client table and export to CSV.
 
-    Navigates row-by-row using the down arrow key, reads all 4 columns
-    via OCR, deduplicates, and writes the result to a timestamped CSV file.
+    Takes one screenshot per visible page, reads all rows from it, then
+    scrolls down by pressing the down arrow key max_visible_rows times.
+    Repeats until end-of-table is detected (last client unchanged after
+    3 consecutive scroll attempts). Deduplicates overlapping rows.
 
     Args:
         settings: Settings dict from config/settings.json
@@ -85,16 +88,13 @@ def preprocess_table(
 
         send_log(f"Found columns: {list(column_positions.keys())}")
 
-        # Read table settings
+        # Read settings
         table_settings = settings.get("client_table", {})
-        first_data_row_y = table_settings.get("first_data_row_y", 205)
-        row_height = table_settings.get("row_height", 32)
-        max_visible_rows = table_settings.get("max_visible_rows", 27)
+        max_visible_rows = table_settings.get("max_visible_rows", 20)
 
         preprocessing_settings = settings.get("preprocessing", {})
         arrow_key_delay = preprocessing_settings.get("arrow_key_delay_s", 0.3)
-        scroll_reset_row = preprocessing_settings.get("scroll_reset_row", 8)
-        end_repeat_threshold = preprocessing_settings.get("end_repeat_threshold", 4)
+        post_scroll_delay = preprocessing_settings.get("post_scroll_delay_s", 0.5)
 
         # Click on first row to give table keyboard focus
         focus_x = preprocessing_settings.get("focus_click_x", 200)
@@ -102,87 +102,84 @@ def preprocess_table(
         pyautogui.click(focus_x, focus_y)
         time.sleep(0.3)
 
-        # Scan rows one by one using arrow key navigation
+        # Page-by-page scan
         records: List[ClientRecord] = []
         seen_keys: set = set()
-        current_visual_row = 0
-        prev_client_name = ""
-        repeat_count = 0
-        max_rows = 5000  # Safety limit
+        prev_last_client = ""
+        stale_count = 0
+        max_pages = 500  # Safety limit
+        total_rows_scanned = 0
 
-        for row_num in range(max_rows):
+        for page_num in range(max_pages):
             if stop_event.is_set():
                 send_log("Preprocessing stopped by user")
                 return None
 
-            # Calculate Y position for reading
-            row_y = first_data_row_y + (current_visual_row * row_height)
-
-            # Read all 4 columns
-            client_name = vision._read_single_cell(
-                "client_name", row_y, column_positions, settings
+            # Take one screenshot and read all visible rows from it
+            screenshot = vision.take_screenshot()
+            rows = vision.read_all_rows_from_screenshot(
+                screenshot, column_positions, settings
             )
 
-            # Empty client_name = end of table
-            if not client_name:
-                logger.debug(f"Row {row_num}: empty client_name, end of table")
+            if not rows:
+                logger.debug(f"Page {page_num}: no rows found, end of table")
                 break
 
-            # End-of-table detection: N identical reads in a row = table end
-            if client_name == prev_client_name:
-                repeat_count += 1
-                if repeat_count >= end_repeat_threshold:
+            # Process each row from this page
+            new_on_page = 0
+            for client_name, client_id, raw_return_type, fed_ef_status in rows:
+                return_type = vision.normalize_return_type(raw_return_type)
+                current_key = (client_name, client_id, return_type)
+
+                if current_key not in seen_keys:
+                    seen_keys.add(current_key)
+                    status = "TODO" if not fed_ef_status else "DONE"
+                    records.append(ClientRecord(
+                        client_name=client_name,
+                        client_id=client_id,
+                        return_type=return_type,
+                        status=status,
+                    ))
+                    sounds.play_iteration()
+                    new_on_page += 1
+
+            total_rows_scanned += len(rows)
+            send_log(
+                f"Page {page_num + 1}: {len(rows)} rows read, "
+                f"{new_on_page} new ({len(records)} total)"
+            )
+
+            # End-of-table detection: compare last client on this page
+            # with last client from the previous page
+            last_client_on_page = rows[-1][0]  # client_name of last row
+
+            if last_client_on_page == prev_last_client:
+                stale_count += 1
+                if stale_count >= 3:
                     logger.info(
-                        f"End of table detected: '{client_name}' "
-                        f"read {repeat_count + 1} times"
+                        f"End of table detected: last client '{last_client_on_page}' "
+                        f"unchanged after {stale_count} scroll attempts"
                     )
-                    send_log(f"End of table reached (after {row_num + 1} rows)")
+                    send_log(f"End of table reached ({len(records)} clients)")
                     break
             else:
-                repeat_count = 0
-            prev_client_name = client_name
+                stale_count = 0
+            prev_last_client = last_client_on_page
 
-            client_id = vision._read_single_cell(
-                "ssn_ein", row_y, column_positions, settings
-            )
-            raw_return_type = vision._read_single_cell(
-                "return_type", row_y, column_positions, settings
-            )
-            fed_ef_status = vision._read_single_cell(
-                "fed_ef_status", row_y, column_positions, settings
-            )
+            if stop_event.is_set():
+                send_log("Preprocessing stopped by user")
+                return None
 
-            return_type = vision.normalize_return_type(raw_return_type)
+            # Scroll down: press down arrow max_visible_rows times
+            for _ in range(max_visible_rows):
+                if stop_event.is_set():
+                    send_log("Preprocessing stopped by user")
+                    return None
+                pydirectinput.press('down')
+                time.sleep(arrow_key_delay)
 
-            # Deduplicate
-            current_key = (client_name, client_id, return_type)
-            if current_key not in seen_keys:
-                seen_keys.add(current_key)
-                status = "TODO" if not fed_ef_status else "DONE"
-                records.append(ClientRecord(
-                    client_name=client_name,
-                    client_id=client_id,
-                    return_type=return_type,
-                    status=status,
-                ))
-                sounds.play_iteration()
-
-            # Log progress every 10 clients
-            if (row_num + 1) % 10 == 0:
-                send_log(f"Scanned {row_num + 1} rows...")
-
-            # Press down arrow to move to next row (pydirectinput sends
-            # proper scan codes + extended key flag via SendInput)
-            pydirectinput.press('down')
-            time.sleep(arrow_key_delay)
-
-            # Track visual row position
-            if current_visual_row < max_visible_rows - 1:
-                current_visual_row += 1
-            else:
-                # TaxAct chunk-scrolls: the focused row jumps from the bottom
-                # to a middle position (e.g., row 20 becomes row 9).
-                current_visual_row = scroll_reset_row
+            # Wait for TaxAct to finish rendering after scroll
+            time.sleep(post_scroll_delay)
 
         if stop_event.is_set():
             return None
