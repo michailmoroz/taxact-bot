@@ -120,7 +120,7 @@ def preprocess_table(
 
                 if current_key not in seen_keys:
                     seen_keys.add(current_key)
-                    status = "TODO" if not fed_ef_status else "DONE"
+                    status = "TODO" if not fed_ef_status else fed_ef_status
                     records.append(ClientRecord(
                         client_name=client_name,
                         client_id=client_id,

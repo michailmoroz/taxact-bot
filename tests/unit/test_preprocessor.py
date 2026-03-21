@@ -361,8 +361,8 @@ class TestPreprocessTablePageScan:
         assert len(records) == 5
         names = [r.client_name for r in records]
         assert names == ["CLIENT A", "CLIENT B", "CLIENT C", "CLIENT D", "CLIENT E"]
-        # CLIENT E has non-empty status → DONE
-        assert records[4].status == "DONE"
+        # CLIENT E has non-empty fed_ef_status → actual status text
+        assert records[4].status == "Submitted"
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
