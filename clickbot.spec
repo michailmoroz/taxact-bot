@@ -37,6 +37,7 @@ a = Analysis(
         'pywintypes',
         'cv2',
         'PIL._tkinter_finder',
+        'pydirectinput',
     ],
     hookspath=[],
     hooksconfig={},
