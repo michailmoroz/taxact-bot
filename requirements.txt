@@ -1,4 +1,5 @@
 pyautogui>=0.9.54
+pydirectinput>=1.0.4
 keyboard>=0.13.5
 PyGetWindow>=0.0.9
 Pillow>=10.0.0

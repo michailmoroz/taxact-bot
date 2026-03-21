@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
+import pydirectinput
 import pyautogui
 
 from clickbot import paths
@@ -101,8 +102,11 @@ def preprocess_table(
         pyautogui.click(focus_x, focus_y)
         time.sleep(0.3)
 
-        # Scroll to top of table
-        pyautogui.hotkey('ctrl', 'home')
+        # Scroll to top of table (pydirectinput sends proper scan codes +
+        # KEYEVENTF_EXTENDEDKEY flag via SendInput, which TaxAct requires)
+        pydirectinput.keyDown('ctrl')
+        pydirectinput.press('home')
+        pydirectinput.keyUp('ctrl')
         time.sleep(0.5)
 
         # Re-click to ensure table has keyboard focus after scroll
@@ -178,8 +182,9 @@ def preprocess_table(
             if (row_num + 1) % 10 == 0:
                 send_log(f"Scanned {row_num + 1} rows...")
 
-            # Press down arrow to move to next row
-            pyautogui.press('down')
+            # Press down arrow to move to next row (pydirectinput sends
+            # proper scan codes + extended key flag via SendInput)
+            pydirectinput.press('down')
             time.sleep(arrow_key_delay)
 
             # Track visual row position

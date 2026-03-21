@@ -33,7 +33,17 @@ Phase 10a (Preprocessing & CSV Export) ist COMPLETE, aber der Scan-Mechanismus i
 - **Scan-Loop**: `preprocessor.py:148-202` — bestehende Struktur wird angepasst, nicht neu geschrieben
 
 ### Root Cause Analysis
-Der Preprocessor verwendet `keyboard.press_and_release()` für Tastendrücke (Zeile 134, 196), während der gesamte restliche Bot `pyautogui.press()` / `pyautogui.hotkey()` verwendet. Das `keyboard`-Modul generiert offensichtlich Key-Events die TaxAct nicht empfängt. Die Umstellung auf `pyautogui` ist der Fix.
+
+**Iteration 1 (keyboard→pyautogui):** Der Preprocessor verwendete `keyboard.press_and_release()` — umgestellt auf `pyautogui.press()` / `pyautogui.hotkey()`. Hat nicht funktioniert.
+
+**Iteration 2 (Splash-Fokus-Bug):** `_show_click_splash()` erstellte `tk.Tk()` im Background-Thread (nicht thread-safe), stiehlt Fokus von TaxAct. Entfernt. Hat nicht funktioniert.
+
+**Iteration 3 (pydirectinput — tatsächlicher Root Cause):** PyAutoGUI verwendet intern die veraltete `keybd_event()` Win32-API und sendet **Scan Code = 0** und **kein `KEYEVENTF_EXTENDEDKEY` Flag** für Pfeiltasten/Home. TaxAct (vermutlich .NET WinForms/WPF) ignoriert Key-Events ohne diese Flags stillschweigend. `pydirectinput` nutzt die moderne `SendInput()` API mit korrekten Scan Codes und Extended-Key-Flags.
+
+Quellen:
+- [PyAutoGUI Issue #69](https://github.com/asweigart/pyautogui/issues/69)
+- [PyAutoGUI Issue #115](https://github.com/asweigart/pyautogui/issues/115)
+- [PyAutoGUI Issue #889](https://github.com/asweigart/pyautogui/issues/889)
 
 ## Dependencies
 
@@ -190,20 +200,28 @@ Phase 10a im PRD ergänzen:
 
 ## Notes
 
-- **Root Cause**: `keyboard.press_and_release()` erzeugt Key-Events, die TaxAct nicht verarbeitet. `pyautogui.press()` und `pyautogui.hotkey()` funktionieren im restlichen Bot (bot_controller, process_executor) zuverlässig.
-- **scroll_reset_row muss kalibriert werden**: Der Default-Wert 8 basiert auf der Beobachtung "20. wird zum 9." (0-indexed: 8). Falls sich die TaxAct-Grid-Einstellungen ändern, muss dieser Wert in settings.json angepasst werden.
-- **`keyboard` Import bleibt in preprocessor.py NICHT erhalten** — wird komplett durch pyautogui ersetzt.
-- **max_visible_rows** wird weiterhin aus `settings.json:client_table.max_visible_rows` gelesen (aktuell 27, User hat auf Remote-PC auf 20 geändert). Dieser Wert muss auf dem Remote-PC kalibriert sein.
+- **Tatsächlicher Root Cause (Iteration 3)**: Weder `keyboard` noch `pyautogui` senden korrekte Key-Events für Pfeiltasten an TaxAct. PyAutoGUI nutzt `keybd_event()` ohne Scan Codes und ohne `KEYEVENTF_EXTENDEDKEY`. TaxAct erfordert beides. `pydirectinput` löst das Problem via `SendInput()` mit `MapVirtualKey` Scan Codes und korrektem Extended-Key-Flag.
+- **pyautogui bleibt für Maus-Events** (click, scroll, screenshot) — nur Keyboard-Events im Preprocessor verwenden `pydirectinput`.
+- **scroll_reset_row muss kalibriert werden**: Der Default-Wert 8 basiert auf der Beobachtung "20. wird zum 9." (0-indexed: 8).
+- **max_visible_rows** wird weiterhin aus `settings.json:client_table.max_visible_rows` gelesen.
 
-## Confidence Score: 8/10
+## Fix History
+
+| Date | Iteration | Change | Result |
+|------|-----------|--------|--------|
+| 2026-03-21 | 1 | `keyboard` → `pyautogui` für Key-Presses | Nicht funktioniert — pyautogui sendet keine Scan Codes |
+| 2026-03-21 | 2 | `_show_click_splash` entfernt (Tkinter thread-unsafe) | Nicht funktioniert — Fokus war nicht das Problem |
+| 2026-03-21 | 3 | `pyautogui` → `pydirectinput` für Key-Presses | **Pending manuelle Verifikation** |
+
+## Confidence Score: 9/10
 
 | Factor | Rating | Notes |
 |--------|--------|-------|
-| **Codebase Patterns** | 10 | `pyautogui.press()` / `pyautogui.hotkey()` bereits überall im Bot verwendet |
-| **External Knowledge** | 9 | Nur pyautogui-API, trivial |
-| **Risk** | 7 | Chunk-Scroll-Verhalten muss kalibriert werden; `scroll_reset_row` könnte nicht exakt stimmen |
-| **Dependencies** | 9 | Nur preprocessor.py + settings.json betroffen |
-| **Clarity** | 8 | Anforderungen klar, aber scroll_reset_row muss experimentell bestätigt werden |
+| **Codebase Patterns** | 10 | Drop-in Replacement, API identisch zu pyautogui |
+| **External Knowledge** | 9 | pydirectinput ist bekannte Lösung für genau dieses Problem |
+| **Risk** | 8 | Chunk-Scroll muss kalibriert werden; pydirectinput v1.0.4 hat Arrow-Key-Fix |
+| **Dependencies** | 9 | Nur preprocessor.py + requirements.txt betroffen |
+| **Clarity** | 9 | Root Cause via Web-Research bestätigt (PyAutoGUI GitHub Issues) |
 | **Testability** | 7 | Key-Press Fix nur manuell gegen echtes TaxAct verifizierbar |
 
-**Overall: 8/10** — Root Cause klar identifiziert (keyboard→pyautogui), Chunk-Scroll-Handling braucht Kalibrierung auf dem Remote-PC.
+**Overall: 9/10** — Root Cause durch mehrere PyAutoGUI GitHub Issues bestätigt. pydirectinput ist die Standard-Lösung.
