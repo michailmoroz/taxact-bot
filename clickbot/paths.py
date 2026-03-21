@@ -49,12 +49,12 @@ def get_user_data_dir() -> Path:
 # ---------------------------------------------------------------------------
 
 def get_settings_path() -> Path:
-    """Path to user-editable settings.json."""
-    return get_user_data_dir() / "config" / "settings.json"
+    """Path to settings.json (always next to the exe / in project root).
 
-
-def get_default_settings_path() -> Path:
-    """Path to bundled default settings.json (read-only)."""
+    Both dev and exe mode use the same location: bundle_dir/config/settings.json.
+    This ensures edits to config/settings.json take effect immediately
+    without needing to delete a stale AppData copy.
+    """
     return get_bundle_dir() / "config" / "settings.json"
 
 
@@ -93,18 +93,12 @@ def get_tesseract_path() -> Path:
 
 
 def ensure_user_config() -> Path:
-    """Ensure user config exists. Copy bundled default on first run.
+    """Return path to settings.json, verifying it exists.
 
     Returns:
-        Path to the user-editable settings.json
+        Path to settings.json (next to exe / in project root)
     """
-    user_settings = get_settings_path()
-    if not user_settings.exists():
-        default_settings = get_default_settings_path()
-        if default_settings.exists():
-            user_settings.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(default_settings, user_settings)
-            logger.info(f"Copied default settings to {user_settings}")
-        else:
-            logger.warning(f"Default settings not found: {default_settings}")
-    return user_settings
+    settings = get_settings_path()
+    if not settings.exists():
+        logger.warning(f"Settings not found: {settings}")
+    return settings

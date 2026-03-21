@@ -74,16 +74,11 @@ class TestConvenienceFunctions:
     """Tests for convenience path functions."""
 
     def test_get_settings_path(self) -> None:
-        """Settings path is under user data dir."""
+        """Settings path is under bundle dir (same in dev and exe mode)."""
         settings = paths.get_settings_path()
         assert settings.name == "settings.json"
         assert "config" in settings.parts
-
-    def test_get_default_settings_path(self) -> None:
-        """Default settings path is under bundle dir."""
-        default = paths.get_default_settings_path()
-        assert default.name == "settings.json"
-        assert default.exists()  # Should exist in dev mode
+        assert settings == paths.get_bundle_dir() / "config" / "settings.json"
 
     def test_get_processes_dir(self) -> None:
         """Processes dir exists and contains JSON files."""
