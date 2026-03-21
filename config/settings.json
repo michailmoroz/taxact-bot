@@ -70,6 +70,7 @@
     "csv_output_dir": "C:/TaxActBot/logs",
     "arrow_key_delay_s": 0.3,
     "post_scroll_delay_s": 0.5,
+    "overlap_rows": 9,
     "focus_click_x": 130,
     "focus_click_y": 220
   },

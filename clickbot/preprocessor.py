@@ -68,8 +68,7 @@ def preprocess_table(
         message_queue.put(StatusMessage("error", msg))
 
     try:
-        # Configure vision module
-        vision.configure(settings)
+        # Configure tesseract for OCR
         vision.configure_tesseract(settings)
 
         send_status("Preprocessing: scanning table...")
@@ -78,16 +77,6 @@ def preprocess_table(
         if stop_event.is_set():
             return None
 
-        # Find column headers (including SSN/EIN)
-        send_log("Finding column headers...")
-        column_positions = vision.get_column_positions(extra_columns=["ssn_ein"])
-        if column_positions is None:
-            send_error("Column headers not found (including SSN/EIN). "
-                       "Make sure TaxAct Client Manager is visible.")
-            return None
-
-        send_log(f"Found columns: {list(column_positions.keys())}")
-
         # Read settings
         table_settings = settings.get("client_table", {})
         max_visible_rows = table_settings.get("max_visible_rows", 20)
@@ -95,6 +84,7 @@ def preprocess_table(
         preprocessing_settings = settings.get("preprocessing", {})
         arrow_key_delay = preprocessing_settings.get("arrow_key_delay_s", 0.3)
         post_scroll_delay = preprocessing_settings.get("post_scroll_delay_s", 0.5)
+        overlap_rows = preprocessing_settings.get("overlap_rows", 9)
 
         # Click on first row to give table keyboard focus
         focus_x = preprocessing_settings.get("focus_click_x", 200)
@@ -115,10 +105,11 @@ def preprocess_table(
                 send_log("Preprocessing stopped by user")
                 return None
 
-            # Take one screenshot and read all visible rows from it
-            screenshot = vision.take_screenshot()
+            # Take PIL screenshot and read rows (debug_ocr.py approach)
+            screenshot = pyautogui.screenshot()
+            start_row = overlap_rows if page_num > 0 else 0
             rows = vision.read_all_rows_from_screenshot(
-                screenshot, column_positions, settings
+                screenshot, settings, start_row=start_row
             )
 
             if not rows:

@@ -37,7 +37,7 @@ first_data_row_y = table["first_data_row_y"]
 row_height = table["row_height"]
 columns = table["columns"]
 
-NUM_ROWS = 27  # How many rows to debug
+NUM_ROWS = 20  # How many rows to debug
 
 print("=" * 60)
 print("TaxAct Client Table OCR Debug")

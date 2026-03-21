@@ -830,27 +830,28 @@ def _read_single_cell(
 
 
 def read_all_rows_from_screenshot(
-    screenshot: np.ndarray,
-    column_positions: Dict[str, Tuple[int, int]],
+    screenshot: Image.Image,
     settings: dict,
+    start_row: int = 0,
 ) -> List[Tuple[str, str, str, str]]:
-    """Read all visible table rows from a single screenshot.
+    """Read visible table rows from a single PIL screenshot.
 
-    Unlike _read_single_cell() which takes a new screenshot per cell,
-    this function crops all cells from one pre-captured screenshot.
-    This avoids OCR issues caused by the row-selection highlight.
+    Uses the same proven approach as debug_ocr.py: PIL crop, RGB→GRAY
+    conversion, coordinates directly from settings. Skips rows with
+    empty client_name without aborting (no break).
 
     Args:
-        screenshot: Full-screen screenshot as BGR numpy array
-        column_positions: Dict from get_column_positions()
-        settings: Settings dict for column config
+        screenshot: Full-screen screenshot as PIL Image (RGB)
+        settings: Settings dict with client_table.columns config
+        start_row: First row index to read (0-based). Use to skip
+                   overlap rows after scrolling.
 
     Returns:
         List of (client_name, ssn_ein, return_type, fed_ef_status) tuples.
-        Stops at the first row where client_name is empty.
+        Only rows with non-empty client_name are included.
     """
     table_settings = settings.get("client_table", {})
-    column_config = table_settings.get("columns", {})
+    columns = table_settings.get("columns", {})
     row_height = table_settings.get("row_height", 25)
     first_data_row_y = table_settings.get("first_data_row_y", 205)
     max_visible_rows = table_settings.get("max_visible_rows", 20)
@@ -858,44 +859,36 @@ def read_all_rows_from_screenshot(
     col_names = ["client_name", "ssn_ein", "return_type", "fed_ef_status"]
     rows: List[Tuple[str, str, str, str]] = []
 
-    for row_idx in range(max_visible_rows):
-        row_y = int(round(first_data_row_y + row_idx * row_height))
-        rh = int(round(row_height))
+    for row_idx in range(start_row, max_visible_rows):
+        row_y = first_data_row_y + (row_idx * row_height)
 
         cell_values: List[str] = []
         for col_name in col_names:
-            col_cfg = column_config.get(col_name, {})
-            col_center_x, template_w = column_positions[col_name]
+            col_cfg = columns.get(col_name, {})
+            x = col_cfg.get("x", 0)
+            w = col_cfg.get("width", 100)
 
-            if "x" in col_cfg:
-                cell_x = col_cfg["x"]
-                col_width = col_cfg.get("width", template_w)
-            else:
-                col_width = col_cfg.get("width", template_w)
-                cell_x = col_center_x - template_w // 2 - 5
+            # Crop from PIL Image (same approach as debug_ocr.py)
+            region = screenshot.crop((x, row_y, x + w, row_y + row_height))
 
-            # Crop from screenshot (numpy array is [y:y+h, x:x+w])
-            y1 = max(0, row_y)
-            y2 = min(screenshot.shape[0], row_y + rh)
-            x1 = max(0, cell_x)
-            x2 = min(screenshot.shape[1], cell_x + col_width)
-            crop = screenshot[y1:y2, x1:x2]
-
-            # Grayscale + OCR (matches vision.py read_text_region behavior)
-            gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-            pil_image = Image.fromarray(gray)
-            text = pytesseract.image_to_string(pil_image, lang="eng").strip()
+            # RGB → Grayscale → OCR (same as debug_ocr.py)
+            region_np = np.array(region)
+            region_gray = cv2.cvtColor(region_np, cv2.COLOR_RGB2GRAY)
+            region_pil = Image.fromarray(region_gray)
+            text = pytesseract.image_to_string(region_pil, lang="eng").strip()
 
             lines = [line.strip() for line in text.split("\n") if line.strip()]
             cell_values.append(lines[0] if lines else "")
 
-        # Empty client_name = end of visible data
+        # Skip rows with empty client_name (no break — continue reading)
         if not cell_values[0]:
-            break
+            continue
 
         rows.append((cell_values[0], cell_values[1], cell_values[2], cell_values[3]))
 
-    logger.debug(f"Read {len(rows)} rows from screenshot")
+    logger.debug(
+        f"Read {len(rows)} rows from screenshot (start_row={start_row})"
+    )
     return rows
 
 

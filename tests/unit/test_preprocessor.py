@@ -240,13 +240,6 @@ class TestStatusMapping:
 
 # --- Fixtures for preprocess_table tests ---
 
-MOCK_COLUMN_POSITIONS = {
-    "client_name": (100, 200),
-    "ssn_ein": (400, 100),
-    "return_type": (630, 55),
-    "fed_ef_status": (800, 100),
-}
-
 
 @pytest.fixture
 def base_settings(tmp_path):
@@ -267,14 +260,11 @@ def base_settings(tmp_path):
             "csv_output_dir": str(tmp_path),
             "arrow_key_delay_s": 0.0,
             "post_scroll_delay_s": 0.0,
+            "overlap_rows": 2,
             "focus_click_x": 100,
             "focus_click_y": 200,
         },
         "ocr": {"tesseract_path": "", "language": "eng"},
-        "vision": {
-            "screenshot_base_path": "assets/buttons",
-            "confidence_threshold": 0.8,
-        },
     }
 
 
@@ -287,7 +277,7 @@ def _make_page_reader(pages):
     """
     page_index = [0]
 
-    def mock_read(screenshot, column_positions, settings):
+    def mock_read(screenshot, settings, start_row=0):
         idx = page_index[0]
         page_index[0] += 1
         if idx >= len(pages):
@@ -298,7 +288,7 @@ def _make_page_reader(pages):
 
 
 class TestPreprocessTablePageScan:
-    """Tests for page-based scanning with one screenshot per page."""
+    """Tests for page-based scanning with one PIL screenshot per page."""
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
@@ -309,20 +299,17 @@ class TestPreprocessTablePageScan:
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """take_screenshot is called once per page, not once per cell."""
-        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
+        """pyautogui.screenshot() is called once per page."""
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [
             ("CLIENT A", "12-345", "1120S", ""),
             ("CLIENT B", "98-765", "1120", ""),
         ]
-        # Page 2 returns same last client → stale but only 1x, so page 3 needed
-        # Use empty page to stop
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
             [page1, []]
         )
-        mock_vision.take_screenshot.return_value = "fake_screenshot"
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -332,8 +319,8 @@ class TestPreprocessTablePageScan:
         assert result is not None
         records = load_csv(result)
         assert len(records) == 2
-        # take_screenshot called once for page 1, once for page 2 (empty)
-        assert mock_vision.take_screenshot.call_count == 2
+        # pyautogui.screenshot() called once for page 1, once for page 2 (empty)
+        assert mock_pyautogui.screenshot.call_count == 2
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
@@ -345,7 +332,6 @@ class TestPreprocessTablePageScan:
         mock_pydirectinput, base_settings
     ):
         """Overlapping rows between pages are deduplicated."""
-        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [
@@ -363,7 +349,7 @@ class TestPreprocessTablePageScan:
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
             [page1, page2, []]
         )
-        mock_vision.take_screenshot.return_value = "fake_screenshot"
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -377,6 +363,60 @@ class TestPreprocessTablePageScan:
         assert names == ["CLIENT A", "CLIENT B", "CLIENT C", "CLIENT D", "CLIENT E"]
         # CLIENT E has non-empty status → DONE
         assert records[4].status == "DONE"
+
+    @patch("clickbot.preprocessor.pydirectinput")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_second_page_uses_overlap_start_row(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_pydirectinput, base_settings
+    ):
+        """Page 2+ passes start_row=overlap_rows, page 1 passes start_row=0."""
+        mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        page1 = [("CLIENT A", "12-345", "1120S", "")]
+        page2 = [("CLIENT B", "98-765", "1120", "")]
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [page1, page2, []]
+        )
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        preprocess_table(base_settings, msg_queue, stop_event)
+
+        # Verify start_row arguments: page 0 → 0, page 1 → 2, page 2 → 2
+        calls = mock_vision.read_all_rows_from_screenshot.call_args_list
+        assert calls[0] == call("fake_pil_screenshot", base_settings, start_row=0)
+        assert calls[1] == call("fake_pil_screenshot", base_settings, start_row=2)
+        assert calls[2] == call("fake_pil_screenshot", base_settings, start_row=2)
+
+    @patch("clickbot.preprocessor.pydirectinput")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_first_page_reads_all_rows(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_pydirectinput, base_settings
+    ):
+        """First page passes start_row=0 to read all visible rows."""
+        mock_vision.normalize_return_type.side_effect = lambda x: x
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [[("CLIENT A", "12-345", "1120S", "")], []]
+        )
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        preprocess_table(base_settings, msg_queue, stop_event)
+
+        first_call = mock_vision.read_all_rows_from_screenshot.call_args_list[0]
+        assert first_call == call("fake_pil_screenshot", base_settings, start_row=0)
 
 
 class TestPreprocessTableKeyPresses:
@@ -392,14 +432,13 @@ class TestPreprocessTableKeyPresses:
         mock_pydirectinput, base_settings
     ):
         """After reading a page, presses down arrow max_visible_rows times."""
-        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [("CLIENT A", "12-345", "1120S", "")]
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
             [page1, []]
         )
-        mock_vision.take_screenshot.return_value = "fake_screenshot"
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -425,7 +464,6 @@ class TestPreprocessTableEndDetection:
         mock_pydirectinput, base_settings
     ):
         """Scan stops when last client is unchanged after 3 scroll attempts."""
-        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [
@@ -439,7 +477,7 @@ class TestPreprocessTableEndDetection:
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
             [page1, page_stale, page_stale, page_stale]
         )
-        mock_vision.take_screenshot.return_value = "fake_screenshot"
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -451,7 +489,7 @@ class TestPreprocessTableEndDetection:
         # Only 2 unique clients (A and LAST)
         assert len(records) == 2
         # Should have read 4 pages (page1 + 3 stale)
-        assert mock_vision.take_screenshot.call_count == 4
+        assert mock_pyautogui.screenshot.call_count == 4
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
@@ -463,7 +501,6 @@ class TestPreprocessTableEndDetection:
         mock_pydirectinput, base_settings
     ):
         """Scan continues when last client changes between pages."""
-        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [("CLIENT A", "12-345", "1120S", "")]
@@ -472,7 +509,7 @@ class TestPreprocessTableEndDetection:
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
             [page1, page2, page3, []]
         )
-        mock_vision.take_screenshot.return_value = "fake_screenshot"
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -493,9 +530,8 @@ class TestPreprocessTableEndDetection:
         mock_pydirectinput, base_settings
     ):
         """Scan stops immediately when first page has no rows."""
-        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.read_all_rows_from_screenshot.return_value = []
-        mock_vision.take_screenshot.return_value = "fake_screenshot"
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -518,7 +554,6 @@ class TestPreprocessTableEndDetection:
         mock_pydirectinput, base_settings
     ):
         """Stale counter resets when a new last client appears."""
-        mock_vision.get_column_positions.return_value = MOCK_COLUMN_POSITIONS
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [("CLIENT A", "12-345", "1120S", "")]
@@ -536,7 +571,7 @@ class TestPreprocessTableEndDetection:
             [page1, page_stale_a, page_stale_a, page_new,
              page_stale_b, page_stale_b, page_stale_b]
         )
-        mock_vision.take_screenshot.return_value = "fake_screenshot"
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
         msg_queue = queue.Queue()
         stop_event = threading.Event()
@@ -547,4 +582,4 @@ class TestPreprocessTableEndDetection:
         records = load_csv(result)
         assert len(records) == 2
         # 7 pages total: p1 + 2 stale + new + 3 stale
-        assert mock_vision.take_screenshot.call_count == 7
+        assert mock_pyautogui.screenshot.call_count == 7
