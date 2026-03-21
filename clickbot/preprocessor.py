@@ -85,6 +85,8 @@ def preprocess_table(
         arrow_key_delay = preprocessing_settings.get("arrow_key_delay_s", 0.3)
         post_scroll_delay = preprocessing_settings.get("post_scroll_delay_s", 0.5)
         overlap_rows = preprocessing_settings.get("overlap_rows", 9)
+        scroll_first_page = preprocessing_settings.get("scroll_first_page", 20)
+        scroll_next_pages = preprocessing_settings.get("scroll_next_pages", 11)
 
         # Click on first row to give table keyboard focus
         focus_x = preprocessing_settings.get("focus_click_x", 200)
@@ -161,8 +163,10 @@ def preprocess_table(
                 send_log("Preprocessing stopped by user")
                 return None
 
-            # Scroll down: press down arrow max_visible_rows times
-            for _ in range(max_visible_rows):
+            # Scroll down: first page needs more presses (cursor at top),
+            # subsequent pages need fewer (cursor already at bottom)
+            scroll_count = scroll_first_page if page_num == 0 else scroll_next_pages
+            for _ in range(scroll_count):
                 if stop_event.is_set():
                     send_log("Preprocessing stopped by user")
                     return None

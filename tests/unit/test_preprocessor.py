@@ -261,6 +261,8 @@ def base_settings(tmp_path):
             "arrow_key_delay_s": 0.0,
             "post_scroll_delay_s": 0.0,
             "overlap_rows": 2,
+            "scroll_first_page": 5,
+            "scroll_next_pages": 3,
             "focus_click_x": 100,
             "focus_click_y": 200,
         },
@@ -427,11 +429,11 @@ class TestPreprocessTableKeyPresses:
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
-    def test_presses_down_arrow_max_visible_rows_times_per_page(
+    def test_first_page_uses_scroll_first_page(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """After reading a page, presses down arrow max_visible_rows times."""
+        """First page scrolls scroll_first_page times (5 in test settings)."""
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [("CLIENT A", "12-345", "1120S", "")]
@@ -445,10 +447,39 @@ class TestPreprocessTableKeyPresses:
 
         preprocess_table(base_settings, msg_queue, stop_event)
 
-        # max_visible_rows=5, so should press down 5 times after page 1
+        # scroll_first_page=5, so should press down 5 times after page 0
         down_calls = [c for c in mock_pydirectinput.press.call_args_list
                       if c == call('down')]
         assert len(down_calls) == 5
+
+    @patch("clickbot.preprocessor.pydirectinput")
+    @patch("clickbot.preprocessor.pyautogui")
+    @patch("clickbot.preprocessor.vision")
+    @patch("clickbot.preprocessor.sounds")
+    @patch("clickbot.preprocessor.time")
+    def test_subsequent_pages_use_scroll_next_pages(
+        self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
+        mock_pydirectinput, base_settings
+    ):
+        """Pages after the first scroll scroll_next_pages times (3 in test settings)."""
+        mock_vision.normalize_return_type.side_effect = lambda x: x
+
+        page1 = [("CLIENT A", "12-345", "1120S", "")]
+        page2 = [("CLIENT B", "98-765", "1120", "")]
+        mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
+            [page1, page2, []]
+        )
+        mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
+
+        msg_queue = queue.Queue()
+        stop_event = threading.Event()
+
+        preprocess_table(base_settings, msg_queue, stop_event)
+
+        # Page 0: scroll_first_page=5, Page 1: scroll_next_pages=3, total=8
+        down_calls = [c for c in mock_pydirectinput.press.call_args_list
+                      if c == call('down')]
+        assert len(down_calls) == 5 + 3
 
 
 class TestPreprocessTableEndDetection:
