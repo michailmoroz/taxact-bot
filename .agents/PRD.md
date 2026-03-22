@@ -1317,10 +1317,10 @@ Der MVP ist erfolgreich wenn:
 **Deliverables:**
 - ✅ **`ClientRow.client_id`** — SSN/EIN Feld fuer Composite-Key Lookup
 - ✅ **CSV-basierter Client-Lookup** — `find_next_client()` mit `csv_records` Parameter, Skip-Set aus non-TODO Clients
-- ⬜ **Auto-Status-Update** — Wenn TaxAct-Status neuer als CSV (z.B. "Ext. Accepted" statt "Submitted") → CSV automatisch aktualisiert
-- ⬜ **Bot-Controller CSV-Integration** — `csv_path` Parameter, `_run()` liest CSV, schreibt `Submitted`/`FAIL: <Grund>` zurueck
-- ⬜ **GUI csv_path Weitergabe** — BotController erhaelt csv_path, CSV-Counts Refresh nach Bot-Run
-- ⬜ Backward-Kompatibilitaet: `csv_path=None` → altes in-memory Verhalten (`state.py` bleibt als Fallback)
+- ✅ **Auto-Status-Update** — Entfernt (Phase 10c: CSV ist einzige Status-Quelle, kein Fed-EF-Status-Lesen aus TaxAct)
+- ✅ **Bot-Controller CSV-Integration** — `csv_path` Parameter, `_run()` liest CSV, schreibt `Submitted`/`FAIL: <Grund>` zurueck
+- ✅ **GUI csv_path Weitergabe** — BotController erhaelt csv_path, CSV-Counts Refresh nach Bot-Run
+- ✅ Backward-Kompatibilitaet: `csv_path=None` → altes in-memory Verhalten (`state.py` bleibt als Fallback)
 
 **Plan:** `.agents/plans/phase-10b-2-csv-bot-integration.md` (Confidence: 8/10)
 ~~**Alter Plan (OBSOLET):** `.agents/plans/phase-10b-csv-bot-integration.md`~~
@@ -1416,20 +1416,21 @@ Fuer jeden Client in TaxAct-Tabelle:
 
 ---
 
-#### Phase 10c: CSV-basierte Row-by-Row Scan-Logik ⬅️ NEXT
+#### Phase 10c: CSV-basierte Row-by-Row Scan-Logik ✅ COMPLETE
 
 **Goal:** Schneller Client-Scan im Bot-Run via Screenshot-Crop (wie Preprocessing) statt einzelner Live-OCR-Aufrufe pro Zelle. Status wird ausschliesslich aus CSV bestimmt, nicht aus TaxAct.
 
 **Deliverables:**
-- ⬜ **`_scan_visible_clients_csv()`** — Neue Scan-Funktion: ein Screenshot pro Seite, Crop+OCR fuer client_name, ssn_ein, return_type pro Zeile, CSV-Lookup statt Fed-EF-Status
-- ⬜ **Scroll via Refocus-Click + Arrow-Down** — Gleiche Mechanik wie Preprocessing (`refocus_click_x/y` + `pydirectinput.press('down')`)
-- ⬜ **Kein Fed-EF-Status-Lesen** — CSV ist einzige Status-Quelle
-- ⬜ **Spalten-Koordinaten aus Settings** — Kein `get_column_positions()` Template-Matching mehr im CSV-Modus
-- ⬜ **`bot_controller._run()`** — CSV-Modus nutzt neue Scan-Funktion mit Scroll-Loop
-- ⬜ **Backward-Kompatibilitaet** — In-Memory Modus (ohne CSV) bleibt unveraendert
-- ⬜ **Unit Tests** fuer neue Scan-Logik
+- ✅ **`scan_visible_clients_csv()`** — Neue Scan-Funktion: ein Screenshot pro Seite, Crop+OCR fuer client_name, ssn_ein, return_type pro Zeile, CSV-Lookup statt Fed-EF-Status
+- ✅ **Scroll via Refocus-Click + Arrow-Down** — Gleiche Mechanik wie Preprocessing (`refocus_click_x/y` + `pydirectinput.press('down')`)
+- ✅ **Kein Fed-EF-Status-Lesen** — CSV ist einzige Status-Quelle
+- ✅ **Spalten-Koordinaten aus Settings** — Kein `get_column_positions()` Template-Matching mehr im CSV-Modus
+- ✅ **`bot_controller._run()`** — CSV-Modus nutzt neue Scan-Funktion mit Scroll-Loop
+- ✅ **Backward-Kompatibilitaet** — In-Memory Modus (ohne CSV) bleibt unveraendert
+- ✅ **Unit Tests** fuer neue Scan-Logik (12 neue Tests, 156 gesamt)
 
 **Plan:** `.agents/plans/phase-10c-csv-row-scan.md` (Confidence: 8/10)
+**Report:** `.agents/execution-reports/phase-10c-csv-row-scan.md`
 
 ---
 
