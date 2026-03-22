@@ -335,8 +335,7 @@ class BotController:
 
             # Check for locked client dialog after double-click
             locked = vision.find_element(
-                "common/locked_1.png", retry_count=1,
-                region=(800, 580, 300, 40)
+                "common/blue_i_icon.png", retry_count=1,
             )
             if locked is not None:
                 self._send_log("Client is locked, dismissing dialog...")
