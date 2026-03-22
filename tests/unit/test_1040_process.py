@@ -128,18 +128,26 @@ class TestStage12AbortReason:
 
 
 class TestStage16CleanAbort:
-    """Tests for Stage 16 — alerts not passed."""
+    """Tests for Stage 16 — alerts not passed (nested conditional)."""
 
-    def test_stage16_has_abort(self, process_1040):
+    def test_stage16_if_false_is_conditional(self, process_1040):
         s16 = _get_stage(process_1040, 16)
-        assert s16["if_false"]["abort"] is True
-        assert s16["if_false"]["abort_reason"] == "FAIL: Alerts not passed"
+        assert s16["if_false"]["action"] == "conditional"
+        assert s16["if_false"]["condition"]["image"] == "1040/missing_address.png"
 
-    def test_stage16_clicks_clients_button(self, process_1040):
+    def test_stage16_missing_address_abort(self, process_1040):
         s16 = _get_stage(process_1040, 16)
-        actions = s16["if_false"]["actions"]
-        assert len(actions) == 1
-        assert "clients_button" in actions[0]["target"]["image"]
+        branch = s16["if_false"]["if_true"]
+        assert branch["abort"] is True
+        assert branch["abort_reason"] == "FAIL: missing address"
+        assert "clients_button" in branch["actions"][0]["target"]["image"]
+
+    def test_stage16_generic_alerts_abort(self, process_1040):
+        s16 = _get_stage(process_1040, 16)
+        branch = s16["if_false"]["if_false"]
+        assert branch["abort"] is True
+        assert branch["abort_reason"] == "FAIL: Alerts not passed"
+        assert "clients_button" in branch["actions"][0]["target"]["image"]
 
 
 class TestStage18CleanAbort:

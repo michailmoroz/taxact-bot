@@ -270,15 +270,33 @@
         "verify_next": "1040/16_submit.png"
       },
       "if_false": {
-        "abort": true,
-        "abort_reason": "FAIL: Alerts not passed",
-        "actions": [
-          {
-            "action": "click",
-            "target": { "image": "common/clients_button.png" },
-            "wait_after": 2.0
-          }
-        ]
+        "action": "conditional",
+        "condition": {
+          "type": "element_visible",
+          "image": "1040/missing_address.png"
+        },
+        "if_true": {
+          "abort": true,
+          "abort_reason": "FAIL: missing address",
+          "actions": [
+            {
+              "action": "click",
+              "target": { "image": "common/clients_button.png" },
+              "wait_after": 2.0
+            }
+          ]
+        },
+        "if_false": {
+          "abort": true,
+          "abort_reason": "FAIL: Alerts not passed",
+          "actions": [
+            {
+              "action": "click",
+              "target": { "image": "common/clients_button.png" },
+              "wait_after": 2.0
+            }
+          ]
+        }
       }
     },
     {
