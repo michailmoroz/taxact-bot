@@ -1286,36 +1286,37 @@ Der MVP ist erfolgreich wenn:
 **Plan:** `.agents/plans/phase-10a-preprocessing-csv-export.md` (Confidence: 9/10)
 **Report:** `.agents/execution-reports/phase-10a-preprocessing-csv-export.md`
 
-#### Phase 10b: 1040 Process Fixes + CSV-Integration in Bot-Loop ⬅️ NEXT
+#### Phase 10b: 1040 Process Fixes + CSV-Integration in Bot-Loop ✅ COMPLETE
 
-**Scope:** Aufgeteilt in 10b-1 (1040-Fixes) und 10b-2 (CSV-Integration). Saubere Aborts mit spezifischen Gruenden, Locked Client Handling, CSV-basiertes Tracking mit `Submitted`/`FAIL: <Grund>` Status, Auto-Status-Update aus TaxAct.
+**Scope:** Aufgeteilt in 10b-1 (1040-Fixes) und 10b-2 (CSV-Integration). Saubere Aborts mit spezifischen Gruenden, Locked Client Handling, CSV-basiertes Tracking mit `Submitted`/`FAIL: <Grund>` Status.
 
 **Aufgeteilte Plaene:**
 
-##### Phase 10b-1: 1040 Process Fixes ⬅️ NEXT
+##### Phase 10b-1: 1040 Process Fixes ✅ COMPLETE
 
 **Scope:** Abort-Handling, Wizard-Fix, Locked Client Support. Unabhaengig von CSV testbar.
 
 **Deliverables:**
-- ⬜ **`ExecutionResult.abort_reason`** — Spezifischer Abbruchgrund aus JSON-Konfiguration
-- ⬜ **`search_region` in Click-Actions** — Region-basierte Template-Suche fuer kleine Buttons
-- ⬜ **`timeout` in element_visible Conditions** — `wait_for_element` statt `find_element` fuer Polling
-- ⬜ **Stage 3 Fix (Locked Clients)** — Checkbox nur klicken wenn unchecked, `locked_2.png` bis 5s abwarten, `unlock_and_save.png` klicken
-- ⬜ **Stage 12 Fix (Wizard)** — `no_default.png` mit `search_region` im Screen-Zentrum, `abort_reason: "FAIL: Wizard (Stage 12)"`
-- ⬜ **Stage 16 Fix (Alerts)** — `abort: true` + `abort_reason: "FAIL: Alerts not passed"`
-- ⬜ **Stage 18 Fix (Submit)** — `abort: true` + `abort_reason: "FAIL: Submit unsuccessful"`
-- ⬜ **Locked_1 Handling** — Nach Doppelklick: `locked_1.png` (region `800,580,300,40`) erkennen, `ok_default.png` klicken
-- ⬜ **Unit Tests** fuer abort_reason, search_region, 1040.json Validierung
+- ✅ **`ExecutionResult.abort_reason`** — Spezifischer Abbruchgrund aus JSON-Konfiguration
+- ✅ **`search_region` in Click-Actions** — Region-basierte Template-Suche fuer kleine Buttons
+- ✅ **`timeout` in element_visible Conditions** — `wait_for_element` statt `find_element` fuer Polling
+- ✅ **Stage 3 Fix (Locked Clients)** — Checkbox nur klicken wenn unchecked, `locked_2.png` bis 3s abwarten, `unlock_and_save.png` klicken
+- ✅ **Stage 12 Fix (Wizard)** — `no_default.png` mit `search_region` im Screen-Zentrum, `abort_reason: "FAIL: Wizard (Stage 12)"`
+- ✅ **Stage 16 Fix (Alerts)** — `abort: true` + `abort_reason: "FAIL: Alerts not passed"`
+- ✅ **Stage 18 Fix (Submit)** — `abort: true` + `abort_reason: "FAIL: Submit unsuccessful"`
+- ✅ **Locked_1 Handling** — Nach Doppelklick: `locked_1.png` (region `800,580,300,40`) erkennen, `ok_default.png` klicken
+- ✅ **Unit Tests** fuer abort_reason, search_region, 1040.json Validierung (29 Tests)
 
 **Plan:** `.agents/plans/phase-10b-1-1040-process-fixes.md` (Confidence: 8/10)
+**Report:** `.agents/execution-reports/phase-10b-1-1040-process-fixes.md`
 
-##### Phase 10b-2: CSV-Integration in Bot-Loop
+##### Phase 10b-2: CSV-Integration in Bot-Loop ✅ COMPLETE
 
-**Scope:** Bot-Loop auf CSV umstellen, Status-Updates Submitted/FAIL nach jeder Iteration, Auto-Status-Update. Setzt 10b-1 voraus.
+**Scope:** Bot-Loop auf CSV umstellen, Status-Updates Submitted/FAIL nach jeder Iteration. Setzt 10b-1 voraus.
 
 **Deliverables:**
-- ⬜ **`ClientRow.client_id`** — SSN/EIN Feld fuer Composite-Key Lookup
-- ⬜ **CSV-basierter Client-Lookup** — `find_next_client()` mit `csv_records` Parameter, Skip-Set aus non-TODO Clients
+- ✅ **`ClientRow.client_id`** — SSN/EIN Feld fuer Composite-Key Lookup
+- ✅ **CSV-basierter Client-Lookup** — `find_next_client()` mit `csv_records` Parameter, Skip-Set aus non-TODO Clients
 - ⬜ **Auto-Status-Update** — Wenn TaxAct-Status neuer als CSV (z.B. "Ext. Accepted" statt "Submitted") → CSV automatisch aktualisiert
 - ⬜ **Bot-Controller CSV-Integration** — `csv_path` Parameter, `_run()` liest CSV, schreibt `Submitted`/`FAIL: <Grund>` zurueck
 - ⬜ **GUI csv_path Weitergabe** — BotController erhaelt csv_path, CSV-Counts Refresh nach Bot-Run
@@ -1404,11 +1405,31 @@ Fuer jeden Client in TaxAct-Tabelle:
 **Validation:**
 - ✅ Preprocessing-Infrastruktur (GUI, CSV-Export, File-Picker) implementiert und getestet
 - ✅ Bot startet nur mit geladener CSV
-- Locked Clients werden korrekt gehandhabt (locked_1 + locked_2) — Phase 10b-1
-- Saubere Aborts mit spezifischen FAIL-Gruenden — Phase 10b-1
-- Post-Iteration Status-Updates funktionieren (Submitted/FAIL) — Phase 10b-2
-- Auto-Status-Update aus TaxAct — Phase 10b-2
-- 1120S/1120/1040 Prozesse weiterhin funktionsfaehig
+- ✅ Locked Clients werden korrekt gehandhabt (locked_1 + locked_2)
+- ✅ Saubere Aborts mit spezifischen FAIL-Gruenden
+- ✅ Post-Iteration Status-Updates funktionieren (Submitted/FAIL)
+- ✅ 143 Unit Tests bestanden
+- ✅ GUI: Start-Button disabled ohne CSV, re-enabled nach Load
+- ✅ Preprocessing: Sofortiger Abbruch bei Cancel
+
+**Bekanntes Problem (behoben in 10c):** Client-Scan im Bot-Run war extrem langsam (60-80 einzelne Screenshot+OCR pro Seite). Phase 10c stellt auf Screenshot-Crop-Ansatz um.
+
+---
+
+#### Phase 10c: CSV-basierte Row-by-Row Scan-Logik ⬅️ NEXT
+
+**Goal:** Schneller Client-Scan im Bot-Run via Screenshot-Crop (wie Preprocessing) statt einzelner Live-OCR-Aufrufe pro Zelle. Status wird ausschliesslich aus CSV bestimmt, nicht aus TaxAct.
+
+**Deliverables:**
+- ⬜ **`_scan_visible_clients_csv()`** — Neue Scan-Funktion: ein Screenshot pro Seite, Crop+OCR fuer client_name, ssn_ein, return_type pro Zeile, CSV-Lookup statt Fed-EF-Status
+- ⬜ **Scroll via Refocus-Click + Arrow-Down** — Gleiche Mechanik wie Preprocessing (`refocus_click_x/y` + `pydirectinput.press('down')`)
+- ⬜ **Kein Fed-EF-Status-Lesen** — CSV ist einzige Status-Quelle
+- ⬜ **Spalten-Koordinaten aus Settings** — Kein `get_column_positions()` Template-Matching mehr im CSV-Modus
+- ⬜ **`bot_controller._run()`** — CSV-Modus nutzt neue Scan-Funktion mit Scroll-Loop
+- ⬜ **Backward-Kompatibilitaet** — In-Memory Modus (ohne CSV) bleibt unveraendert
+- ⬜ **Unit Tests** fuer neue Scan-Logik
+
+**Plan:** `.agents/plans/phase-10c-csv-row-scan.md` (Confidence: 8/10)
 
 ---
 

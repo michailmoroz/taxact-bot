@@ -4,6 +4,7 @@ import csv
 import inspect
 import queue
 import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from unittest.mock import patch, MagicMock, call
@@ -420,3 +421,355 @@ class TestBackwardCompatibility:
         assert isinstance(result, tuple)
         assert result[0] is None
         assert result[1] == []
+
+
+# ── scan_visible_clients_csv Tests ───────────────────────────────────
+
+
+class TestScanVisibleClientsCsvNew:
+    """Tests for the new screenshot-crop-based CSV scan function."""
+
+    SETTINGS = {
+        "client_table": {
+            "row_height": 25,
+            "first_data_row_y": 200,
+            "max_visible_rows": 3,
+            "columns": {
+                "client_name": {"x": 20, "width": 340},
+                "ssn_ein": {"x": 420, "width": 120},
+                "return_type": {"x": 630, "width": 55},
+            },
+        }
+    }
+
+    def _make_screenshot(self):
+        """Create a minimal PIL Image for mocking."""
+        from PIL import Image
+        return Image.new("RGB", (1920, 1080), color=(255, 255, 255))
+
+    @patch("clickbot.vision.pytesseract.image_to_string")
+    def test_finds_todo_client(self, mock_ocr):
+        """TODO client in CSV is returned with ClientRow and click_pos."""
+        from clickbot.vision import scan_visible_clients_csv
+
+        mock_ocr.side_effect = [
+            "JONES INC",   # client_name
+            "98-7654321",  # ssn_ein
+            "1040",        # return_type
+        ]
+
+        csv_records = [
+            ClientRecord("JONES INC", "98-7654321", "1040", "TODO"),
+        ]
+
+        row_data, click_pos, last_name = scan_visible_clients_csv(
+            self._make_screenshot(), self.SETTINGS, csv_records, "1040"
+        )
+
+        assert row_data is not None
+        assert row_data.client_name == "JONES INC"
+        assert row_data.client_id == "98-7654321"
+        assert row_data.return_type == "1040"
+        assert row_data.fed_ef_status == ""
+        assert click_pos is not None
+        assert last_name == "JONES INC"
+
+    @patch("clickbot.vision.pytesseract.image_to_string")
+    def test_skips_non_todo_client(self, mock_ocr):
+        """Client with non-TODO status is skipped."""
+        from clickbot.vision import scan_visible_clients_csv
+
+        mock_ocr.side_effect = [
+            "SMITH LLC",   # row 0 client_name
+            "12-3456789",  # row 0 ssn_ein
+            "1040",        # row 0 return_type
+            "",            # row 1 client_name (empty)
+            "",            # row 2 client_name (empty)
+        ]
+
+        csv_records = [
+            ClientRecord("SMITH LLC", "12-3456789", "1040", "Submitted"),
+        ]
+
+        row_data, click_pos, last_name = scan_visible_clients_csv(
+            self._make_screenshot(), self.SETTINGS, csv_records, "1040"
+        )
+
+        assert row_data is None
+        assert click_pos is None
+        assert last_name == "SMITH LLC"
+
+    @patch("clickbot.vision.pytesseract.image_to_string")
+    def test_skips_client_not_in_csv(self, mock_ocr):
+        """Client not in CSV is skipped."""
+        from clickbot.vision import scan_visible_clients_csv
+
+        mock_ocr.side_effect = [
+            "UNKNOWN INC",  # row 0: not in CSV
+            "00-0000000",
+            "1040",
+            "",             # row 1: empty
+            "",             # row 2: empty
+        ]
+
+        csv_records = [
+            ClientRecord("KNOWN INC", "11-1111111", "1040", "TODO"),
+        ]
+
+        row_data, _, last_name = scan_visible_clients_csv(
+            self._make_screenshot(), self.SETTINGS, csv_records, "1040"
+        )
+
+        assert row_data is None
+        assert last_name == "UNKNOWN INC"
+
+    @patch("clickbot.vision.pytesseract.image_to_string")
+    def test_skips_wrong_return_type(self, mock_ocr):
+        """Client with different return type is skipped."""
+        from clickbot.vision import scan_visible_clients_csv
+
+        mock_ocr.side_effect = [
+            "JONES INC",   # row 0
+            "98-7654321",
+            "1120S",       # wrong return type (selected is 1040)
+            "",            # row 1: empty
+            "",            # row 2: empty
+        ]
+
+        csv_records = [
+            ClientRecord("JONES INC", "98-7654321", "1120S", "TODO"),
+        ]
+
+        row_data, _, _ = scan_visible_clients_csv(
+            self._make_screenshot(), self.SETTINGS, csv_records, "1040"
+        )
+
+        assert row_data is None
+
+    @patch("clickbot.vision.pytesseract.image_to_string")
+    def test_empty_client_name_continues(self, mock_ocr):
+        """Empty client_name row is skipped (no break), next row checked."""
+        from clickbot.vision import scan_visible_clients_csv
+
+        mock_ocr.side_effect = [
+            "",            # row 0: empty client_name
+            "JONES INC",   # row 1: valid
+            "98-7654321",
+            "1040",
+        ]
+
+        csv_records = [
+            ClientRecord("JONES INC", "98-7654321", "1040", "TODO"),
+        ]
+
+        row_data, _, _ = scan_visible_clients_csv(
+            self._make_screenshot(), self.SETTINGS, csv_records, "1040"
+        )
+
+        assert row_data is not None
+        assert row_data.client_name == "JONES INC"
+        assert row_data.row_index == 1
+
+    @patch("clickbot.vision.pytesseract.image_to_string")
+    def test_stop_event_interrupts_scan(self, mock_ocr):
+        """Stop event causes immediate return."""
+        from clickbot.vision import scan_visible_clients_csv
+
+        stop_event = threading.Event()
+        stop_event.set()
+
+        csv_records = [
+            ClientRecord("JONES INC", "98-765", "1040", "TODO"),
+        ]
+
+        row_data, _, _ = scan_visible_clients_csv(
+            self._make_screenshot(), self.SETTINGS, csv_records, "1040",
+            stop_event=stop_event,
+        )
+
+        assert row_data is None
+        mock_ocr.assert_not_called()
+
+    @patch("clickbot.vision.pytesseract.image_to_string")
+    def test_ocr_cleanup_applied(self, mock_ocr):
+        """OCR cleanup: Unicode prefix, trailing dots, SSN leading zero."""
+        from clickbot.vision import scan_visible_clients_csv
+
+        mock_ocr.side_effect = [
+            "\u2018JONES INC.",  # Unicode prefix + trailing dot
+            "98-76-5432",       # Missing leading zero (XX-XX-XXXX)
+            "1040",
+        ]
+
+        csv_records = [
+            ClientRecord("JONES INC", "098-76-5432", "1040", "TODO"),
+        ]
+
+        row_data, _, _ = scan_visible_clients_csv(
+            self._make_screenshot(), self.SETTINGS, csv_records, "1040"
+        )
+
+        assert row_data is not None
+        assert row_data.client_name == "JONES INC"
+        assert row_data.client_id == "098-76-5432"
+
+    @patch("clickbot.vision.pytesseract.image_to_string")
+    def test_returns_last_client_name(self, mock_ocr):
+        """last_client_name is set to the last non-empty client name."""
+        from clickbot.vision import scan_visible_clients_csv
+
+        mock_ocr.side_effect = [
+            "AAA INC", "11-111", "1040",
+            "BBB INC", "22-222", "1040",
+            "CCC INC", "33-333", "1040",
+        ]
+
+        csv_records = [
+            ClientRecord("AAA INC", "11-111", "1040", "Submitted"),
+            ClientRecord("BBB INC", "22-222", "1040", "Submitted"),
+            ClientRecord("CCC INC", "33-333", "1040", "Submitted"),
+        ]
+
+        _, _, last_name = scan_visible_clients_csv(
+            self._make_screenshot(), self.SETTINGS, csv_records, "1040"
+        )
+
+        assert last_name == "CCC INC"
+
+
+# ── Bot Controller CSV Scan Loop Tests ───────────────────────────────
+
+
+class TestBotControllerCsvScanLoop:
+    """Tests for the inline CSV scan loop in bot_controller._run()."""
+
+    @patch("clickbot.bot_controller.pydirectinput")
+    @patch("clickbot.bot_controller.pyautogui")
+    @patch("clickbot.bot_controller.vision")
+    @patch("clickbot.bot_controller.sounds")
+    def test_csv_mode_uses_scan_visible_clients_csv(
+        self, mock_sounds, mock_vision, mock_pag, mock_pdi
+    ):
+        """CSV mode calls scan_visible_clients_csv, not find_next_client."""
+        mock_vision.configure.return_value = None
+        mock_vision.configure_tesseract.return_value = None
+        mock_vision.scan_visible_clients_csv.return_value = (None, None, "")
+
+        csv_records = [ClientRecord("X", "1", "1040", "TODO")]
+
+        bc = BotController(
+            {
+                "display": {},
+                "preprocessing": {},
+                "loop": {"scroll_to_top": {"enabled": False}, "scroll_in_table": {"max_attempts": 0}},
+                "client_table": {},
+            },
+            selected_return_type="1040",
+        )
+        bc.csv_path = MagicMock()
+        bc.csv_path.exists.return_value = True
+
+        with patch("clickbot.preprocessor.load_csv", return_value=csv_records):
+            bc._run()
+
+        mock_vision.scan_visible_clients_csv.assert_called()
+        mock_vision.find_next_client.assert_not_called()
+
+    @patch("clickbot.bot_controller.pydirectinput")
+    @patch("clickbot.bot_controller.pyautogui")
+    @patch("clickbot.bot_controller.vision")
+    @patch("clickbot.bot_controller.sounds")
+    def test_csv_mode_scrolls_on_no_todo(
+        self, mock_sounds, mock_vision, mock_pag, mock_pdi
+    ):
+        """When no TODO found, bot scrolls (refocus click + arrow down)."""
+        mock_vision.configure.return_value = None
+        mock_vision.configure_tesseract.return_value = None
+
+        csv_records = [ClientRecord("X", "1", "1040", "Submitted")]
+
+        # 4 scans: same last_client → stale after 3
+        mock_vision.scan_visible_clients_csv.side_effect = [
+            (None, None, "X"),
+            (None, None, "X"),
+            (None, None, "X"),
+            (None, None, "X"),
+        ]
+
+        bc = BotController(
+            {
+                "display": {},
+                "preprocessing": {"refocus_click_x": 200, "refocus_click_y": 1065, "post_scroll_delay_s": 0.01},
+                "loop": {"scroll_to_top": {"enabled": False}, "scroll_in_table": {"max_attempts": 20}},
+                "client_table": {},
+            },
+            selected_return_type="1040",
+        )
+        bc.csv_path = MagicMock()
+        bc.csv_path.exists.return_value = True
+
+        with patch("clickbot.preprocessor.load_csv", return_value=csv_records):
+            bc._run()
+
+        assert mock_pdi.press.call_count >= 1
+        mock_pdi.press.assert_called_with('down')
+
+    @patch("clickbot.bot_controller.pydirectinput")
+    @patch("clickbot.bot_controller.pyautogui")
+    @patch("clickbot.bot_controller.vision")
+    @patch("clickbot.bot_controller.sounds")
+    def test_csv_mode_end_of_table_detection(
+        self, mock_sounds, mock_vision, mock_pag, mock_pdi
+    ):
+        """End-of-table detected when last client unchanged for 3 scans."""
+        mock_vision.configure.return_value = None
+        mock_vision.configure_tesseract.return_value = None
+
+        csv_records = [ClientRecord("LAST INC", "99-999", "1040", "Submitted")]
+
+        mock_vision.scan_visible_clients_csv.side_effect = [
+            (None, None, "LAST INC"),  # scan 1: set last_seen
+            (None, None, "LAST INC"),  # scan 2: stale_count=1
+            (None, None, "LAST INC"),  # scan 3: stale_count=2
+            (None, None, "LAST INC"),  # scan 4: stale_count=3 → break
+        ]
+
+        bc = BotController(
+            {
+                "display": {},
+                "preprocessing": {"post_scroll_delay_s": 0.01},
+                "loop": {"scroll_to_top": {"enabled": False}, "scroll_in_table": {"max_attempts": 20}},
+                "client_table": {},
+            },
+            selected_return_type="1040",
+        )
+        bc.csv_path = MagicMock()
+        bc.csv_path.exists.return_value = True
+
+        with patch("clickbot.preprocessor.load_csv", return_value=csv_records):
+            bc._run()
+
+        mock_sounds.play_complete.assert_called_once()
+        assert mock_vision.scan_visible_clients_csv.call_count == 4
+
+    @patch("clickbot.bot_controller.pydirectinput")
+    @patch("clickbot.bot_controller.pyautogui")
+    @patch("clickbot.bot_controller.vision")
+    @patch("clickbot.bot_controller.sounds")
+    def test_inmemory_mode_uses_find_next_client(
+        self, mock_sounds, mock_vision, mock_pag, mock_pdi
+    ):
+        """Without CSV, the old find_next_client is used."""
+        mock_vision.configure.return_value = None
+        mock_vision.configure_tesseract.return_value = None
+        mock_vision.find_next_client.return_value = None
+
+        bc = BotController(
+            {"display": {}, "loop": {"scroll_to_top": {"enabled": False}}},
+            selected_return_type="1040",
+        )
+
+        bc._run()
+
+        mock_vision.find_next_client.assert_called()
+        mock_vision.scan_visible_clients_csv.assert_not_called()

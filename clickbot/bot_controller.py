@@ -12,6 +12,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+import pydirectinput
 import pyautogui
 
 from clickbot import sounds
@@ -243,19 +244,56 @@ class BotController:
             self._send_log("Looking for unprocessed client...")
 
             if csv_records is not None:
-                find_result = vision.find_next_client(
-                    self.settings,
-                    selected_return_type=self.selected_return_type,
-                    csv_records=csv_records
-                )
-                client_result, status_updates = find_result
+                # CSV mode: scan page by page with screenshot-crop approach
+                preprocessing_cfg = self.settings.get("preprocessing", {})
+                refocus_x = preprocessing_cfg.get("refocus_click_x", 200)
+                refocus_y = preprocessing_cfg.get("refocus_click_y", 1065)
+                post_scroll_delay = preprocessing_cfg.get("post_scroll_delay_s", 0.5)
+                max_scroll = self.settings.get("loop", {}).get(
+                    "scroll_in_table", {}
+                ).get("max_attempts", 20)
 
-                # Process auto-status-updates
-                if status_updates:
-                    for name, cid, rtype, new_status in status_updates:
-                        update_client_status(self.csv_path, name, cid, rtype, new_status)
-                        self._send_log(f"Status updated: {name} -> {new_status}")
-                    csv_records = load_csv(self.csv_path)
+                client_result = None
+                last_seen_client = ""
+                stale_count = 0
+
+                for scroll_attempt in range(max_scroll + 1):
+                    if self.stop_event.is_set():
+                        break
+
+                    screenshot = pyautogui.screenshot()
+                    row_data, click_pos, last_client = vision.scan_visible_clients_csv(
+                        screenshot, self.settings, csv_records,
+                        self.selected_return_type, self.stop_event,
+                    )
+
+                    if row_data is not None:
+                        client_result = (row_data, click_pos)
+                        break
+
+                    # End-of-table detection (like preprocessor.py stale_count)
+                    if last_client == last_seen_client:
+                        stale_count += 1
+                        if stale_count >= 3:
+                            logger.info(
+                                f"End of table: last client '{last_client}' "
+                                f"unchanged after {stale_count} attempts"
+                            )
+                            break
+                    else:
+                        stale_count = 0
+                    last_seen_client = last_client
+
+                    # Scroll: refocus click + arrow down (like preprocessor)
+                    if scroll_attempt < max_scroll:
+                        logger.debug(
+                            f"No TODO on page, scrolling "
+                            f"(attempt {scroll_attempt + 1}/{max_scroll})"
+                        )
+                        pyautogui.click(refocus_x, refocus_y)
+                        self.stop_event.wait(0.2)
+                        pydirectinput.press('down')
+                        self.stop_event.wait(post_scroll_delay)
             else:
                 client_result = vision.find_next_client(
                     self.settings,

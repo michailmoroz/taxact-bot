@@ -907,6 +907,146 @@ def read_all_rows_from_screenshot(
     return rows
 
 
+def scan_visible_clients_csv(
+    screenshot: Image.Image,
+    settings: dict,
+    csv_records: list,
+    selected_return_type: str,
+    stop_event: Optional[threading.Event] = None,
+) -> Tuple[Optional["ClientRow"], Optional[Tuple[int, int]], str]:
+    """Scan visible rows from screenshot for first TODO client (CSV mode).
+
+    Takes a pre-captured screenshot and reads rows one by one by cropping
+    cells for client_name, ssn_ein, and return_type. Looks up each row
+    in csv_records by composite key. Returns the first TODO client found.
+
+    Does NOT read fed_ef_status from TaxAct — CSV is the sole status source.
+
+    Args:
+        screenshot: Full-screen PIL screenshot (RGB)
+        settings: Settings dict with client_table config
+        csv_records: List of ClientRecord from CSV
+        selected_return_type: Return type chosen by user in GUI
+        stop_event: Optional stop signal
+
+    Returns:
+        (ClientRow, click_pos, last_client_name) if TODO found,
+        (None, None, last_client_name) otherwise.
+    """
+    table_settings = settings.get("client_table", {})
+    columns = table_settings.get("columns", {})
+    row_height = table_settings.get("row_height", 25)
+    first_data_row_y = table_settings.get("first_data_row_y", 205)
+    max_visible_rows = table_settings.get("max_visible_rows", 20)
+
+    # Build lookup structures from CSV
+    skip_keys = set()
+    csv_keys = set()
+    for r in csv_records:
+        key = (r.client_name, r.client_id, r.return_type)
+        csv_keys.add(key)
+        if r.status != "TODO":
+            skip_keys.add(key)
+
+    def _crop_and_ocr(col_name: str, row_y: float) -> str:
+        """Crop a single cell from the screenshot and run OCR."""
+        col_cfg = columns.get(col_name, {})
+        x = col_cfg.get("x", 0)
+        w = col_cfg.get("width", 100)
+        y_int = int(row_y)
+        rh_int = int(row_height)
+
+        region = screenshot.crop((x, y_int, x + w, y_int + rh_int))
+        region_np = np.array(region)
+        region_gray = cv2.cvtColor(region_np, cv2.COLOR_RGB2GRAY)
+        region_pil = Image.fromarray(region_gray)
+        text = pytesseract.image_to_string(region_pil, lang="eng").strip()
+
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        return lines[0] if lines else ""
+
+    last_client_name = ""
+
+    for row_idx in range(max_visible_rows):
+        if stop_event is not None and stop_event.is_set():
+            break
+
+        row_y = first_data_row_y + (row_idx * row_height)
+
+        # Read client_name
+        client_name = _crop_and_ocr("client_name", row_y)
+        if not client_name:
+            continue  # Empty row — skip, don't break (gaps possible)
+
+        # OCR cleanup (same as read_all_rows_from_screenshot L893-900)
+        client_name = client_name.lstrip("\u2018\u2019\u201c\u201d")
+        client_name = client_name.rstrip(".,_")
+
+        last_client_name = client_name
+
+        # Read SSN/EIN
+        ssn_ein = _crop_and_ocr("ssn_ein", row_y)
+        # Fix missing leading zero: XX-XX-XXXX → 0XX-XX-XXXX
+        if re.match(r"^\d{2}-\d{2}-\d{4}$", ssn_ein):
+            ssn_ein = "0" + ssn_ein
+
+        # Read return type
+        raw_return_type = _crop_and_ocr("return_type", row_y)
+        return_type = normalize_return_type(raw_return_type)
+
+        # Filter: wrong return type
+        if return_type != selected_return_type:
+            logger.debug(
+                f"CSV scan row {row_idx}: {client_name} type '{return_type}' "
+                f"!= selected '{selected_return_type}', skipping"
+            )
+            continue
+
+        key = (client_name, ssn_ein, return_type)
+
+        # Filter: client not in CSV (unknown)
+        if key not in csv_keys:
+            logger.debug(
+                f"CSV scan row {row_idx}: {client_name} not in CSV, skipping"
+            )
+            continue
+
+        # Filter: not TODO (already processed)
+        if key in skip_keys:
+            logger.debug(
+                f"CSV scan row {row_idx}: {client_name} not TODO in CSV, skipping"
+            )
+            continue
+
+        # TODO client found!
+        col_cfg = columns.get("client_name", {})
+        click_x = col_cfg.get("x", 20) + col_cfg.get("width", 340) // 2
+        click_y = int(row_y + row_height // 2)
+        click_pos = (click_x, click_y)
+
+        row_data = ClientRow(
+            row_index=row_idx,
+            y_position=int(row_y),
+            client_name=client_name,
+            return_type=return_type,
+            fed_ef_status="",
+            client_id=ssn_ein,
+        )
+
+        logger.info(
+            f"CSV scan: found TODO client {client_name} ({return_type}) "
+            f"at row {row_idx}"
+        )
+        return (row_data, click_pos, last_client_name)
+
+    # No TODO found on this page
+    logger.debug(
+        f"CSV scan: no TODO client found on page "
+        f"(last_client='{last_client_name}')"
+    )
+    return (None, None, last_client_name)
+
+
 def _scan_visible_clients(
     settings: dict,
     column_positions: Dict[str, Tuple[int, int]],
