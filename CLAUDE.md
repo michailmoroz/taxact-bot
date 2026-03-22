@@ -8,6 +8,12 @@ Desktop automation bot for TaxAct 2025 Professional Edition that automates Form 
 
 ---
 
+## Critical Rules
+
+- **IMMER ALLES PUSHEN**: Wenn Dateien verändert, erstellt oder im Code referenziert werden (Templates, Screenshots, Configs, etc.), müssen sie ALLE committed und gepusht werden. Niemals nur den Code pushen und referenzierte Assets vergessen.
+
+---
+
 ## Architecture Principles
 
 ### Module Responsibilities
