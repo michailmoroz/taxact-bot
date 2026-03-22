@@ -105,8 +105,13 @@ def preprocess_table(
             screenshot = pyautogui.screenshot()
             start_row = 0
             rows = vision.read_all_rows_from_screenshot(
-                screenshot, settings, start_row=start_row
+                screenshot, settings, start_row=start_row,
+                stop_event=stop_event,
             )
+
+            if stop_event.is_set():
+                send_log("Preprocessing stopped by user")
+                return None
 
             if not rows:
                 # Save debug screenshot for diagnosis
@@ -166,20 +171,16 @@ def preprocess_table(
                 stale_count = 0
             prev_last_client = last_client_on_page
 
-            if stop_event.is_set():
-                send_log("Preprocessing stopped by user")
-                return None
-
             # Re-focus table (click last visible row) then scroll down
             pyautogui.click(refocus_x, refocus_y)
-            time.sleep(0.2)
-
-            if stop_event.is_set():
+            if stop_event.wait(0.2):
                 send_log("Preprocessing stopped by user")
                 return None
 
             pydirectinput.press('down')
-            time.sleep(post_scroll_delay)
+            if stop_event.wait(post_scroll_delay):
+                send_log("Preprocessing stopped by user")
+                return None
 
         if stop_event.is_set():
             return None

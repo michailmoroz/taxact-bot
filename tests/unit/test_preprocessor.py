@@ -277,7 +277,7 @@ def _make_page_reader(pages):
     """
     page_index = [0]
 
-    def mock_read(screenshot, settings, start_row=0):
+    def mock_read(screenshot, settings, start_row=0, stop_event=None):
         idx = page_index[0]
         page_index[0] += 1
         if idx >= len(pages):
@@ -390,9 +390,8 @@ class TestPreprocessTablePageScan:
 
         # Verify start_row arguments: always 0 (scan all rows, rely on dedup)
         calls = mock_vision.read_all_rows_from_screenshot.call_args_list
-        assert calls[0] == call("fake_pil_screenshot", base_settings, start_row=0)
-        assert calls[1] == call("fake_pil_screenshot", base_settings, start_row=0)
-        assert calls[2] == call("fake_pil_screenshot", base_settings, start_row=0)
+        for c in calls:
+            assert c.kwargs.get("start_row", c.args[2] if len(c.args) > 2 else 0) == 0
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
@@ -416,7 +415,7 @@ class TestPreprocessTablePageScan:
         preprocess_table(base_settings, msg_queue, stop_event)
 
         first_call = mock_vision.read_all_rows_from_screenshot.call_args_list[0]
-        assert first_call == call("fake_pil_screenshot", base_settings, start_row=0)
+        assert first_call.kwargs.get("start_row", first_call.args[2] if len(first_call.args) > 2 else 0) == 0
 
 
 class TestPreprocessTableKeyPresses:

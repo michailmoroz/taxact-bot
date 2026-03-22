@@ -834,6 +834,7 @@ def read_all_rows_from_screenshot(
     screenshot: Image.Image,
     settings: dict,
     start_row: int = 0,
+    stop_event: Optional[threading.Event] = None,
 ) -> List[Tuple[str, str, str, str]]:
     """Read visible table rows from a single PIL screenshot.
 
@@ -861,6 +862,9 @@ def read_all_rows_from_screenshot(
     rows: List[Tuple[str, str, str, str]] = []
 
     for row_idx in range(start_row, max_visible_rows):
+        if stop_event is not None and stop_event.is_set():
+            break
+
         row_y = first_data_row_y + (row_idx * row_height)
 
         cell_values: List[str] = []
