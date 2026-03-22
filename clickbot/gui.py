@@ -259,6 +259,7 @@ class BotGUI(ctk.CTk):
             height=48,
             corner_radius=8,
             command=self._on_start_click,
+            state="disabled",
         )
         self.countdown_label = ctk.CTkLabel(
             self.control_frame,
@@ -599,6 +600,10 @@ class BotGUI(ctk.CTk):
         self._log(f"CSV loaded: {csv_path.name} ({len(records)} clients)")
         logger.info(f"CSV loaded: {csv_path}")
 
+        # Enable start button now that CSV is available
+        if self.gui_state == GUIState.READY:
+            self.start_button.configure(state="normal")
+
     def _load_latest_csv(self) -> None:
         """Try to load the most recent CSV file on startup."""
         from clickbot.preprocessor import get_latest_csv
@@ -615,9 +620,16 @@ class BotGUI(ctk.CTk):
     def _on_start_click(self) -> None:
         """Handle start/stop button click."""
         if self.gui_state == GUIState.READY:
-            # Check CSV is loaded
+            # Check CSV is loaded and still exists on disk
             if self._csv_path is None:
                 self._log("ERROR: No CSV file loaded. Run Preprocessing or load a CSV file.")
+                return
+            if not self._csv_path.exists():
+                self._log(f"ERROR: CSV file no longer exists: {self._csv_path.name}")
+                self._csv_path = None
+                self.start_button.configure(state="disabled")
+                self.csv_path_label.configure(text="No CSV file selected")
+                self.csv_status_label.configure(text="")
                 return
             self._start_countdown()
         elif self.gui_state == GUIState.COUNTDOWN:
@@ -689,6 +701,11 @@ class BotGUI(ctk.CTk):
         self.return_type_selector.configure(state="normal")
         self.preprocessing_button.configure(state="normal")
         self.csv_browse_button.configure(state="normal")
+        # Only enable start button if CSV is loaded
+        if self._csv_path is not None:
+            self.start_button.configure(state="normal")
+        else:
+            self.start_button.configure(state="disabled")
 
         # Reset button
         self.start_button.pack_forget()
