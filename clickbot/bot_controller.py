@@ -9,6 +9,7 @@ import threading
 import time
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import Optional
 
 import pyautogui
@@ -45,15 +46,22 @@ class BotController:
     The GUI polls get_messages() to receive updates.
     """
 
-    def __init__(self, settings: dict, selected_return_type: str = "1120S"):
+    def __init__(
+        self,
+        settings: dict,
+        selected_return_type: str = "1120S",
+        csv_path: Optional[Path] = None
+    ):
         """Initialize the bot controller.
 
         Args:
             settings: Settings dict from config/settings.json
             selected_return_type: Return type chosen by user in GUI (e.g. "1120", "1120S", "1040")
+            csv_path: Optional path to CSV file for persistent client tracking
         """
         self.settings = settings
         self.selected_return_type = selected_return_type
+        self.csv_path = csv_path
         self.state = BotState.IDLE
         self.message_queue: queue.Queue[StatusMessage] = queue.Queue()
         self.stop_event = threading.Event()
@@ -190,6 +198,9 @@ class BotController:
         - No more unprocessed clients found
         - Stop signal received
 
+        When csv_path is set, uses CSV for client tracking (composite-key lookup,
+        post-iteration status writes). Otherwise falls back to in-memory tracking.
+
         WARNING: Do NOT update any UI elements from this method!
         Use self.message_queue.put() to send updates to GUI.
         """
@@ -203,7 +214,17 @@ class BotController:
         vision.configure(self.settings)
         vision.configure_tesseract(self.settings)
 
-        # Initialize state tracking
+        # Initialize tracking: CSV (persistent) or in-memory (fallback)
+        csv_records = None
+        if self.csv_path and self.csv_path.exists():
+            from clickbot.preprocessor import load_csv, update_client_status
+            csv_records = load_csv(self.csv_path)
+            todo_count = sum(
+                1 for r in csv_records
+                if r.return_type == self.selected_return_type and r.status == "TODO"
+            )
+            self._send_log(f"CSV loaded: {todo_count} TODO clients for {self.selected_return_type}")
+
         tracker = ClientTracker()
         clients_processed = 0
         start_time = time.time()
@@ -221,11 +242,26 @@ class BotController:
             self._send_status("Scanning client table...")
             self._send_log("Looking for unprocessed client...")
 
-            client_result = vision.find_next_client(
-                self.settings,
-                selected_return_type=self.selected_return_type,
-                processed_clients=tracker.processed
-            )
+            if csv_records is not None:
+                find_result = vision.find_next_client(
+                    self.settings,
+                    selected_return_type=self.selected_return_type,
+                    csv_records=csv_records
+                )
+                client_result, status_updates = find_result
+
+                # Process auto-status-updates
+                if status_updates:
+                    for name, cid, rtype, new_status in status_updates:
+                        update_client_status(self.csv_path, name, cid, rtype, new_status)
+                        self._send_log(f"Status updated: {name} -> {new_status}")
+                    csv_records = load_csv(self.csv_path)
+            else:
+                client_result = vision.find_next_client(
+                    self.settings,
+                    selected_return_type=self.selected_return_type,
+                    processed_clients=tracker.processed
+                )
 
             if client_result is None:
                 # No more clients to process
@@ -243,8 +279,9 @@ class BotController:
 
             client_row, click_pos = client_result
 
-            # Mark as processed BEFORE starting (prevents retry on failure)
-            tracker.mark_processed(client_row.client_name)
+            # Mark as processed (in-memory fallback only)
+            if csv_records is None:
+                tracker.mark_processed(client_row.client_name)
             clients_processed += 1
 
             # Update progress
@@ -257,6 +294,15 @@ class BotController:
             logger.info(f"CLIENT #{clients_processed}: {client_row.client_name} ({client_row.return_type})")
             logger.info(f"{'='*60}")
             executor.double_click(click_pos[0], click_pos[1], wait=4.0)
+
+            # Check for locked client dialog after double-click
+            locked = vision.find_element(
+                "common/locked_1.png", retry_count=1,
+                region=(800, 580, 300, 40)
+            )
+            if locked is not None:
+                self._send_log("Client is locked, dismissing dialog...")
+                vision.find_and_click("common/ok_default.png", wait_after=2.0)
 
             # Check for stop signal
             if self.stop_event.is_set():
@@ -274,12 +320,30 @@ class BotController:
             result = process_executor.execute(self.selected_return_type)
 
             if result.success:
+                # Update CSV status to "Submitted"
+                if csv_records is not None:
+                    update_client_status(
+                        self.csv_path, client_row.client_name,
+                        client_row.client_id, self.selected_return_type, "Submitted"
+                    )
+                    csv_records = load_csv(self.csv_path)
                 self._send_log(f"Completed: {client_row.client_name} ({result.steps_completed}/{result.total_steps} steps)")
             else:
                 if result.error_message == "Stopped by user":
                     break
+                # Update CSV with specific failure reason
+                if csv_records is not None:
+                    if result.abort_reason:
+                        csv_status = result.abort_reason
+                    else:
+                        csv_status = f"FAIL: {result.error_message or 'Unknown error'}"
+                    update_client_status(
+                        self.csv_path, client_row.client_name,
+                        client_row.client_id, self.selected_return_type, csv_status
+                    )
+                    csv_records = load_csv(self.csv_path)
                 # Error occurred - navigate back to Client Manager before continuing
-                self._send_log(f"SKIPPED: {client_row.client_name} - {result.error_message}")
+                self._send_log(f"SKIPPED: {client_row.client_name} - {result.abort_reason or result.error_message}")
                 sounds.play_error()
                 self._recover_to_client_manager()
 

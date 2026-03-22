@@ -623,6 +623,7 @@ class ClientRow:
     client_name: str
     return_type: str
     fed_ef_status: str
+    client_id: str = ""  # SSN/EIN for composite-key CSV lookup
 
 
 import re
@@ -906,7 +907,9 @@ def _scan_visible_clients(
     settings: dict,
     column_positions: Dict[str, Tuple[int, int]],
     processed_clients: Optional[set] = None,
-    selected_return_type: str = "1120S"
+    selected_return_type: str = "1120S",
+    csv_records: Optional[list] = None,
+    status_updates: Optional[list] = None,
 ) -> Optional[Tuple[ClientRow, Tuple[int, int], str]]:
     """Scan visible rows and find first matching client.
 
@@ -915,15 +918,21 @@ def _scan_visible_clients(
     2. client_name — detect empty rows / already processed (2 OCR calls)
     Return type is NOT read via OCR — it is set from selected_return_type (user selection).
 
+    When csv_records is provided, uses composite-key (name, id, return_type) for
+    skip logic instead of in-memory processed_clients set. Also collects
+    auto-status-updates for rows where TaxAct status differs from CSV.
+
     Args:
         settings: Settings dict
         column_positions: Column positions from get_column_positions()
         processed_clients: Set of already processed client names to skip
         selected_return_type: Return type chosen by user (set in ClientRow)
+        csv_records: Optional list of ClientRecord from CSV (for composite-key lookup)
+        status_updates: Optional mutable list to collect (name, id, rtype, new_status) tuples
 
     Returns:
-        Tuple of (ClientRow, click_position, last_client_name) or None.
-        last_client_name is used for scroll-end detection.
+        Tuple of (ClientRow, click_position, last_client_name) or
+        (None, None, last_client_name). last_client_name is used for scroll-end detection.
     """
     table_settings = settings.get("client_table", {})
     first_data_row_y = table_settings.get("first_data_row_y", 170)
@@ -932,6 +941,18 @@ def _scan_visible_clients(
 
     if processed_clients is None:
         processed_clients = set()
+
+    # Build skip set from CSV (non-TODO clients)
+    has_csv = csv_records is not None
+    has_ssn_col = "ssn_ein" in column_positions
+    skip_keys = set()
+    csv_lookup = {}
+    if has_csv:
+        for r in csv_records:
+            key = (r.client_name, r.client_id, r.return_type)
+            if r.status != "TODO":
+                skip_keys.add(key)
+            csv_lookup[key] = r.status
 
     last_client_name = ""
 
@@ -947,6 +968,18 @@ def _scan_visible_clients(
             client_name = _read_single_cell("client_name", row_y, column_positions, settings)
             if client_name:
                 last_client_name = client_name
+
+                # Auto-status-update: compare TaxAct status with CSV
+                if has_csv and has_ssn_col and status_updates is not None:
+                    ssn_ein = _read_single_cell("ssn_ein", row_y, column_positions, settings)
+                    csv_key = (client_name, ssn_ein, selected_return_type)
+                    csv_status = csv_lookup.get(csv_key)
+                    if csv_status is not None and csv_status != fed_ef_status and csv_status != "TODO":
+                        status_updates.append((client_name, ssn_ein, selected_return_type, fed_ef_status))
+                        logger.debug(
+                            f"Row {row_index}: auto-update {client_name} "
+                            f"'{csv_status}' -> '{fed_ef_status}'"
+                        )
             continue
 
         # Step 2: Status is empty → read client_name
@@ -959,8 +992,17 @@ def _scan_visible_clients(
 
         last_client_name = client_name
 
-        # Skip already processed clients (2 OCR calls)
-        if client_name in processed_clients:
+        # Read SSN/EIN for CSV composite-key lookup
+        ssn_ein = ""
+        if has_csv and has_ssn_col:
+            ssn_ein = _read_single_cell("ssn_ein", row_y, column_positions, settings)
+
+        # Skip already processed clients
+        if has_csv:
+            if (client_name, ssn_ein, selected_return_type) in skip_keys:
+                logger.debug(f"Row {row_index}: {client_name} not TODO in CSV, skipping")
+                continue
+        elif client_name in processed_clients:
             logger.debug(f"Row {row_index}: {client_name} already processed, skipping")
             continue
 
@@ -984,7 +1026,8 @@ def _scan_visible_clients(
             y_position=row_y,
             client_name=client_name,
             return_type=selected_return_type,  # process is determined by GUI, not OCR
-            fed_ef_status=""
+            fed_ef_status="",
+            client_id=ssn_ein
         )
 
         logger.info(f"Found client: {client_name} ({selected_return_type}) at row {row_index}")
@@ -997,36 +1040,57 @@ def _scan_visible_clients(
 def find_next_client(
     settings: dict,
     selected_return_type: str = "1120S",
-    processed_clients: Optional[set] = None
-) -> Optional[Tuple[ClientRow, Tuple[int, int]]]:
+    processed_clients: Optional[set] = None,
+    csv_records: Optional[list] = None
+):
     """Find the next unprocessed client in the Client Manager table.
 
     Scans visible rows and returns the first client matching:
-    - Not in processed_clients set
+    - Not in processed_clients set (or not TODO in CSV)
     - Empty Fed EF Status
     Return type is NOT read via OCR — it is set from selected_return_type (user selection).
 
     If no matching client is visible, scrolls down and re-scans.
     Stops when end of list is detected or max scroll attempts reached.
 
+    When csv_records is provided, also collects auto-status-updates for rows
+    where TaxAct status differs from CSV status.
+
     Args:
         settings: Settings dict from config/settings.json
         selected_return_type: Return type chosen by user in GUI (set in ClientRow)
         processed_clients: Set of client names to skip (already processed)
+        csv_records: Optional list of ClientRecord from CSV. When provided,
+            uses composite-key lookup instead of processed_clients.
 
     Returns:
-        Tuple of (ClientRow, click_position) or None if no client found.
-        click_position is the (x, y) for double-clicking the client name.
+        When csv_records is None (backward-compatible):
+            Tuple of (ClientRow, click_position) or None if no client found.
+        When csv_records is provided:
+            Tuple of (client_result, status_updates) where:
+            - client_result is (ClientRow, click_position) or None
+            - status_updates is a list of (name, id, rtype, new_status) tuples
     """
     from clickbot import executor
 
-    logger.info(f"Scanning client table (processed={len(processed_clients or set())} clients)")
+    has_csv = csv_records is not None
+    logger.info(
+        f"Scanning client table "
+        f"(mode={'CSV' if has_csv else 'in-memory'}, "
+        f"processed={len(processed_clients or set())} clients)"
+    )
 
-    # Get column positions
-    column_positions = get_column_positions()
+    # Get column positions (include SSN/EIN when using CSV)
+    if has_csv:
+        column_positions = get_column_positions(extra_columns=["ssn_ein"])
+    else:
+        column_positions = get_column_positions()
     if column_positions is None:
         logger.error("Failed to find column headers - not on Client Manager screen?")
-        return None
+        return (None, []) if has_csv else None
+
+    # Collect auto-status-updates when using CSV
+    status_updates = [] if has_csv else None
 
     # Get loop/scroll settings
     loop_settings = settings.get("loop", {}).get("scroll_in_table", {})
@@ -1040,14 +1104,16 @@ def find_next_client(
     for scroll_attempt in range(max_scroll_attempts + 1):  # +1 for initial scan without scroll
         # Scan visible rows
         result = _scan_visible_clients(
-            settings, column_positions, processed_clients, selected_return_type
+            settings, column_positions, processed_clients, selected_return_type,
+            csv_records=csv_records, status_updates=status_updates
         )
 
         row_data, click_pos, current_last_client = result
 
         if row_data is not None:
             # Found a matching client
-            return (row_data, click_pos)
+            client_result = (row_data, click_pos)
+            return (client_result, status_updates) if has_csv else client_result
 
         # No match found in visible rows
         if scroll_attempt == 0:
@@ -1067,4 +1133,4 @@ def find_next_client(
             time.sleep(0.5)  # Wait for scroll to complete
 
     logger.warning("No unprocessed clients found after scanning entire list")
-    return None
+    return (None, status_updates) if has_csv else None

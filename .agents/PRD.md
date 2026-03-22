@@ -1,12 +1,14 @@
 # Product Requirements Document (PRD)
 # TaxAct E-File Extension Bot
 
-**Version:** 2.14
+**Version:** 2.15
 **Date:** 2026-02-04
-**Last Updated:** 2026-03-19
+**Last Updated:** 2026-03-22
 **Author:** Claude Code
 **Status:** Draft
 
+> **v2.15 Changes:** Phase 10b aufgeteilt in 10b-1 (1040 Process Fixes) und 10b-2 (CSV-Integration in Bot-Loop). Phase 11 (1040 Process) als COMPLETE markiert — `1040.json` mit 19 Stages und 21 Verify-Screenshots existiert bereits. Neuer Scope in Phase 10b-1: Locked Client Handling (`locked_1.png`/`locked_2.png`), saubere Aborts mit `abort_reason` (Stages 12/16/18), `search_region` fuer Wizard `no_default.png`, `timeout` in element_visible Conditions. Phase 10b-2: CSV-Status `Submitted`/`FAIL: <Grund>` statt DONE/FAIL, Auto-Status-Update aus TaxAct, `ClientRow.client_id`. Alter Plan `phase-10b-csv-bot-integration.md` als OBSOLET markiert.
+>
 > **v2.14 Changes:** Phase 10a (Preprocessing & CSV Export) als COMPLETE markiert — `preprocessor.py` Modul (row-by-row Pfeiltaste-Navigation, OCR, CSV-Export mit Deduplizierung), GUI Preprocessing-Card (Scan-Button, File-Picker, CSV-Status-Anzeige, PREPROCESSING State), `get_column_positions(extra_columns)` für SSN/EIN, `get_csv_dir()`, Bot-Start nur mit CSV. 24 neue Unit Tests, 84/84 gesamt bestanden. Phase 10b (CSV-Integration in Bot-Loop) als NEXT markiert.
 >
 > **v2.13 Changes:** Neue Phase 10 (Preprocessing & CSV Client Tracking) eingefügt — GUI-Button "Preprocessing" scannt komplette TaxAct-Tabelle und erstellt CSV mit Client/ID/Return Type/Status. CSV-basiertes Tracking mit Composite Key (Name+SSN/EIN), Duplikat-Deduplizierung, File-Picker in GUI. Status-Werte: TODO/DONE/FAIL. Bisherige Phase 10 (1040 Process) wird Phase 11, Phase 11 (1120 Validation) wird Phase 12.
@@ -1284,59 +1286,104 @@ Der MVP ist erfolgreich wenn:
 **Plan:** `.agents/plans/phase-10a-preprocessing-csv-export.md` (Confidence: 9/10)
 **Report:** `.agents/execution-reports/phase-10a-preprocessing-csv-export.md`
 
-#### Phase 10b: CSV-Integration in Bot-Loop ⬅️ NEXT
+#### Phase 10b: 1040 Process Fixes + CSV-Integration in Bot-Loop ⬅️ NEXT
 
-**Scope:** state.py Refactoring, Bot-Loop auf CSV umstellen, Status-Updates DONE/FAIL nach jeder Iteration.
+**Scope:** Aufgeteilt in 10b-1 (1040-Fixes) und 10b-2 (CSV-Integration). Saubere Aborts mit spezifischen Gruenden, Locked Client Handling, CSV-basiertes Tracking mit `Submitted`/`FAIL: <Grund>` Status, Auto-Status-Update aus TaxAct.
+
+**Aufgeteilte Plaene:**
+
+##### Phase 10b-1: 1040 Process Fixes ⬅️ NEXT
+
+**Scope:** Abort-Handling, Wizard-Fix, Locked Client Support. Unabhaengig von CSV testbar.
 
 **Deliverables:**
-- ⬜ **State-Modul Refactoring** — `state.py` von `Set[str]` auf CSV-basiertes Tracking (Name+ID+ReturnType Key)
-- ⬜ **Post-Iteration Update** — Bot markiert Client in CSV als `DONE` (Erfolg) oder `FAIL` (Fehler)
-- ⬜ **Duplikat-Schutz** — Wenn `(Name, ID, Return Type)` als `DONE` → auch TaxAct-Duplikate überspringen
-- ⬜ **Bot-Controller Integration** — `find_next_client()` nutzt CSV, `_run()` updated CSV nach Iteration
-- ⬜ **vision.py** — `ClientRow` um `client_id` Feld erweitert, `find_next_client()` mit CSV-Support
-- ⬜ Backward-Kompatibilität: `csv_path=None` → altes in-memory Verhalten
+- ⬜ **`ExecutionResult.abort_reason`** — Spezifischer Abbruchgrund aus JSON-Konfiguration
+- ⬜ **`search_region` in Click-Actions** — Region-basierte Template-Suche fuer kleine Buttons
+- ⬜ **`timeout` in element_visible Conditions** — `wait_for_element` statt `find_element` fuer Polling
+- ⬜ **Stage 3 Fix (Locked Clients)** — Checkbox nur klicken wenn unchecked, `locked_2.png` bis 5s abwarten, `unlock_and_save.png` klicken
+- ⬜ **Stage 12 Fix (Wizard)** — `no_default.png` mit `search_region` im Screen-Zentrum, `abort_reason: "FAIL: Wizard (Stage 12)"`
+- ⬜ **Stage 16 Fix (Alerts)** — `abort: true` + `abort_reason: "FAIL: Alerts not passed"`
+- ⬜ **Stage 18 Fix (Submit)** — `abort: true` + `abort_reason: "FAIL: Submit unsuccessful"`
+- ⬜ **Locked_1 Handling** — Nach Doppelklick: `locked_1.png` (region `800,580,300,40`) erkennen, `ok_default.png` klicken
+- ⬜ **Unit Tests** fuer abort_reason, search_region, 1040.json Validierung
 
-**Plan:** `.agents/plans/phase-10b-csv-bot-integration.md` (Confidence: 9/10)
+**Plan:** `.agents/plans/phase-10b-1-1040-process-fixes.md` (Confidence: 8/10)
 
-**Flows:**
+##### Phase 10b-2: CSV-Integration in Bot-Loop
 
-**Preprocessing-Flow:**
+**Scope:** Bot-Loop auf CSV umstellen, Status-Updates Submitted/FAIL nach jeder Iteration, Auto-Status-Update. Setzt 10b-1 voraus.
+
+**Deliverables:**
+- ⬜ **`ClientRow.client_id`** — SSN/EIN Feld fuer Composite-Key Lookup
+- ⬜ **CSV-basierter Client-Lookup** — `find_next_client()` mit `csv_records` Parameter, Skip-Set aus non-TODO Clients
+- ⬜ **Auto-Status-Update** — Wenn TaxAct-Status neuer als CSV (z.B. "Ext. Accepted" statt "Submitted") → CSV automatisch aktualisiert
+- ⬜ **Bot-Controller CSV-Integration** — `csv_path` Parameter, `_run()` liest CSV, schreibt `Submitted`/`FAIL: <Grund>` zurueck
+- ⬜ **GUI csv_path Weitergabe** — BotController erhaelt csv_path, CSV-Counts Refresh nach Bot-Run
+- ⬜ Backward-Kompatibilitaet: `csv_path=None` → altes in-memory Verhalten (`state.py` bleibt als Fallback)
+
+**Plan:** `.agents/plans/phase-10b-2-csv-bot-integration.md` (Confidence: 8/10)
+~~**Alter Plan (OBSOLET):** `.agents/plans/phase-10b-csv-bot-integration.md`~~
+
+**CSV Status-Werte:**
+
+| Status | Bedeutung |
+|--------|-----------|
+| `TODO` | Noch nicht bearbeitet |
+| `Submitted` | Erfolgreich eingereicht |
+| `FAIL: Wizard (Stage 12)` | Preparer EF Wizard statt Acknowledgement |
+| `FAIL: Alerts not passed` | Alerts fehlgeschlagen (auch nach Designee-Fix) |
+| `FAIL: Submit unsuccessful` | Submit ergab keinen Erfolg-Screen |
+| `FAIL: <step_name>` | Generischer Fehler (Element nicht gefunden, Timeout) |
+| `Rejected` / `Accepted` / `Ext. Accepted` | Auto-Update aus TaxAct Live-Status |
+
+**Locked Client Flow:**
 ```
-User klickt "Scan Client Table" in GUI
+Bot doppelklickt Client in Tabelle
     │
     ▼
-Bot ist auf Client Manager Base (Tabelle sichtbar)
+┌─────────────────────────────────┐
+│ locked_1.png sichtbar?          │
+│ (Region: 800,580,300,40)        │
+└─────────────────────────────────┘
+    │                    │
+    YES                  NO
+    │                    │
+    ▼                    ▼
+Klick ok_default.png   Normaler Ablauf
     │
     ▼
-Scroll to Top (Ctrl+Home)
+01_basic_information (normal weiter)
+    │
+    ▼ ... Stages 1-2 normal ...
     │
     ▼
-Klick auf ersten Client, dann row-by-row via Pfeiltaste-Unten:
-    ├─ OCR: Client Name, SSN/EIN (ID), Return Type, Fed EF Status
-    ├─ Leere Zeile oder identisch zum vorherigen → Ende
-    └─ Pfeiltaste-Unten → nächster Client (Tabelle scrollt automatisch)
+Stage 3: file_extension_option
+    │
+    ├─ unchecked → klick (normal)
+    └─ checked → skip (locked)
     │
     ▼
-Deduplizierung: (Name, ID, Return Type) als Key
+Klick Continue
     │
     ▼
-CSV schreiben: C:\TaxActBot\logs\clients_2026-03-19-14-30-00.csv
-    │
-    ▼
-GUI: File-Picker aktualisiert, Counts angezeigt (X TODO, Y DONE)
-```
-
-**CSV-Format:**
-```csv
-Client,ID,Return Type,Status
-SANDMEYER INC,12-3456789,1120S,TODO
-SMITH LLC,98-7654321,1120,DONE
-JONES CORP,11-2233445,1040,TODO
+┌─────────────────────────────────┐
+│ locked_2.png sichtbar?          │
+│ (wait_for_element, 5s timeout)  │
+└─────────────────────────────────┘
+    │                    │
+    YES                  NO
+    │                    │
+    ▼                    ▼
+Klick unlock_and_save  Normaler Ablauf
+    │                    │
+    └────────┬───────────┘
+             ▼
+    04_federal_extension (normal weiter)
 ```
 
 **Bot-Run-Flow (mit CSV):**
 ```
-User wählt Return Type + klickt "Start Bot"
+User waehlt Return Type + klickt "Start Bot"
     │
     ▼
 CSV laden (aus File-Picker Pfad)
@@ -1345,34 +1392,37 @@ CSV laden (aus File-Picker Pfad)
 Filtern: Return Type == GUI-Auswahl AND Status == TODO
     │
     ▼
-Für jeden Client:
-    ├─ In TaxAct-Tabelle finden (via Name+ID+ReturnType matching)
-    ├─ Prozess ausführen
-    ├─ Erfolg → CSV: Status = DONE
-    └─ Fehler → CSV: Status = FAIL
+Fuer jeden Client in TaxAct-Tabelle:
+    ├─ OCR: Name + SSN/EIN + Fed EF Status
+    ├─ CSV Lookup: (Name, ID, Return Type) → TODO?
+    ├─ Auto-Update: TaxAct-Status ≠ CSV → CSV aktualisieren
+    ├─ Prozess ausfuehren
+    ├─ Erfolg → CSV: Status = Submitted
+    └─ Fehler → CSV: Status = FAIL: <spezifischer Grund>
 ```
 
 **Validation:**
 - ✅ Preprocessing-Infrastruktur (GUI, CSV-Export, File-Picker) implementiert und getestet
-- Bot startet nur mit geladener CSV
-- Post-Iteration Status-Updates funktionieren (DONE/FAIL) — Phase 10b
-- Duplikate in TaxAct werden korrekt übersprungen — Phase 10b
-- 1120S/1120/1040 Prozesse weiterhin funktionsfähig
+- ✅ Bot startet nur mit geladener CSV
+- Locked Clients werden korrekt gehandhabt (locked_1 + locked_2) — Phase 10b-1
+- Saubere Aborts mit spezifischen FAIL-Gruenden — Phase 10b-1
+- Post-Iteration Status-Updates funktionieren (Submitted/FAIL) — Phase 10b-2
+- Auto-Status-Update aus TaxAct — Phase 10b-2
+- 1120S/1120/1040 Prozesse weiterhin funktionsfaehig
 
 ---
 
-### Phase 11: 1040 Process + Ctrl+Home Scroll-to-Top
+### Phase 11: 1040 Process ✅ COMPLETE
 
-**Goal:** Form 1040 E-File Extension Automatisierung (19 Stages) und zuverlässiger Scroll-to-Top via Ctrl+Home
+**Goal:** Form 1040 E-File Extension Automatisierung (19 Stages) mit Screen-Verifikation
 
 **Deliverables:**
-- ⬜ `config/processes/1040.json` — 19 Stages mit Screen-Verifikation
-- ⬜ Third-Party Designee Sub-Flow (konditional: 3 Felder füllen)
-- ⬜ Alerts-Ergebnis konditional: passed → weiter, sonst → Clients-Button
-- ⬜ Submit-Safeguard: successful → weiter, sonst → Clients-Button
-- ⬜ Ctrl+Home statt scroll für Scroll-to-Top nach jeder Iteration
-- ⬜ `config/settings.json` scroll_to_top vereinfacht
-- ⬜ E2E-Test: 1040-Clients im Loop ohne Fehler
+- ✅ `config/processes/1040.json` — 19 Stages mit Screen-Verifikation
+- ✅ Third-Party Designee Sub-Flow (konditional: 3 Felder fuellen)
+- ✅ Alerts-Ergebnis konditional: passed → weiter, sonst → Clients-Button
+- ✅ Submit-Safeguard: successful → weiter, sonst → Clients-Button
+- ✅ 21 Verify-Screenshots in `assets/verify/1040/`
+- ✅ Button-Templates in `.agents/screenshots/buttons/1040/`
 
 **1040 Stages (19 Screens):**
 
@@ -1380,7 +1430,7 @@ Für jeden Client:
 |-------|--------|--------|
 | 01 | 1040 Formular-Ansicht | click E-File Menü |
 | 02 | E-File Center Popup | click Submit Electronic Filing |
-| 03 | Filing Screen | multi: File Extension + Continue |
+| 03 | Filing Screen | multi: File Extension + Continue (+ locked_2 Handling) |
 | 04 | Federal Extension | click Yes |
 | 05 | Form 4868 Application | click Complete Form 4868 |
 | 06 | Personal Data | click Continue |
@@ -1389,20 +1439,16 @@ Für jeden Client:
 | 09 | Tax Liability | click Continue |
 | 10 | Payment Amount | click Continue |
 | 11 | Filing | click E-File (grün) |
-| 12 | Acknowledgement | click Continue |
+| 12 | Acknowledgement (konditional) | if ack: Continue, else: abort (Wizard) |
 | 13 | Consent to Disclosure | click Agree |
 | 14 | Review Alerts | click Start Alerts |
 | 15 | Third-Party Designee (konditional) | if visible: fill 3 Felder + Continue + Start Alerts |
-| 16 | Passed Alerts (konditional) | if passed: Continue, else: Clients |
+| 16 | Passed Alerts (konditional) | if passed: Continue, else: abort (Alerts) |
 | 17 | Submit E-File | click Submit (no_retry, timeout 30s) |
-| 18 | Successful (konditional) | if successful: Continue, else: Clients |
+| 18 | Successful (konditional) | if successful: Continue, else: abort (Submit) |
 | 19 | Filing Complete | click Clients-Button |
 
-**Validation:**
-- Bot durchläuft alle 19 Stages korrekt
-- Third-Party Designee Sub-Flow funktioniert konditional
-- Ctrl+Home springt zuverlässig zum Anfang der Client-Liste
-- 1120S- und 1120-Clients weiterhin unverändert funktionsfähig
+**Hinweis:** Die 1040.json existiert und funktioniert grundsaetzlich. Fixes fuer Abort-Handling (Stages 12/16/18), Locked Clients (Stage 3) und Wizard-Erkennung (Stage 12) werden in Phase 10b-1 implementiert.
 
 **Plan:** `.agents/plans/phase-10-1040-process.md`
 

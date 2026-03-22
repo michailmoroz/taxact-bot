@@ -588,12 +588,12 @@ class BotGUI(ctk.CTk):
             text_color=COLORS["text_secondary"],
         )
 
-        # Update status counts
+        # Update status counts (handles new status values: Submitted, FAIL: ...)
         todo = sum(1 for r in records if r.status == "TODO")
-        done = sum(1 for r in records if r.status == "DONE")
-        fail = sum(1 for r in records if r.status == "FAIL")
+        fail = sum(1 for r in records if r.status.startswith("FAIL"))
+        done = len(records) - todo - fail
         self.csv_status_label.configure(
-            text=f"{todo} TODO, {done} DONE, {fail} FAIL"
+            text=f"{todo} TODO, {done} Done, {fail} FAIL"
         )
 
         self._log(f"CSV loaded: {csv_path.name} ({len(records)} clients)")
@@ -715,7 +715,11 @@ class BotGUI(ctk.CTk):
     def _start_bot(self) -> None:
         """Start the bot after countdown."""
         selected_return_type = self.return_type_selector.get()
-        self.controller = BotController(self.settings, selected_return_type=selected_return_type)
+        self.controller = BotController(
+            self.settings,
+            selected_return_type=selected_return_type,
+            csv_path=self._csv_path
+        )
         self._log(f"Return type selected: {selected_return_type}")
 
         # Validate TaxAct first
@@ -762,6 +766,9 @@ class BotGUI(ctk.CTk):
 
             # Check if bot is still running
             if self.controller.get_state() == BotState.IDLE:
+                # Refresh CSV counts after bot finishes
+                if self._csv_path:
+                    self._load_csv_file(self._csv_path)
                 self._set_ready_state()
             else:
                 self._polling_id = self.after(100, self._poll_messages)

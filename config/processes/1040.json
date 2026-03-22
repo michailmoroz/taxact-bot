@@ -26,19 +26,41 @@
     {
       "id": 3,
       "name": "select_file_extension_and_continue",
-      "description": "Select File Extension option and click Continue",
+      "description": "Check File Extension (if unchecked), click Continue, handle locked_2 popup if present",
       "verify_screen": "1040/03_file_extension.png",
       "action": "multi",
       "actions": [
         {
-          "action": "click",
-          "target": { "image": "common/file_extension_option_unchecked.png" },
+          "action": "conditional",
+          "condition": {
+            "type": "element_visible",
+            "image": "common/file_extension_option_unchecked.png"
+          },
+          "if_true": {
+            "action": "click",
+            "target": { "image": "common/file_extension_option_unchecked.png" }
+          },
+          "if_false": "continue",
           "wait_after": 0.5
         },
         {
           "action": "click",
           "target": { "image": "common/continue_blue.png" },
-          "wait_after": 0
+          "wait_after": 2.0
+        },
+        {
+          "action": "conditional",
+          "condition": {
+            "type": "element_visible",
+            "image": "common/locked_2.png",
+            "timeout": 3.0
+          },
+          "if_true": {
+            "action": "click",
+            "target": { "image": "common/unlock_and_save.png" }
+          },
+          "if_false": "continue",
+          "wait_after": 1.0
         }
       ],
       "verify_next": "1040/04_federal_extension.png"
@@ -132,11 +154,12 @@
       },
       "if_false": {
         "abort": true,
+        "abort_reason": "FAIL: Wizard (Stage 12)",
         "description": "Bail out: click Clients, dismiss save-changes dialog, then stop process",
         "actions": [
           {
             "action": "click",
-            "target": { "image": "common/clients_button.png" },
+            "target": { "image": "common/clients_button.png", "search_region": [0, 0, 300, 80] },
             "wait_after": 1.5
           },
           {
@@ -147,10 +170,10 @@
             },
             "if_true": {
               "action": "click",
-              "target": { "image": "1040/no_default.png" }
+              "target": { "image": "1040/no_default.png", "search_region": [560, 340, 800, 400] }
             },
             "if_false": "continue",
-            "wait_after": 2.0
+            "wait_after": 3.0
           }
         ]
       }
@@ -247,9 +270,15 @@
         "verify_next": "1040/16_submit.png"
       },
       "if_false": {
-        "action": "click",
-        "description": "Click Clients button to return (Error case)",
-        "target": { "image": "common/clients_button.png" }
+        "abort": true,
+        "abort_reason": "FAIL: Alerts not passed",
+        "actions": [
+          {
+            "action": "click",
+            "target": { "image": "common/clients_button.png" },
+            "wait_after": 2.0
+          }
+        ]
       }
     },
     {
@@ -278,9 +307,15 @@
         "verify_next": "1040/18_complete.png"
       },
       "if_false": {
-        "action": "click",
-        "description": "Click Clients button to return (Error case)",
-        "target": { "image": "common/clients_button.png" }
+        "abort": true,
+        "abort_reason": "FAIL: Submit unsuccessful",
+        "actions": [
+          {
+            "action": "click",
+            "target": { "image": "common/clients_button.png" },
+            "wait_after": 2.0
+          }
+        ]
       }
     },
     {

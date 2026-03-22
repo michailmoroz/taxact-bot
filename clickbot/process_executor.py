@@ -32,6 +32,7 @@ class ExecutionResult:
     total_steps: int
     error_message: Optional[str] = None
     error_step: Optional[int] = None
+    abort_reason: Optional[str] = None
 
 
 class ProcessExecutor:
@@ -62,6 +63,7 @@ class ProcessExecutor:
         self.stop_event = stop_event
         self.current_step = 0
         self.process: Optional[Dict[str, Any]] = None
+        self._last_abort_reason: Optional[str] = None
 
         # Configure vision module
         vision.configure(settings)
@@ -89,6 +91,9 @@ class ProcessExecutor:
                 total_steps=0,
                 error_message=str(e)
             )
+
+        # Reset abort reason for each execution
+        self._last_abort_reason = None
 
         # Support both "stages" (new) and "steps" (legacy) keys
         steps = self.process.get("stages") or self.process.get("steps", [])
@@ -149,7 +154,8 @@ class ProcessExecutor:
                     steps_completed=i,
                     total_steps=total_steps,
                     error_message=error_msg,
-                    error_step=step["id"]
+                    error_step=step["id"],
+                    abort_reason=self._last_abort_reason
                 )
 
             # Post-step: verify next screen or fall back to wait_after
@@ -168,7 +174,8 @@ class ProcessExecutor:
                         steps_completed=i,
                         total_steps=total_steps,
                         error_message=error_msg,
-                        error_step=step["id"]
+                        error_step=step["id"],
+                        abort_reason=self._last_abort_reason
                     )
             else:
                 # Fallback: fixed wait_after (backward compatible)
@@ -246,11 +253,14 @@ class ProcessExecutor:
         fallback = target.get("fallback_coords")
         offset_x = target.get("offset_x", 0)
         offset_y = target.get("offset_y", 0)
+        search_region = target.get("search_region")
 
         if fallback:
             fallback = tuple(fallback)
+        if search_region:
+            search_region = tuple(search_region)
 
-        coords = vision.find_element(image, confidence, fallback)
+        coords = vision.find_element(image, confidence, fallback, region=search_region)
 
         if coords is None:
             logger.error(f"Click target not found: {image}")
@@ -267,11 +277,14 @@ class ProcessExecutor:
         image = target.get("image")
         confidence = target.get("confidence")
         fallback = target.get("fallback_coords")
+        search_region = target.get("search_region")
 
         if fallback:
             fallback = tuple(fallback)
+        if search_region:
+            search_region = tuple(search_region)
 
-        coords = vision.find_element(image, confidence, fallback)
+        coords = vision.find_element(image, confidence, fallback, region=search_region)
 
         if coords is None:
             logger.error(f"Double-click target not found: {image}")
@@ -347,15 +360,24 @@ class ProcessExecutor:
             # Check if element is visible
             image = condition.get("image")
             confidence = condition.get("confidence")
+            timeout = condition.get("timeout")
             # Support "verify" base_path to check against verify templates
             cond_base_path = condition.get("base_path")
             if cond_base_path == "verify":
                 cond_base_path = self._get_verify_base_path()
             else:
                 cond_base_path = None
-            is_visible = vision.find_element(
-                image, confidence, fallback_coords=None, base_path=cond_base_path
-            ) is not None
+
+            if timeout:
+                # Poll with timeout (e.g. waiting for locked_2 popup)
+                is_visible = vision.wait_for_element(
+                    image, timeout=timeout, confidence=confidence,
+                    base_path=cond_base_path, stop_event=self.stop_event
+                ) is not None
+            else:
+                is_visible = vision.find_element(
+                    image, confidence, fallback_coords=None, base_path=cond_base_path
+                ) is not None
 
             branch = "if_true" if is_visible else "if_false"
             logger.info(f"  -> Condition: {image} visible={is_visible} -> {branch}")
@@ -431,7 +453,8 @@ class ProcessExecutor:
 
         # "abort" dict: execute actions then return False to stop the process
         if isinstance(branch, dict) and branch.get("abort"):
-            logger.info("  -> Branch: abort after executing actions")
+            self._last_abort_reason = branch.get("abort_reason")
+            logger.info(f"  -> Branch: abort after executing actions (reason={self._last_abort_reason})")
             actions = branch.get("actions", [])
             for sub in actions:
                 self._execute_step(sub, static_inputs)
