@@ -357,6 +357,11 @@ class BotController:
 
             result = process_executor.execute(self.selected_return_type)
 
+            # User stop: leave CSV status as TODO, don't recover
+            if self.stop_event.is_set():
+                self._send_log(f"Stopped by user during: {client_row.client_name}")
+                break
+
             if result.success:
                 # Update CSV status to "Submitted"
                 if csv_records is not None:
@@ -367,8 +372,6 @@ class BotController:
                     csv_records = load_csv(self.csv_path)
                 self._send_log(f"Completed: {client_row.client_name} ({result.steps_completed}/{result.total_steps} steps)")
             else:
-                if result.error_message == "Stopped by user":
-                    break
                 # Update CSV with specific failure reason
                 if csv_records is not None:
                     if result.abort_reason:
