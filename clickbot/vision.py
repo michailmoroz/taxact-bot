@@ -891,7 +891,7 @@ def read_all_rows_from_screenshot(
 
         # Clean OCR artifacts from client name
         client_name = cell_values[0]
-        client_name = client_name.lstrip("\u2018\u2019\u201c\u201d")
+        client_name = client_name.lstrip("\u2018\u2019\u201c\u201d\u00e2\u20ac\u02dc")
         client_name = client_name.rstrip(".,_")
 
         # Fix SSN/EIN missing leading zero: XX-XX-XXXX → 0XX-XX-XXXX
@@ -979,7 +979,7 @@ def scan_visible_clients_csv(
             continue  # Empty row — skip, don't break (gaps possible)
 
         # OCR cleanup (same as read_all_rows_from_screenshot L893-900)
-        client_name = client_name.lstrip("\u2018\u2019\u201c\u201d")
+        client_name = client_name.lstrip("\u2018\u2019\u201c\u201d\u00e2\u20ac\u02dc")
         client_name = client_name.rstrip(".,_")
 
         last_client_name = client_name
