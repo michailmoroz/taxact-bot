@@ -166,11 +166,12 @@
             "action": "conditional",
             "condition": {
               "type": "element_visible",
-              "image": "1040/no_default.png"
+              "image": "common/blue_questionmark_icon.png",
+              "search_region": [800, 530, 50, 70]
             },
             "if_true": {
               "action": "click",
-              "target": { "image": "1040/no_default.png", "search_region": [560, 340, 800, 400] }
+              "target": { "image": "1040/no_default.png", "search_region": [955, 615, 80, 30] }
             },
             "if_false": "continue",
             "wait_after": 3.0
