@@ -205,6 +205,11 @@ def preprocess_table(
         )
         message_queue.put(StatusMessage("complete", str(csv_path)))
 
+        # Play completion sound 3 times
+        for _ in range(3):
+            sounds.play_complete()
+            time.sleep(0.3)
+
         logger.info(f"Preprocessing finished: {len(records)} clients -> {csv_path}")
         return csv_path
 
