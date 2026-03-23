@@ -1,10 +1,9 @@
 """Modern GUI for TaxAct E-File Extension Bot using CustomTkinter.
 
 Provides a user-friendly desktop interface with:
-- Preprocessing button to scan client table and export CSV
-- File picker for CSV selection
-- Start button with 5-second countdown
-- Stop button for immediate abort
+- Prominent CSV file display with stat badges
+- Return type selector and start button
+- Preprocessing scan button
 - Real-time status display
 - Scrollable log area
 """
@@ -48,15 +47,30 @@ COLORS = {
     "error_hover":    "#dc2626",
 }
 
+STAT_COLORS = {
+    "todo_bg":     "#1e3a5f",
+    "todo_text":   "#60a5fa",
+    "done_bg":     "#14532d",
+    "done_text":   "#4ade80",
+    "fail_bg":     "#7f1d1d",
+    "fail_text":   "#f87171",
+}
+
 FONTS = {
-    "title":     ("Segoe UI Semibold", 18),
-    "section":   ("Segoe UI", 12),
-    "selector":  ("Segoe UI Semibold", 15),
-    "button":    ("Segoe UI Semibold", 15),
-    "body":      ("Segoe UI", 13),
-    "caption":   ("Segoe UI", 12),
-    "countdown": ("Segoe UI", 48),
-    "log":       ("Consolas", 12),
+    "title":         ("Segoe UI Semibold", 18),
+    "section":       ("Segoe UI", 12),
+    "section_label": ("Segoe UI", 11),
+    "selector":      ("Segoe UI Semibold", 15),
+    "button":        ("Segoe UI Semibold", 15),
+    "body":          ("Segoe UI", 13),
+    "caption":       ("Segoe UI", 12),
+    "countdown":     ("Segoe UI", 48),
+    "log":           ("Consolas", 12),
+    "file_name":     ("Segoe UI Semibold", 15),
+    "file_path":     ("Segoe UI", 11),
+    "stat_number":   ("Segoe UI Semibold", 20),
+    "stat_label":    ("Segoe UI", 11),
+    "taxact_inline": ("Segoe UI", 12),
 }
 
 
@@ -117,22 +131,22 @@ class BotGUI(ctk.CTk):
 
         self.title("TaxAct E-File Extension Bot")
         self.geometry(
-            f"{gui_settings.get('window_width', 500)}"
-            f"x{gui_settings.get('window_height', 820)}"
+            f"{gui_settings.get('window_width', 580)}"
+            f"x{gui_settings.get('window_height', 900)}"
         )
-        self.minsize(420, 680)
+        self.minsize(500, 750)
         self.configure(fg_color=COLORS["bg_primary"])
 
         # Configure grid weights for responsive layout
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(5, weight=1)  # Log area expands (Row 5)
+        self.grid_rowconfigure(6, weight=1)  # Log area expands (Row 6)
 
         # Handle window close
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _create_widgets(self) -> None:
         """Create all GUI widgets."""
-        # --- Header (compact, no frame) ---
+        # --- Row 0: Header (compact, no frame) ---
         self.title_label = ctk.CTkLabel(
             self,
             text="TaxAct E-File Extension Bot",
@@ -141,8 +155,146 @@ class BotGUI(ctk.CTk):
             anchor="w",
         )
 
-        # --- Return Type Hero Card ---
-        self.return_type_frame = ctk.CTkFrame(
+        # --- Row 1: TaxAct status inline under title ---
+        self.taxact_status_label = ctk.CTkLabel(
+            self,
+            text="TaxAct: Checking...",
+            font=ctk.CTkFont(
+                family=FONTS["taxact_inline"][0], size=FONTS["taxact_inline"][1]
+            ),
+            text_color=COLORS["text_secondary"],
+            anchor="w",
+        )
+
+        # --- Row 2: Client File Card (PROMINENT) ---
+        self.client_file_frame = ctk.CTkFrame(
+            self,
+            corner_radius=10,
+            fg_color=COLORS["bg_card"],
+            border_width=1,
+            border_color=COLORS["border_subtle"],
+        )
+        self.client_file_section_label = ctk.CTkLabel(
+            self.client_file_frame,
+            text="CLIENT FILE",
+            font=ctk.CTkFont(
+                family=FONTS["section_label"][0], size=FONTS["section_label"][1]
+            ),
+            text_color=COLORS["text_muted"],
+            anchor="w",
+        )
+        # CSV filename + Browse row
+        self.csv_name_row = ctk.CTkFrame(
+            self.client_file_frame,
+            fg_color="transparent",
+        )
+        self.csv_path_label = ctk.CTkLabel(
+            self.csv_name_row,
+            text="No CSV loaded",
+            font=ctk.CTkFont(
+                family=FONTS["file_name"][0], size=FONTS["file_name"][1]
+            ),
+            text_color=COLORS["text_muted"],
+            anchor="w",
+        )
+        self.csv_browse_button = ctk.CTkButton(
+            self.csv_name_row,
+            text="Browse",
+            font=ctk.CTkFont(
+                family=FONTS["caption"][0], size=FONTS["caption"][1]
+            ),
+            fg_color=COLORS["bg_input"],
+            hover_color="#3a3a3a",
+            text_color=COLORS["text_secondary"],
+            width=80,
+            height=32,
+            corner_radius=6,
+            command=self._on_browse_csv,
+        )
+        # Directory path (small, muted)
+        self.csv_dir_label = ctk.CTkLabel(
+            self.client_file_frame,
+            text="",
+            font=ctk.CTkFont(
+                family=FONTS["file_path"][0], size=FONTS["file_path"][1]
+            ),
+            text_color=COLORS["text_muted"],
+            anchor="w",
+        )
+        # Stat badges row
+        self.stats_row = ctk.CTkFrame(
+            self.client_file_frame,
+            fg_color="transparent",
+        )
+        # TODO badge
+        self.stat_todo_frame = ctk.CTkFrame(
+            self.stats_row,
+            corner_radius=8,
+            fg_color=STAT_COLORS["todo_bg"],
+        )
+        self.stat_todo_number = ctk.CTkLabel(
+            self.stat_todo_frame,
+            text="\u2014",
+            font=ctk.CTkFont(
+                family=FONTS["stat_number"][0], size=FONTS["stat_number"][1]
+            ),
+            text_color=STAT_COLORS["todo_text"],
+        )
+        self.stat_todo_label = ctk.CTkLabel(
+            self.stat_todo_frame,
+            text="TODO",
+            font=ctk.CTkFont(
+                family=FONTS["stat_label"][0], size=FONTS["stat_label"][1]
+            ),
+            text_color=COLORS["text_secondary"],
+        )
+        # Done badge
+        self.stat_done_frame = ctk.CTkFrame(
+            self.stats_row,
+            corner_radius=8,
+            fg_color=STAT_COLORS["done_bg"],
+        )
+        self.stat_done_number = ctk.CTkLabel(
+            self.stat_done_frame,
+            text="\u2014",
+            font=ctk.CTkFont(
+                family=FONTS["stat_number"][0], size=FONTS["stat_number"][1]
+            ),
+            text_color=STAT_COLORS["done_text"],
+        )
+        self.stat_done_label = ctk.CTkLabel(
+            self.stat_done_frame,
+            text="Done",
+            font=ctk.CTkFont(
+                family=FONTS["stat_label"][0], size=FONTS["stat_label"][1]
+            ),
+            text_color=COLORS["text_secondary"],
+        )
+        # FAIL badge
+        self.stat_fail_frame = ctk.CTkFrame(
+            self.stats_row,
+            corner_radius=8,
+            fg_color=STAT_COLORS["fail_bg"],
+        )
+        self.stat_fail_number = ctk.CTkLabel(
+            self.stat_fail_frame,
+            text="\u2014",
+            font=ctk.CTkFont(
+                family=FONTS["stat_number"][0], size=FONTS["stat_number"][1]
+            ),
+            text_color=STAT_COLORS["fail_text"],
+        )
+        self.stat_fail_label = ctk.CTkLabel(
+            self.stat_fail_frame,
+            text="FAIL",
+            font=ctk.CTkFont(
+                family=FONTS["stat_label"][0], size=FONTS["stat_label"][1]
+            ),
+            text_color=COLORS["text_secondary"],
+        )
+
+        # --- Row 3: Controls Card (Return Type + Start Bot) ---
+        self.controls_frame = ctk.CTkFrame(
             self,
             corner_radius=10,
             fg_color=COLORS["bg_card"],
@@ -150,13 +302,16 @@ class BotGUI(ctk.CTk):
             border_color=COLORS["border_subtle"],
         )
         self.return_type_label = ctk.CTkLabel(
-            self.return_type_frame,
-            text="SELECT RETURN TYPE",
-            font=ctk.CTkFont(family=FONTS["section"][0], size=FONTS["section"][1]),
-            text_color=COLORS["text_secondary"],
+            self.controls_frame,
+            text="RETURN TYPE",
+            font=ctk.CTkFont(
+                family=FONTS["section_label"][0], size=FONTS["section_label"][1]
+            ),
+            text_color=COLORS["text_muted"],
+            anchor="w",
         )
         self.return_type_selector = ctk.CTkSegmentedButton(
-            self.return_type_frame,
+            self.controls_frame,
             values=["1120", "1120S", "1040"],
             font=ctk.CTkFont(
                 family=FONTS["selector"][0], size=FONTS["selector"][1]
@@ -170,8 +325,38 @@ class BotGUI(ctk.CTk):
             text_color=COLORS["text_primary"],
         )
         self.return_type_selector.set("1120S")
+        self.start_button = ctk.CTkButton(
+            self.controls_frame,
+            text="Start Bot",
+            font=ctk.CTkFont(
+                family=FONTS["button"][0], size=FONTS["button"][1]
+            ),
+            fg_color=COLORS["success"],
+            hover_color=COLORS["success_hover"],
+            text_color=COLORS["text_primary"],
+            height=52,
+            corner_radius=8,
+            command=self._on_start_click,
+            state="disabled",
+        )
+        # Countdown labels (initially hidden, shown during countdown)
+        self.countdown_label = ctk.CTkLabel(
+            self.controls_frame,
+            text="",
+            font=ctk.CTkFont(
+                family=FONTS["countdown"][0], size=FONTS["countdown"][1],
+                weight="bold"
+            ),
+            text_color=COLORS["text_primary"],
+        )
+        self.countdown_hint = ctk.CTkLabel(
+            self.controls_frame,
+            text="Switch to TaxAct now!",
+            font=ctk.CTkFont(family="Segoe UI", size=14),
+            text_color=COLORS["text_secondary"],
+        )
 
-        # --- Preprocessing Card ---
+        # --- Row 4: Preprocessing Card (secondary, outline button) ---
         self.preprocessing_frame = ctk.CTkFrame(
             self,
             corner_radius=10,
@@ -185,42 +370,14 @@ class BotGUI(ctk.CTk):
             font=ctk.CTkFont(
                 family=FONTS["button"][0], size=FONTS["button"][1]
             ),
-            fg_color=COLORS["accent"],
-            hover_color=COLORS["accent_hover"],
-            text_color=COLORS["text_primary"],
-            height=48,
+            fg_color="transparent",
+            hover_color=COLORS["bg_input"],
+            text_color=COLORS["accent"],
+            border_width=2,
+            border_color=COLORS["accent"],
+            height=36,
             corner_radius=8,
             command=self._on_preprocessing_click,
-        )
-        # CSV file picker row
-        self.csv_file_frame = ctk.CTkFrame(
-            self.preprocessing_frame,
-            fg_color="transparent",
-        )
-        self.csv_path_label = ctk.CTkLabel(
-            self.csv_file_frame,
-            text="No CSV loaded",
-            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
-            text_color=COLORS["text_muted"],
-            anchor="w",
-        )
-        self.csv_browse_button = ctk.CTkButton(
-            self.csv_file_frame,
-            text="Browse",
-            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
-            fg_color=COLORS["bg_input"],
-            hover_color="#3a3a3a",
-            text_color=COLORS["text_secondary"],
-            width=70,
-            height=28,
-            corner_radius=6,
-            command=self._on_browse_csv,
-        )
-        self.csv_status_label = ctk.CTkLabel(
-            self.preprocessing_frame,
-            text="",
-            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
-            text_color=COLORS["text_secondary"],
         )
         # Preprocessing countdown labels (initially hidden)
         self.preproc_countdown_label = ctk.CTkLabel(
@@ -239,45 +396,7 @@ class BotGUI(ctk.CTk):
             text_color=COLORS["text_secondary"],
         )
 
-        # --- Control Card (Start/Stop Button, Countdown) ---
-        self.control_frame = ctk.CTkFrame(
-            self,
-            corner_radius=10,
-            fg_color=COLORS["bg_card"],
-            border_width=1,
-            border_color=COLORS["border_subtle"],
-        )
-        self.start_button = ctk.CTkButton(
-            self.control_frame,
-            text="Start Bot",
-            font=ctk.CTkFont(
-                family=FONTS["button"][0], size=FONTS["button"][1]
-            ),
-            fg_color=COLORS["success"],
-            hover_color=COLORS["success_hover"],
-            text_color=COLORS["text_primary"],
-            height=48,
-            corner_radius=8,
-            command=self._on_start_click,
-            state="disabled",
-        )
-        self.countdown_label = ctk.CTkLabel(
-            self.control_frame,
-            text="",
-            font=ctk.CTkFont(
-                family=FONTS["countdown"][0], size=FONTS["countdown"][1],
-                weight="bold"
-            ),
-            text_color=COLORS["text_primary"],
-        )
-        self.countdown_hint = ctk.CTkLabel(
-            self.control_frame,
-            text="Switch to TaxAct now!",
-            font=ctk.CTkFont(family="Segoe UI", size=14),
-            text_color=COLORS["text_secondary"],
-        )
-
-        # --- Status Card ---
+        # --- Row 5: Status Card (compact) ---
         self.status_frame = ctk.CTkFrame(
             self,
             corner_radius=10,
@@ -291,20 +410,16 @@ class BotGUI(ctk.CTk):
             font=ctk.CTkFont(family=FONTS["body"][0], size=FONTS["body"][1]),
             text_color=COLORS["text_primary"],
         )
-        self.taxact_status_label = ctk.CTkLabel(
-            self.status_frame,
-            text="TaxAct: Checking...",
-            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
-            text_color=COLORS["text_secondary"],
-        )
         self.progress_label = ctk.CTkLabel(
             self.status_frame,
             text="",
-            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
+            font=ctk.CTkFont(
+                family=FONTS["caption"][0], size=FONTS["caption"][1]
+            ),
             text_color=COLORS["text_secondary"],
         )
 
-        # --- Log Card ---
+        # --- Row 6: Log Card (expands vertically) ---
         self.log_frame = ctk.CTkFrame(
             self,
             corner_radius=10,
@@ -315,7 +430,9 @@ class BotGUI(ctk.CTk):
         self.log_label = ctk.CTkLabel(
             self.log_frame,
             text="Log:",
-            font=ctk.CTkFont(family=FONTS["caption"][0], size=FONTS["caption"][1]),
+            font=ctk.CTkFont(
+                family=FONTS["caption"][0], size=FONTS["caption"][1]
+            ),
             text_color=COLORS["text_secondary"],
             anchor="w",
         )
@@ -334,52 +451,77 @@ class BotGUI(ctk.CTk):
         """Arrange widgets using grid layout."""
         pad_x = 24
 
-        # Row 0 — Header (compact, left-aligned, no frame)
+        # Row 0 — Title
         self.title_label.grid(
-            row=0, column=0, padx=pad_x, pady=(20, 4), sticky="w"
+            row=0, column=0, padx=pad_x, pady=(20, 0), sticky="w"
         )
 
-        # Row 1 — Preprocessing Card
-        self.preprocessing_frame.grid(
-            row=1, column=0, padx=pad_x, pady=(8, 6), sticky="ew"
+        # Row 1 — TaxAct status inline
+        self.taxact_status_label.grid(
+            row=1, column=0, padx=pad_x, pady=(2, 8), sticky="w"
         )
-        self.preprocessing_button.pack(pady=(16, 8), padx=16, fill="x")
-        self.csv_file_frame.pack(padx=16, fill="x")
+
+        # Row 2 — Client File Card (PROMINENT)
+        self.client_file_frame.grid(
+            row=2, column=0, padx=pad_x, pady=(4, 8), sticky="ew"
+        )
+        self.client_file_section_label.pack(padx=16, pady=(12, 4), anchor="w")
+        self.csv_name_row.pack(padx=16, fill="x")
         self.csv_path_label.pack(side="left", expand=True, fill="x")
         self.csv_browse_button.pack(side="right", padx=(8, 0))
-        self.csv_status_label.pack(padx=16, pady=(4, 12), anchor="w")
-
-        # Row 2 — Return Type Hero Card
-        self.return_type_frame.grid(
-            row=2, column=0, padx=pad_x, pady=6, sticky="ew"
+        self.csv_dir_label.pack(padx=16, pady=(2, 8), anchor="w")
+        self.stats_row.pack(padx=16, pady=(0, 14), fill="x")
+        # Stat badge internal layouts
+        self.stat_todo_frame.pack(
+            side="left", expand=True, fill="x", padx=(0, 4)
         )
-        self.return_type_label.pack(padx=16, pady=(14, 4), anchor="center")
-        self.return_type_selector.pack(padx=16, pady=(4, 14), fill="x")
+        self.stat_todo_number.pack(pady=(8, 0))
+        self.stat_todo_label.pack(pady=(0, 8))
+        self.stat_done_frame.pack(
+            side="left", expand=True, fill="x", padx=4
+        )
+        self.stat_done_number.pack(pady=(8, 0))
+        self.stat_done_label.pack(pady=(0, 8))
+        self.stat_fail_frame.pack(
+            side="left", expand=True, fill="x", padx=(4, 0)
+        )
+        self.stat_fail_number.pack(pady=(8, 0))
+        self.stat_fail_label.pack(pady=(0, 8))
 
-        # Row 3 — Control Card
-        self.control_frame.grid(
+        # Row 3 — Controls Card (Return Type + Start Bot)
+        self.controls_frame.grid(
             row=3, column=0, padx=pad_x, pady=6, sticky="ew"
         )
-        self.start_button.pack(pady=16, padx=16, fill="x")
+        self.return_type_label.pack(padx=16, pady=(14, 4), anchor="w")
+        self.return_type_selector.pack(padx=16, pady=(4, 10), fill="x")
+        self.start_button.pack(padx=16, pady=(4, 16), fill="x")
         # Countdown labels initially hidden
 
-        # Row 4 — Status Card
-        self.status_frame.grid(
-            row=4, column=0, padx=pad_x, pady=6, sticky="new"
+        # Row 4 — Preprocessing Card (secondary)
+        self.preprocessing_frame.grid(
+            row=4, column=0, padx=pad_x, pady=6, sticky="ew"
         )
-        self.status_label.pack(anchor="w", padx=16, pady=(12, 4))
-        self.taxact_status_label.pack(anchor="w", padx=16, pady=2)
-        self.progress_label.pack(anchor="w", padx=16, pady=(2, 12))
+        self.preprocessing_button.pack(pady=12, padx=16, fill="x")
 
-        # Row 5 — Log Card (expands vertically)
+        # Row 5 — Status Card (compact)
+        self.status_frame.grid(
+            row=5, column=0, padx=pad_x, pady=6, sticky="ew"
+        )
+        self.status_label.pack(anchor="w", padx=16, pady=(10, 4))
+        self.progress_label.pack(anchor="w", padx=16, pady=(0, 10))
+
+        # Row 6 — Log Card (expands vertically)
         self.log_frame.grid(
-            row=5, column=0, padx=pad_x, pady=(6, 20), sticky="nsew"
+            row=6, column=0, padx=pad_x, pady=(6, 20), sticky="nsew"
         )
         self.log_frame.grid_columnconfigure(0, weight=1)
         self.log_frame.grid_rowconfigure(1, weight=1)
-        self.log_label.grid(row=0, column=0, padx=12, pady=(12, 4), sticky="w")
-        self.log_textbox.grid(row=1, column=0, padx=12, pady=(0, 12), sticky="nsew")
-
+        self.log_label.grid(
+            row=0, column=0, padx=12, pady=(12, 4), sticky="w"
+        )
+        self.log_textbox.grid(
+            row=1, column=0, padx=12, pady=(0, 12), sticky="nsew"
+        )
 
     def _log(self, message: str) -> None:
         """Add a message to the log textbox.
@@ -406,7 +548,9 @@ class BotGUI(ctk.CTk):
     def _start_preprocessing_countdown(self) -> None:
         """Start countdown before preprocessing scan."""
         self.gui_state = GUIState.PREPROCESSING_COUNTDOWN
-        self._countdown_value = self.settings.get("gui", {}).get("countdown_seconds", 5)
+        self._countdown_value = self.settings.get("gui", {}).get(
+            "countdown_seconds", 5
+        )
 
         # Disable other controls
         self.start_button.configure(state="disabled")
@@ -424,19 +568,28 @@ class BotGUI(ctk.CTk):
             text="Cancel",
             fg_color=COLORS["warning"],
             hover_color=COLORS["warning_hover"],
+            text_color=COLORS["text_primary"],
+            border_width=0,
         )
-        self.preprocessing_button.pack(pady=(10, 8), padx=16, fill="x")
+        self.preprocessing_button.pack(pady=(10, 12), padx=16, fill="x")
 
-        self._log("Make sure client list is scrolled to the top before scan starts!")
+        self._log(
+            "Make sure client list is scrolled to the top before scan starts!"
+        )
         self._log(f"Preprocessing countdown ({self._countdown_value}s)")
         self._update_preprocessing_countdown()
 
     def _update_preprocessing_countdown(self) -> None:
         """Tick the preprocessing countdown."""
-        if self._countdown_value > 0 and self.gui_state == GUIState.PREPROCESSING_COUNTDOWN:
-            self.preproc_countdown_label.configure(text=str(self._countdown_value))
+        if (self._countdown_value > 0
+                and self.gui_state == GUIState.PREPROCESSING_COUNTDOWN):
+            self.preproc_countdown_label.configure(
+                text=str(self._countdown_value)
+            )
             self._countdown_value -= 1
-            self._countdown_id = self.after(1000, self._update_preprocessing_countdown)
+            self._countdown_id = self.after(
+                1000, self._update_preprocessing_countdown
+            )
         elif self.gui_state == GUIState.PREPROCESSING_COUNTDOWN:
             self._finish_preprocessing_countdown()
 
@@ -455,14 +608,16 @@ class BotGUI(ctk.CTk):
         self.preproc_countdown_label.pack_forget()
         self.preproc_countdown_hint.pack_forget()
 
-        # Switch button to Stop
+        # Switch button to Stop (filled error style)
         self.preprocessing_button.pack_forget()
         self.preprocessing_button.configure(
             text="Stop Scan",
             fg_color=COLORS["error"],
             hover_color=COLORS["error_hover"],
+            text_color=COLORS["text_primary"],
+            border_width=0,
         )
-        self.preprocessing_button.pack(pady=(16, 8), padx=16, fill="x")
+        self.preprocessing_button.pack(pady=12, padx=16, fill="x")
 
         self.gui_state = GUIState.PREPROCESSING
         self.status_label.configure(text="Status: Preprocessing...")
@@ -475,7 +630,11 @@ class BotGUI(ctk.CTk):
 
         self._preprocessing_thread = threading.Thread(
             target=preprocess_table,
-            args=(self.settings, self._preprocessing_queue, self._preprocessing_stop),
+            args=(
+                self.settings,
+                self._preprocessing_queue,
+                self._preprocessing_stop,
+            ),
             daemon=True,
         )
         self._preprocessing_thread.start()
@@ -541,17 +700,20 @@ class BotGUI(ctk.CTk):
         self._preprocessing_thread = None
 
     def _reset_preprocessing_button(self) -> None:
-        """Reset preprocessing button to default appearance and position."""
+        """Reset preprocessing button to default outline appearance."""
         self.preproc_countdown_label.pack_forget()
         self.preproc_countdown_hint.pack_forget()
         self.preprocessing_button.pack_forget()
         self.preprocessing_button.configure(
             text="Scan Client Table",
-            fg_color=COLORS["accent"],
-            hover_color=COLORS["accent_hover"],
+            fg_color="transparent",
+            hover_color=COLORS["bg_input"],
+            text_color=COLORS["accent"],
+            border_width=2,
+            border_color=COLORS["accent"],
             state="normal",
         )
-        self.preprocessing_button.pack(pady=(16, 8), padx=16, fill="x")
+        self.preprocessing_button.pack(pady=12, padx=16, fill="x")
 
     # --- CSV File Management ---
 
@@ -583,19 +745,22 @@ class BotGUI(ctk.CTk):
 
         self._csv_path = csv_path
 
-        # Update path label (show only filename)
+        # Update filename (large, prominent)
         self.csv_path_label.configure(
-            text=f".../{csv_path.name}",
-            text_color=COLORS["text_secondary"],
+            text=csv_path.name,
+            text_color=COLORS["text_primary"],
         )
 
-        # Update status counts (handles new status values: Submitted, FAIL: ...)
+        # Update directory path (small, muted)
+        self.csv_dir_label.configure(text=str(csv_path.parent))
+
+        # Update stat badges
         todo = sum(1 for r in records if r.status == "TODO")
         fail = sum(1 for r in records if r.status.startswith("FAIL"))
         done = len(records) - todo - fail
-        self.csv_status_label.configure(
-            text=f"{todo} TODO, {done} Done, {fail} FAIL"
-        )
+        self.stat_todo_number.configure(text=str(todo))
+        self.stat_done_number.configure(text=str(done))
+        self.stat_fail_number.configure(text=str(fail))
 
         self._log(f"CSV loaded: {csv_path.name} ({len(records)} clients)")
         logger.info(f"CSV loaded: {csv_path}")
@@ -615,6 +780,17 @@ class BotGUI(ctk.CTk):
         if latest is not None:
             self._load_csv_file(latest)
 
+    def _reset_csv_display(self) -> None:
+        """Reset CSV display to empty state."""
+        self.csv_path_label.configure(
+            text="No CSV loaded",
+            text_color=COLORS["text_muted"],
+        )
+        self.csv_dir_label.configure(text="")
+        self.stat_todo_number.configure(text="\u2014")
+        self.stat_done_number.configure(text="\u2014")
+        self.stat_fail_number.configure(text="\u2014")
+
     # --- State Machine ---
 
     def _on_start_click(self) -> None:
@@ -622,14 +798,18 @@ class BotGUI(ctk.CTk):
         if self.gui_state == GUIState.READY:
             # Check CSV is loaded and still exists on disk
             if self._csv_path is None:
-                self._log("ERROR: No CSV file loaded. Run Preprocessing or load a CSV file.")
+                self._log(
+                    "ERROR: No CSV file loaded. "
+                    "Run Preprocessing or load a CSV file."
+                )
                 return
             if not self._csv_path.exists():
-                self._log(f"ERROR: CSV file no longer exists: {self._csv_path.name}")
+                self._log(
+                    f"ERROR: CSV file no longer exists: {self._csv_path.name}"
+                )
                 self._csv_path = None
                 self.start_button.configure(state="disabled")
-                self.csv_path_label.configure(text="No CSV file selected")
-                self.csv_status_label.configure(text="")
+                self._reset_csv_display()
                 return
             self._start_countdown()
         elif self.gui_state == GUIState.COUNTDOWN:
@@ -640,32 +820,35 @@ class BotGUI(ctk.CTk):
     def _start_countdown(self) -> None:
         """Start the countdown sequence."""
         self.gui_state = GUIState.COUNTDOWN
-        self._countdown_value = self.settings.get("gui", {}).get("countdown_seconds", 5)
+        self._countdown_value = self.settings.get("gui", {}).get(
+            "countdown_seconds", 5
+        )
 
         # Disable controls during countdown/running
         self.return_type_selector.configure(state="disabled")
         self.preprocessing_button.configure(state="disabled")
         self.csv_browse_button.configure(state="disabled")
 
-        # Update button
+        # Update button to Cancel style
         self.start_button.configure(
             text="Cancel",
             fg_color=COLORS["warning"],
             hover_color=COLORS["warning_hover"],
         )
 
-        # Show countdown
+        # Show countdown labels between selector and button
         self.start_button.pack_forget()
         self.countdown_label.pack(pady=10)
         self.countdown_hint.pack(pady=5)
-        self.start_button.pack(pady=(10, 16), padx=16, fill="x")
+        self.start_button.pack(padx=16, pady=(10, 16), fill="x")
 
         self._log(f"Countdown started ({self._countdown_value}s)")
         self._update_countdown()
 
     def _update_countdown(self) -> None:
         """Update countdown display."""
-        if self._countdown_value > 0 and self.gui_state == GUIState.COUNTDOWN:
+        if (self._countdown_value > 0
+                and self.gui_state == GUIState.COUNTDOWN):
             self.countdown_label.configure(text=str(self._countdown_value))
             self._countdown_value -= 1
             self._countdown_id = self.after(1000, self._update_countdown)
@@ -707,14 +890,14 @@ class BotGUI(ctk.CTk):
         else:
             self.start_button.configure(state="disabled")
 
-        # Reset button
+        # Reset start button appearance and position
         self.start_button.pack_forget()
         self.start_button.configure(
             text="Start Bot",
             fg_color=COLORS["success"],
             hover_color=COLORS["success_hover"],
         )
-        self.start_button.pack(pady=16, padx=16, fill="x")
+        self.start_button.pack(padx=16, pady=(4, 16), fill="x")
 
         self.status_label.configure(text="Status: Ready")
 
@@ -838,11 +1021,15 @@ class BotGUI(ctk.CTk):
                 text="TaxAct: Validation skipped (Dev)",
                 text_color=COLORS["warning"],
             )
-            self._log("TaxAct validation skipped (skip_taxact_validation=true)")
+            self._log(
+                "TaxAct validation skipped (skip_taxact_validation=true)"
+            )
             return
 
         window = window_validator.find_taxact_window(
-            self.settings.get("display", {}).get("taxact_window_title", "TaxAct")
+            self.settings.get("display", {}).get(
+                "taxact_window_title", "TaxAct"
+            )
         )
 
         if window:

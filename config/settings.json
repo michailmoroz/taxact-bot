@@ -40,8 +40,8 @@
     "taxact_window_title": "TaxAct"
   },
   "gui": {
-    "window_width": 500,
-    "window_height": 820,
+    "window_width": 580,
+    "window_height": 900,
     "countdown_seconds": 5,
     "appearance_mode": "dark",
     "color_theme": "blue"

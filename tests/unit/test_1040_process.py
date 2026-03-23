@@ -124,7 +124,9 @@ class TestStage12AbortReason:
     def test_stage12_no_default_has_search_region(self, process_1040):
         s12 = _get_stage(process_1040, 12)
         no_default_cond = s12["if_false"]["actions"][1]
-        assert no_default_cond["if_true"]["target"]["search_region"] == [560, 340, 800, 400]
+        assert no_default_cond["condition"]["image"] == "common/blue_questionmark_icon.png"
+        assert no_default_cond["condition"]["search_region"] == [800, 530, 50, 70]
+        assert no_default_cond["if_true"]["target"]["search_region"] == [955, 615, 80, 30]
 
 
 class TestStage16CleanAbort:
