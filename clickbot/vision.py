@@ -894,10 +894,13 @@ def read_all_rows_from_screenshot(
         client_name = client_name.lstrip("\u2018\u2019\u201c\u201d\u00e2\u20ac\u02dc")
         client_name = client_name.rstrip(".,_")
 
-        # Fix SSN/EIN missing leading zero: XX-XX-XXXX → 0XX-XX-XXXX
+        # Normalize SSN/EIN to XXX-XX-XXXX format (strip non-digits, fix leading zero)
         ssn_ein = cell_values[1]
-        if re.match(r"^\d{2}-\d{2}-\d{4}$", ssn_ein):
-            ssn_ein = "0" + ssn_ein
+        digits = re.sub(r"[^0-9]", "", ssn_ein)
+        if len(digits) == 8:
+            digits = "0" + digits
+        if len(digits) == 9:
+            ssn_ein = f"{digits[:3]}-{digits[3:5]}-{digits[5:]}"
 
         rows.append((client_name, ssn_ein, cell_values[2], cell_values[3]))
 
@@ -940,10 +943,24 @@ def scan_visible_clients_csv(
     max_visible_rows = table_settings.get("max_visible_rows", 20)
 
     # Build lookup structures from CSV
+    # For 1040: match by (ssn_ein, return_type) only — client names are OCR-unreliable
+    # For 1120/1120S: match by (client_name, client_id, return_type) as before
+    use_id_only = selected_return_type == "1040"
     skip_keys = set()
     csv_keys = set()
     for r in csv_records:
-        key = (r.client_name, r.client_id, r.return_type)
+        # Normalize CSV client_id to match OCR-normalized format
+        csv_id = r.client_id
+        id_digits = re.sub(r"[^0-9]", "", csv_id)
+        if len(id_digits) == 8:
+            id_digits = "0" + id_digits
+        if len(id_digits) == 9:
+            csv_id = f"{id_digits[:3]}-{id_digits[3:5]}-{id_digits[5:]}"
+
+        if use_id_only:
+            key = (csv_id, r.return_type)
+        else:
+            key = (r.client_name, csv_id, r.return_type)
         csv_keys.add(key)
         if r.status != "TODO":
             skip_keys.add(key)
@@ -986,9 +1003,12 @@ def scan_visible_clients_csv(
 
         # Read SSN/EIN
         ssn_ein = _crop_and_ocr("ssn_ein", row_y)
-        # Fix missing leading zero: XX-XX-XXXX → 0XX-XX-XXXX
-        if re.match(r"^\d{2}-\d{2}-\d{4}$", ssn_ein):
-            ssn_ein = "0" + ssn_ein
+        # Normalize SSN/EIN to XXX-XX-XXXX format (strip non-digits, fix leading zero)
+        digits = re.sub(r"[^0-9]", "", ssn_ein)
+        if len(digits) == 8:
+            digits = "0" + digits
+        if len(digits) == 9:
+            ssn_ein = f"{digits[:3]}-{digits[3:5]}-{digits[5:]}"
 
         # Read return type
         raw_return_type = _crop_and_ocr("return_type", row_y)
@@ -1002,19 +1022,23 @@ def scan_visible_clients_csv(
             )
             continue
 
-        key = (client_name, ssn_ein, return_type)
+        # Build key: 1040 uses (ssn_ein, return_type), others use full composite
+        if use_id_only:
+            key = (ssn_ein, return_type)
+        else:
+            key = (client_name, ssn_ein, return_type)
 
         # Filter: client not in CSV (unknown)
         if key not in csv_keys:
             logger.debug(
-                f"CSV scan row {row_idx}: {client_name} not in CSV, skipping"
+                f"CSV scan row {row_idx}: {client_name} ({ssn_ein}) not in CSV, skipping"
             )
             continue
 
         # Filter: not TODO (already processed)
         if key in skip_keys:
             logger.debug(
-                f"CSV scan row {row_idx}: {client_name} not TODO in CSV, skipping"
+                f"CSV scan row {row_idx}: {client_name} ({ssn_ein}) not TODO in CSV, skipping"
             )
             continue
 

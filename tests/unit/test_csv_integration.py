@@ -453,13 +453,13 @@ class TestScanVisibleClientsCsvNew:
         from clickbot.vision import scan_visible_clients_csv
 
         mock_ocr.side_effect = [
-            "JONES INC",   # client_name
-            "98-7654321",  # ssn_ein
-            "1040",        # return_type
+            "JONES INC",    # client_name
+            "987-65-4321",  # ssn_ein
+            "1040",         # return_type
         ]
 
         csv_records = [
-            ClientRecord("JONES INC", "98-7654321", "1040", "TODO"),
+            ClientRecord("JONES INC", "987-65-4321", "1040", "TODO"),
         ]
 
         row_data, click_pos, last_name = scan_visible_clients_csv(
@@ -468,7 +468,7 @@ class TestScanVisibleClientsCsvNew:
 
         assert row_data is not None
         assert row_data.client_name == "JONES INC"
-        assert row_data.client_id == "98-7654321"
+        assert row_data.client_id == "987-65-4321"
         assert row_data.return_type == "1040"
         assert row_data.fed_ef_status == ""
         assert click_pos is not None
@@ -552,14 +552,14 @@ class TestScanVisibleClientsCsvNew:
         from clickbot.vision import scan_visible_clients_csv
 
         mock_ocr.side_effect = [
-            "",            # row 0: empty client_name
-            "JONES INC",   # row 1: valid
-            "98-7654321",
+            "",             # row 0: empty client_name
+            "JONES INC",    # row 1: valid
+            "987-65-4321",
             "1040",
         ]
 
         csv_records = [
-            ClientRecord("JONES INC", "98-7654321", "1040", "TODO"),
+            ClientRecord("JONES INC", "987-65-4321", "1040", "TODO"),
         ]
 
         row_data, _, _ = scan_visible_clients_csv(
@@ -592,12 +592,12 @@ class TestScanVisibleClientsCsvNew:
 
     @patch("clickbot.vision.pytesseract.image_to_string")
     def test_ocr_cleanup_applied(self, mock_ocr):
-        """OCR cleanup: Unicode prefix, trailing dots, SSN leading zero."""
+        """OCR cleanup: Unicode prefix, trailing dots, SSN normalization."""
         from clickbot.vision import scan_visible_clients_csv
 
         mock_ocr.side_effect = [
             "\u2018JONES INC.",  # Unicode prefix + trailing dot
-            "98-76-5432",       # Missing leading zero (XX-XX-XXXX)
+            "98-76-5432",       # Missing leading zero (8 digits) → 098-76-5432
             "1040",
         ]
 
