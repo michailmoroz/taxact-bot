@@ -15,10 +15,12 @@ from typing import Optional
 import pydirectinput
 import pyautogui
 
+from clickbot import paths as bot_paths
 from clickbot import sounds
 from clickbot import window_validator
 from clickbot import vision
 from clickbot import executor
+from clickbot.process_loader import load_process
 
 logger = logging.getLogger(__name__)
 
@@ -226,6 +228,13 @@ class BotController:
             )
             self._send_log(f"CSV loaded: {todo_count} TODO clients for {self.selected_return_type}")
 
+        # Load process definition for open_verify_image (dynamic polling)
+        try:
+            process_def = load_process(self.selected_return_type)
+            open_verify_image = process_def.get("open_verify_image")
+        except Exception:
+            open_verify_image = None
+
         tracker = ClientTracker()
         clients_processed = 0
         start_time = time.time()
@@ -331,7 +340,36 @@ class BotController:
             logger.info(f"{'='*60}")
             logger.info(f"CLIENT #{clients_processed}: {client_row.client_name} ({client_row.return_type})")
             logger.info(f"{'='*60}")
-            executor.double_click(click_pos[0], click_pos[1], wait=4.0)
+            executor.double_click(click_pos[0], click_pos[1], wait=0)
+
+            # Wait for client form to load (dynamic polling instead of fixed 4s wait)
+            if open_verify_image:
+                verify_base = self.settings.get("validation", {}).get(
+                    "verify_base_path", "assets/verify"
+                )
+                if not Path(verify_base).is_absolute():
+                    verify_base = str(bot_paths.get_bundle_dir() / verify_base)
+
+                self._send_log(f"Waiting for client to load ({open_verify_image})...")
+                loaded = vision.wait_for_element(
+                    open_verify_image, timeout=60.0, poll_interval=0.5,
+                    base_path=verify_base, stop_event=self.stop_event
+                )
+                if loaded is None and not self.stop_event.is_set():
+                    self._send_log(f"Client did not load within 60s")
+                    sounds.play_error()
+                    if csv_records is not None:
+                        update_client_status(
+                            self.csv_path, client_row.client_name,
+                            client_row.client_id, self.selected_return_type,
+                            "FAIL: Client did not load"
+                        )
+                        csv_records = load_csv(self.csv_path)
+                    self._send_log(f"SKIPPED: {client_row.client_name} - Client did not load")
+                    self._recover_to_client_manager()
+                    continue
+            else:
+                time.sleep(4.0)  # Fallback for processes without open_verify_image
 
             # Check for locked client dialog after double-click
             locked = vision.find_element(

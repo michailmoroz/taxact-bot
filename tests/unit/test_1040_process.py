@@ -369,4 +369,5 @@ class TestRegressionOtherProcesses:
         from clickbot.process_loader import load_process
         process = load_process("1120")
         assert process["return_type"] == "1120"
-        assert "steps" in process
+        assert "stages" in process
+        assert len(process["stages"]) == 26

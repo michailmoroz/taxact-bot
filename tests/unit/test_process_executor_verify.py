@@ -213,10 +213,10 @@ class TestProcessLoaderStages:
         assert "stages" in process
         assert len(process["stages"]) == 20
 
-    def test_load_1120_with_steps(self):
-        """1120.json with legacy 'steps' key still loads."""
+    def test_load_1120_with_stages(self):
+        """1120.json with 'stages' key loads correctly."""
         from clickbot.process_loader import load_process
         process = load_process("1120")
 
-        assert "steps" in process
-        assert len(process["steps"]) > 0
+        assert "stages" in process
+        assert len(process["stages"]) == 26

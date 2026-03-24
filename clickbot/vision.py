@@ -676,6 +676,32 @@ def normalize_return_type(ocr_value: str) -> str:
     return cleaned
 
 
+def normalize_ssn_ein(raw_value: str, return_type: str = "") -> str:
+    """Normalize OCR-read SSN/EIN to correct format.
+
+    Strips non-digit characters, pads 8-digit values with leading zero,
+    then formats based on return type:
+    - 1040 (SSN): XXX-XX-XXXX (3-2-4)
+    - 1120/1120S (EIN): XX-XXXXXXX (2-7)
+
+    Args:
+        raw_value: Raw OCR result for SSN/EIN
+        return_type: Return type to determine format ("1040", "1120", "1120S")
+
+    Returns:
+        Formatted SSN/EIN string, or raw digits if length != 9
+    """
+    digits = re.sub(r"[^0-9]", "", raw_value)
+    if len(digits) == 8:
+        digits = "0" + digits
+    if len(digits) != 9:
+        return raw_value  # Can't format, return as-is
+    if return_type == "1040":
+        return f"{digits[:3]}-{digits[3:5]}-{digits[5:]}"  # XXX-XX-XXXX
+    else:
+        return f"{digits[:2]}-{digits[2:]}"  # XX-XXXXXXX (1120, 1120S, default)
+
+
 def get_column_positions(
     extra_columns: Optional[List[str]] = None
 ) -> Optional[Dict[str, Tuple[int, int]]]:
@@ -894,13 +920,7 @@ def read_all_rows_from_screenshot(
         client_name = client_name.lstrip("\u2018\u2019\u201c\u201d\u00e2\u20ac\u02dc")
         client_name = client_name.rstrip(".,_")
 
-        # Normalize SSN/EIN to XXX-XX-XXXX format (strip non-digits, fix leading zero)
-        ssn_ein = cell_values[1]
-        digits = re.sub(r"[^0-9]", "", ssn_ein)
-        if len(digits) == 8:
-            digits = "0" + digits
-        if len(digits) == 9:
-            ssn_ein = f"{digits[:3]}-{digits[3:5]}-{digits[5:]}"
+        ssn_ein = normalize_ssn_ein(cell_values[1], normalize_return_type(cell_values[2]))
 
         rows.append((client_name, ssn_ein, cell_values[2], cell_values[3]))
 
@@ -950,12 +970,7 @@ def scan_visible_clients_csv(
     csv_keys = set()
     for r in csv_records:
         # Normalize CSV client_id to match OCR-normalized format
-        csv_id = r.client_id
-        id_digits = re.sub(r"[^0-9]", "", csv_id)
-        if len(id_digits) == 8:
-            id_digits = "0" + id_digits
-        if len(id_digits) == 9:
-            csv_id = f"{id_digits[:3]}-{id_digits[3:5]}-{id_digits[5:]}"
+        csv_id = normalize_ssn_ein(r.client_id, r.return_type)
 
         if use_id_only:
             key = (csv_id, r.return_type)
@@ -1002,13 +1017,7 @@ def scan_visible_clients_csv(
         last_client_name = client_name
 
         # Read SSN/EIN
-        ssn_ein = _crop_and_ocr("ssn_ein", row_y)
-        # Normalize SSN/EIN to XXX-XX-XXXX format (strip non-digits, fix leading zero)
-        digits = re.sub(r"[^0-9]", "", ssn_ein)
-        if len(digits) == 8:
-            digits = "0" + digits
-        if len(digits) == 9:
-            ssn_ein = f"{digits[:3]}-{digits[3:5]}-{digits[5:]}"
+        ssn_ein = normalize_ssn_ein(_crop_and_ocr("ssn_ein", row_y), selected_return_type)
 
         # Read return type
         raw_return_type = _crop_and_ocr("return_type", row_y)

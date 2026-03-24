@@ -1,0 +1,515 @@
+2026-03-24 13:23:55 | DEBUG    | clickbot.bot_controller | BotController initialized (return_type=1040)
+2026-03-24 13:23:55 | WARNING  | clickbot.window_validator | TaxAct validation SKIPPED (skip_taxact_validation=true)
+2026-03-24 13:23:56 | DEBUG    | clickbot.sounds | Played success sound: 1000Hz for 200ms
+2026-03-24 13:23:56 | INFO     | clickbot.bot_controller | Bot worker thread running
+2026-03-24 13:23:56 | INFO     | clickbot.bot_controller | Bot thread started
+2026-03-24 13:23:56 | DEBUG    | clickbot.vision | Vision configured: base_path=C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons, confidence=0.8
+2026-03-24 13:23:56 | DEBUG    | clickbot.vision | Tesseract (bundled): C:\TaxActBot\dist\TaxActBot\_internal\tesseract_bundle\tesseract.exe
+2026-03-24 13:23:56 | DEBUG    | clickbot.preprocessor | Loaded 463 records from C:\TaxActBot\logs\clients_2026-03-24-10-44-17.csv
+2026-03-24 13:23:56 | DEBUG    | clickbot.bot_controller | Scrolled client table to top
+2026-03-24 13:23:56 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_68iekakw_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_68iekakw', '-l', 'eng', 'txt']
+2026-03-24 13:23:57 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_66ir60ux_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_66ir60ux', '-l', 'eng', 'txt']
+2026-03-24 13:23:57 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_gyshyny2_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_gyshyny2', '-l', 'eng', 'txt']
+2026-03-24 13:23:57 | DEBUG    | clickbot.vision | Return type '1040' -> '1040'
+2026-03-24 13:23:57 | DEBUG    | clickbot.vision | CSV scan row 0: AMID KHUSHKADAMOV and ADIBA DOROBEKOVA not TODO in CSV, skipping
+2026-03-24 13:23:57 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_dkpnqqji_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_dkpnqqji', '-l', 'eng', 'txt']
+2026-03-24 13:23:57 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_0n49_siy_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_0n49_siy', '-l', 'eng', 'txt']
+2026-03-24 13:23:58 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_bm_2g6no_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_bm_2g6no', '-l', 'eng', 'txt']
+2026-03-24 13:23:58 | DEBUG    | clickbot.vision | Return type '1040' -> '1040'
+2026-03-24 13:23:58 | DEBUG    | clickbot.vision | CSV scan row 1: ANASTASIIA BONDARENKO not in CSV, skipping
+2026-03-24 13:23:58 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_f94hnxod_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_f94hnxod', '-l', 'eng', 'txt']
+2026-03-24 13:23:58 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_xlxoxam7_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_xlxoxam7', '-l', 'eng', 'txt']
+2026-03-24 13:23:58 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_4g7m2oxe_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_4g7m2oxe', '-l', 'eng', 'txt']
+2026-03-24 13:23:58 | DEBUG    | clickbot.vision | Return type '1040' -> '1040'
+2026-03-24 13:23:58 | DEBUG    | clickbot.vision | CSV scan row 2: ANASTASIA HUZIEVA not TODO in CSV, skipping
+2026-03-24 13:23:58 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_7pbenkt3_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_7pbenkt3', '-l', 'eng', 'txt']
+2026-03-24 13:23:59 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_s50eikq9_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_s50eikq9', '-l', 'eng', 'txt']
+2026-03-24 13:23:59 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_h_n1m03z_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_h_n1m03z', '-l', 'eng', 'txt']
+2026-03-24 13:23:59 | DEBUG    | clickbot.vision | Return type '1040' -> '1040'
+2026-03-24 13:23:59 | DEBUG    | clickbot.vision | CSV scan row 3: ANASTASIIA KUZNIETSOVA not in CSV, skipping
+2026-03-24 13:23:59 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_25313rjb_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_25313rjb', '-l', 'eng', 'txt']
+2026-03-24 13:23:59 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_auq1opx0_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_auq1opx0', '-l', 'eng', 'txt']
+2026-03-24 13:24:00 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_3ht_ht68_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_3ht_ht68', '-l', 'eng', 'txt']
+2026-03-24 13:24:00 | DEBUG    | clickbot.vision | Return type '1040' -> '1040'
+2026-03-24 13:24:00 | DEBUG    | clickbot.vision | CSV scan row 4: ANASTASIA SAVCHUK not in CSV, skipping
+2026-03-24 13:24:00 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_t96v5vhe_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_t96v5vhe', '-l', 'eng', 'txt']
+2026-03-24 13:24:00 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_60lg7b3s_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_60lg7b3s', '-l', 'eng', 'txt']
+2026-03-24 13:24:00 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_cojfdup5_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_cojfdup5', '-l', 'eng', 'txt']
+2026-03-24 13:24:01 | DEBUG    | clickbot.vision | Return type '1040' -> '1040'
+2026-03-24 13:24:01 | INFO     | clickbot.vision | CSV scan: found TODO client ANATOLIE ANTONIU (1040) at row 5
+2026-03-24 13:24:01 | INFO     | clickbot.bot_controller | ============================================================
+2026-03-24 13:24:01 | INFO     | clickbot.bot_controller | CLIENT #1: ANATOLIE ANTONIU (1040)
+2026-03-24 13:24:01 | INFO     | clickbot.bot_controller | ============================================================
+2026-03-24 13:24:01 | INFO     | clickbot.executor | Double-click at (190, 453)
+2026-03-24 13:24:05 | DEBUG    | clickbot.executor | Double-click completed, waited 4.0s
+2026-03-24 13:24:05 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\blue_i_icon.png ((38, 35, 3))
+2026-03-24 13:24:05 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.151 (threshold=0.8)
+2026-03-24 13:24:05 | ERROR    | clickbot.vision | Element not found: common/blue_i_icon.png (max confidence: 0.151)
+2026-03-24 13:24:05 | DEBUG    | clickbot.vision | Vision configured: base_path=C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons, confidence=0.8
+2026-03-24 13:24:05 | DEBUG    | clickbot.vision | Tesseract (bundled): C:\TaxActBot\dist\TaxActBot\_internal\tesseract_bundle\tesseract.exe
+2026-03-24 13:24:05 | DEBUG    | clickbot.process_executor | ProcessExecutor initialized
+2026-03-24 13:24:05 | INFO     | clickbot.process_loader | Loading process: C:\TaxActBot\dist\TaxActBot\_internal\config\processes\1040.json
+2026-03-24 13:24:05 | DEBUG    | clickbot.process_loader | Process validation passed: 19 steps/stages
+2026-03-24 13:24:05 | INFO     | clickbot.process_loader | Process loaded: Form 1040 E-File Extension with 19 steps
+2026-03-24 13:24:05 | INFO     | clickbot.process_executor | [1040] Step  1/19 | click_efile_menu                    | Click E-File in the top menu bar
+2026-03-24 13:24:05 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\01_basic_information.png ((29, 134, 3))
+2026-03-24 13:24:05 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:05 | INFO     | clickbot.vision | Element found: 1040/01_basic_information.png at (539, 147) confidence=1.000
+2026-03-24 13:24:05 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\efile_menu.png ((23, 57, 3))
+2026-03-24 13:24:05 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:05 | INFO     | clickbot.vision | Element found: common/efile_menu.png at (471, 60) confidence=1.000
+2026-03-24 13:24:05 | INFO     | clickbot.executor | Click at (471, 60)
+2026-03-24 13:24:06 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:06 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/02_efile_center.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:06 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\02_efile_center.png ((21, 244, 3))
+2026-03-24 13:24:06 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.985 (threshold=0.8)
+2026-03-24 13:24:06 | INFO     | clickbot.vision | Element found: 1040/02_efile_center.png at (813, 375) confidence=0.985
+2026-03-24 13:24:06 | DEBUG    | clickbot.vision | wait_for_element: found 1040/02_efile_center.png after 1 polls
+2026-03-24 13:24:06 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/02_efile_center.png
+2026-03-24 13:24:06 | INFO     | clickbot.process_executor | [1040] Step  2/19 | click_submit_electronic_filing      | Select Submit Electronic Filing Return in popup
+2026-03-24 13:24:06 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\02_efile_center.png ((21, 244, 3))
+2026-03-24 13:24:06 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.985 (threshold=0.8)
+2026-03-24 13:24:06 | INFO     | clickbot.vision | Element found: 1040/02_efile_center.png at (813, 375) confidence=0.985
+2026-03-24 13:24:06 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\submit_electronic_filing.png ((24, 251, 3))
+2026-03-24 13:24:07 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:07 | INFO     | clickbot.vision | Element found: common/submit_electronic_filing.png at (814, 376) confidence=1.000
+2026-03-24 13:24:07 | INFO     | clickbot.executor | Click at (814, 376)
+2026-03-24 13:24:07 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:07 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/03_file_extension.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:07 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\03_file_extension.png ((26, 115, 3))
+2026-03-24 13:24:07 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.552 (threshold=0.8)
+2026-03-24 13:24:07 | ERROR    | clickbot.vision | Element not found: 1040/03_file_extension.png (max confidence: 0.552)
+2026-03-24 13:24:07 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\03_file_extension.png ((26, 115, 3))
+2026-03-24 13:24:08 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.518 (threshold=0.8)
+2026-03-24 13:24:08 | ERROR    | clickbot.vision | Element not found: 1040/03_file_extension.png (max confidence: 0.518)
+2026-03-24 13:24:08 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\03_file_extension.png ((26, 115, 3))
+2026-03-24 13:24:08 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:08 | INFO     | clickbot.vision | Element found: 1040/03_file_extension.png at (570, 544) confidence=1.000
+2026-03-24 13:24:08 | DEBUG    | clickbot.vision | wait_for_element: found 1040/03_file_extension.png after 3 polls
+2026-03-24 13:24:08 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/03_file_extension.png
+2026-03-24 13:24:08 | INFO     | clickbot.process_executor | [1040] Step  3/19 | select_file_extension_and_continue  | Check File Extension (if unchecked), click Continue, handle locked_2 popup if present
+2026-03-24 13:24:08 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\03_file_extension.png ((26, 115, 3))
+2026-03-24 13:24:09 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:09 | INFO     | clickbot.vision | Element found: 1040/03_file_extension.png at (570, 544) confidence=1.000
+2026-03-24 13:24:09 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 1/3: conditional
+2026-03-24 13:24:09 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\file_extension_option_unchecked.png ((29, 140, 3))
+2026-03-24 13:24:09 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:09 | INFO     | clickbot.vision | Element found: common/file_extension_option_unchecked.png at (561, 544) confidence=1.000
+2026-03-24 13:24:09 | INFO     | clickbot.process_executor |   -> Condition: common/file_extension_option_unchecked.png visible=True -> if_true
+2026-03-24 13:24:09 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\file_extension_option_unchecked.png ((29, 140, 3))
+2026-03-24 13:24:09 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:09 | INFO     | clickbot.vision | Element found: common/file_extension_option_unchecked.png at (561, 544) confidence=1.000
+2026-03-24 13:24:09 | INFO     | clickbot.executor | Click at (561, 544)
+2026-03-24 13:24:09 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:10 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 2/3: click
+2026-03-24 13:24:10 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:10 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:10 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 635) confidence=1.000
+2026-03-24 13:24:10 | INFO     | clickbot.executor | Click at (1113, 635)
+2026-03-24 13:24:10 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:12 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 3/3: conditional
+2026-03-24 13:24:12 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\locked_2.png ((22, 83, 3))
+2026-03-24 13:24:13 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.626 (threshold=0.8)
+2026-03-24 13:24:13 | ERROR    | clickbot.vision | Element not found: common/locked_2.png (max confidence: 0.626)
+2026-03-24 13:24:13 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\locked_2.png ((22, 83, 3))
+2026-03-24 13:24:13 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.626 (threshold=0.8)
+2026-03-24 13:24:13 | ERROR    | clickbot.vision | Element not found: common/locked_2.png (max confidence: 0.626)
+2026-03-24 13:24:13 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\locked_2.png ((22, 83, 3))
+2026-03-24 13:24:14 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.626 (threshold=0.8)
+2026-03-24 13:24:14 | ERROR    | clickbot.vision | Element not found: common/locked_2.png (max confidence: 0.626)
+2026-03-24 13:24:14 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\locked_2.png ((22, 83, 3))
+2026-03-24 13:24:14 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.626 (threshold=0.8)
+2026-03-24 13:24:14 | ERROR    | clickbot.vision | Element not found: common/locked_2.png (max confidence: 0.626)
+2026-03-24 13:24:14 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\locked_2.png ((22, 83, 3))
+2026-03-24 13:24:15 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.626 (threshold=0.8)
+2026-03-24 13:24:15 | ERROR    | clickbot.vision | Element not found: common/locked_2.png (max confidence: 0.626)
+2026-03-24 13:24:15 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\locked_2.png ((22, 83, 3))
+2026-03-24 13:24:15 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.626 (threshold=0.8)
+2026-03-24 13:24:15 | ERROR    | clickbot.vision | Element not found: common/locked_2.png (max confidence: 0.626)
+2026-03-24 13:24:16 | DEBUG    | clickbot.vision | wait_for_element: timeout after 6 polls for common/locked_2.png
+2026-03-24 13:24:16 | INFO     | clickbot.process_executor |   -> Condition: common/locked_2.png visible=False -> if_false
+2026-03-24 13:24:17 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/04_federal_extension.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:17 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\04_federal_extension.png ((40, 475, 3))
+2026-03-24 13:24:17 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:17 | INFO     | clickbot.vision | Element found: 1040/04_federal_extension.png at (727, 213) confidence=1.000
+2026-03-24 13:24:17 | DEBUG    | clickbot.vision | wait_for_element: found 1040/04_federal_extension.png after 1 polls
+2026-03-24 13:24:17 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/04_federal_extension.png
+2026-03-24 13:24:17 | INFO     | clickbot.process_executor | [1040] Step  4/19 | click_yes_federal_extension         | Click Yes on Federal Extension screen
+2026-03-24 13:24:17 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\04_federal_extension.png ((40, 475, 3))
+2026-03-24 13:24:17 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:17 | INFO     | clickbot.vision | Element found: 1040/04_federal_extension.png at (727, 213) confidence=1.000
+2026-03-24 13:24:17 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\yes_green.png ((41, 83, 3))
+2026-03-24 13:24:17 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:17 | INFO     | clickbot.vision | Element found: common/yes_green.png at (532, 463) confidence=1.000
+2026-03-24 13:24:17 | INFO     | clickbot.executor | Click at (532, 463)
+2026-03-24 13:24:18 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:18 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/05_application_for_automatic_extension.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:18 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\05_application_for_automatic_extension.png ((31, 570, 3))
+2026-03-24 13:24:18 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.414 (threshold=0.8)
+2026-03-24 13:24:18 | ERROR    | clickbot.vision | Element not found: 1040/05_application_for_automatic_extension.png (max confidence: 0.414)
+2026-03-24 13:24:18 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\05_application_for_automatic_extension.png ((31, 570, 3))
+2026-03-24 13:24:18 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:18 | INFO     | clickbot.vision | Element found: 1040/05_application_for_automatic_extension.png at (776, 215) confidence=1.000
+2026-03-24 13:24:18 | DEBUG    | clickbot.vision | wait_for_element: found 1040/05_application_for_automatic_extension.png after 2 polls
+2026-03-24 13:24:18 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/05_application_for_automatic_extension.png
+2026-03-24 13:24:19 | INFO     | clickbot.process_executor | [1040] Step  5/19 | click_complete_form_4868            | Click Complete Form 4868 button
+2026-03-24 13:24:19 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\05_application_for_automatic_extension.png ((31, 570, 3))
+2026-03-24 13:24:19 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:19 | INFO     | clickbot.vision | Element found: 1040/05_application_for_automatic_extension.png at (776, 215) confidence=1.000
+2026-03-24 13:24:19 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\complete_form_4868_green.png ((39, 213, 3))
+2026-03-24 13:24:19 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:19 | INFO     | clickbot.vision | Element found: 1040/complete_form_4868_green.png at (596, 415) confidence=1.000
+2026-03-24 13:24:19 | INFO     | clickbot.executor | Click at (596, 415)
+2026-03-24 13:24:19 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:19 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/06_personal_data.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:19 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\06_personal_data.png ((60, 647, 3))
+2026-03-24 13:24:20 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.373 (threshold=0.8)
+2026-03-24 13:24:20 | ERROR    | clickbot.vision | Element not found: 1040/06_personal_data.png (max confidence: 0.373)
+2026-03-24 13:24:20 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\06_personal_data.png ((60, 647, 3))
+2026-03-24 13:24:20 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:20 | INFO     | clickbot.vision | Element found: 1040/06_personal_data.png at (813, 227) confidence=1.000
+2026-03-24 13:24:20 | DEBUG    | clickbot.vision | wait_for_element: found 1040/06_personal_data.png after 2 polls
+2026-03-24 13:24:20 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/06_personal_data.png
+2026-03-24 13:24:20 | INFO     | clickbot.process_executor | [1040] Step  6/19 | click_continue_personal_data        | Continue on Personal Data screen
+2026-03-24 13:24:20 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\06_personal_data.png ((60, 647, 3))
+2026-03-24 13:24:20 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:20 | INFO     | clickbot.vision | Element found: 1040/06_personal_data.png at (813, 227) confidence=1.000
+2026-03-24 13:24:20 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:21 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:21 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 644) confidence=1.000
+2026-03-24 13:24:21 | INFO     | clickbot.executor | Click at (1113, 644)
+2026-03-24 13:24:21 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:21 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/07_spouse.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:21 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\07_spouse.png ((40, 235, 3))
+2026-03-24 13:24:21 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.696 (threshold=0.8)
+2026-03-24 13:24:21 | ERROR    | clickbot.vision | Element not found: 1040/07_spouse.png (max confidence: 0.696)
+2026-03-24 13:24:22 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\07_spouse.png ((40, 235, 3))
+2026-03-24 13:24:22 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:22 | INFO     | clickbot.vision | Element found: 1040/07_spouse.png at (609, 217) confidence=1.000
+2026-03-24 13:24:22 | DEBUG    | clickbot.vision | wait_for_element: found 1040/07_spouse.png after 2 polls
+2026-03-24 13:24:22 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/07_spouse.png
+2026-03-24 13:24:22 | INFO     | clickbot.process_executor | [1040] Step  7/19 | click_continue_spouse               | Continue on Spouse screen
+2026-03-24 13:24:22 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\07_spouse.png ((40, 235, 3))
+2026-03-24 13:24:22 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:22 | INFO     | clickbot.vision | Element found: 1040/07_spouse.png at (609, 217) confidence=1.000
+2026-03-24 13:24:22 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:23 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:23 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 615) confidence=1.000
+2026-03-24 13:24:23 | INFO     | clickbot.executor | Click at (1113, 615)
+2026-03-24 13:24:23 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:23 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/08_address.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:23 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\08_address.png ((39, 247, 3))
+2026-03-24 13:24:23 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.717 (threshold=0.8)
+2026-03-24 13:24:23 | ERROR    | clickbot.vision | Element not found: 1040/08_address.png (max confidence: 0.717)
+2026-03-24 13:24:23 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\08_address.png ((39, 247, 3))
+2026-03-24 13:24:24 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:24 | INFO     | clickbot.vision | Element found: 1040/08_address.png at (613, 216) confidence=1.000
+2026-03-24 13:24:24 | DEBUG    | clickbot.vision | wait_for_element: found 1040/08_address.png after 2 polls
+2026-03-24 13:24:24 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/08_address.png
+2026-03-24 13:24:24 | INFO     | clickbot.process_executor | [1040] Step  8/19 | click_continue_address              | Continue on Address screen
+2026-03-24 13:24:24 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\08_address.png ((39, 247, 3))
+2026-03-24 13:24:24 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:24 | INFO     | clickbot.vision | Element found: 1040/08_address.png at (613, 216) confidence=1.000
+2026-03-24 13:24:24 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:24 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.963 (threshold=0.8)
+2026-03-24 13:24:24 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 584) confidence=0.963
+2026-03-24 13:24:24 | INFO     | clickbot.executor | Click at (1113, 584)
+2026-03-24 13:24:25 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:25 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/09_tax_liability.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:25 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\09_tax_liability.png ((38, 460, 3))
+2026-03-24 13:24:25 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.480 (threshold=0.8)
+2026-03-24 13:24:25 | ERROR    | clickbot.vision | Element not found: 1040/09_tax_liability.png (max confidence: 0.480)
+2026-03-24 13:24:25 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\09_tax_liability.png ((38, 460, 3))
+2026-03-24 13:24:25 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:25 | INFO     | clickbot.vision | Element found: 1040/09_tax_liability.png at (720, 216) confidence=1.000
+2026-03-24 13:24:25 | DEBUG    | clickbot.vision | wait_for_element: found 1040/09_tax_liability.png after 2 polls
+2026-03-24 13:24:25 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/09_tax_liability.png
+2026-03-24 13:24:26 | INFO     | clickbot.process_executor | [1040] Step  9/19 | click_continue_tax_liability        | Continue on Tax Liability screen
+2026-03-24 13:24:26 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\09_tax_liability.png ((38, 460, 3))
+2026-03-24 13:24:26 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:26 | INFO     | clickbot.vision | Element found: 1040/09_tax_liability.png at (720, 216) confidence=1.000
+2026-03-24 13:24:26 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:26 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.955 (threshold=0.8)
+2026-03-24 13:24:26 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 584) confidence=0.955
+2026-03-24 13:24:26 | INFO     | clickbot.executor | Click at (1113, 584)
+2026-03-24 13:24:26 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:26 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/10_payment_amount.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:26 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\10_payment_amount.png ((34, 354, 3))
+2026-03-24 13:24:27 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.558 (threshold=0.8)
+2026-03-24 13:24:27 | ERROR    | clickbot.vision | Element not found: 1040/10_payment_amount.png (max confidence: 0.558)
+2026-03-24 13:24:27 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\10_payment_amount.png ((34, 354, 3))
+2026-03-24 13:24:27 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:27 | INFO     | clickbot.vision | Element found: 1040/10_payment_amount.png at (668, 214) confidence=1.000
+2026-03-24 13:24:27 | DEBUG    | clickbot.vision | wait_for_element: found 1040/10_payment_amount.png after 2 polls
+2026-03-24 13:24:27 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/10_payment_amount.png
+2026-03-24 13:24:27 | INFO     | clickbot.process_executor | [1040] Step 10/19 | click_continue_payment_amount       | Continue on Payment Amount screen
+2026-03-24 13:24:27 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\10_payment_amount.png ((34, 354, 3))
+2026-03-24 13:24:28 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:28 | INFO     | clickbot.vision | Element found: 1040/10_payment_amount.png at (668, 214) confidence=1.000
+2026-03-24 13:24:28 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:28 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.955 (threshold=0.8)
+2026-03-24 13:24:28 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 584) confidence=0.955
+2026-03-24 13:24:28 | INFO     | clickbot.executor | Click at (1113, 584)
+2026-03-24 13:24:28 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:28 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/11_filing.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:28 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\11_filing.png ((30, 215, 3))
+2026-03-24 13:24:28 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.781 (threshold=0.8)
+2026-03-24 13:24:28 | ERROR    | clickbot.vision | Element not found: 1040/11_filing.png (max confidence: 0.781)
+2026-03-24 13:24:29 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\11_filing.png ((30, 215, 3))
+2026-03-24 13:24:29 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:29 | INFO     | clickbot.vision | Element found: 1040/11_filing.png at (595, 216) confidence=1.000
+2026-03-24 13:24:29 | DEBUG    | clickbot.vision | wait_for_element: found 1040/11_filing.png after 2 polls
+2026-03-24 13:24:29 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/11_filing.png
+2026-03-24 13:24:29 | INFO     | clickbot.process_executor | [1040] Step 11/19 | click_efile_green                   | Click green E-File button on Filing screen
+2026-03-24 13:24:29 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\11_filing.png ((30, 215, 3))
+2026-03-24 13:24:29 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:29 | INFO     | clickbot.vision | Element found: 1040/11_filing.png at (595, 216) confidence=1.000
+2026-03-24 13:24:29 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\efile_green.png ((40, 177, 3))
+2026-03-24 13:24:30 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:30 | INFO     | clickbot.vision | Element found: 1040/efile_green.png at (758, 392) confidence=1.000
+2026-03-24 13:24:30 | INFO     | clickbot.executor | Click at (758, 392)
+2026-03-24 13:24:30 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:33 | INFO     | clickbot.process_executor | [1040] Step 12/19 | handle_post_efile                   | If on Acknowledgement screen, click Continue; otherwise bail out (Wizard/other)
+2026-03-24 13:24:33 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\12_acknowledgement.png ((39, 528, 3))
+2026-03-24 13:24:33 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:33 | INFO     | clickbot.vision | Element found: 1040/12_acknowledgement.png at (752, 216) confidence=1.000
+2026-03-24 13:24:33 | INFO     | clickbot.process_executor |   -> Condition: 1040/12_acknowledgement.png visible=True -> if_true
+2026-03-24 13:24:33 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:33 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.963 (threshold=0.8)
+2026-03-24 13:24:33 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 584) confidence=0.963
+2026-03-24 13:24:33 | INFO     | clickbot.executor | Click at (1113, 584)
+2026-03-24 13:24:34 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:34 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/13_consent_to_disclosure.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:34 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\13_consent_to_disclosure.png ((32, 490, 3))
+2026-03-24 13:24:34 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.652 (threshold=0.8)
+2026-03-24 13:24:34 | ERROR    | clickbot.vision | Element not found: 1040/13_consent_to_disclosure.png (max confidence: 0.652)
+2026-03-24 13:24:34 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\13_consent_to_disclosure.png ((32, 490, 3))
+2026-03-24 13:24:34 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:34 | INFO     | clickbot.vision | Element found: 1040/13_consent_to_disclosure.png at (736, 214) confidence=1.000
+2026-03-24 13:24:34 | DEBUG    | clickbot.vision | wait_for_element: found 1040/13_consent_to_disclosure.png after 2 polls
+2026-03-24 13:24:34 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/13_consent_to_disclosure.png
+2026-03-24 13:24:36 | INFO     | clickbot.process_executor | [1040] Step 13/19 | click_agree_consent                 | Click Agree on Consent to Disclosure screen
+2026-03-24 13:24:36 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\13_consent_to_disclosure.png ((32, 490, 3))
+2026-03-24 13:24:36 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:36 | INFO     | clickbot.vision | Element found: 1040/13_consent_to_disclosure.png at (736, 214) confidence=1.000
+2026-03-24 13:24:36 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\agree_green.png ((41, 110, 3))
+2026-03-24 13:24:36 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:36 | INFO     | clickbot.vision | Element found: 1040/agree_green.png at (546, 437) confidence=1.000
+2026-03-24 13:24:36 | INFO     | clickbot.executor | Click at (546, 437)
+2026-03-24 13:24:36 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:36 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/14_alerts.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:36 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\14_alerts.png ((41, 472, 3))
+2026-03-24 13:24:37 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.637 (threshold=0.8)
+2026-03-24 13:24:37 | ERROR    | clickbot.vision | Element not found: 1040/14_alerts.png (max confidence: 0.637)
+2026-03-24 13:24:37 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\14_alerts.png ((41, 472, 3))
+2026-03-24 13:24:37 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:37 | INFO     | clickbot.vision | Element found: 1040/14_alerts.png at (726, 215) confidence=1.000
+2026-03-24 13:24:37 | DEBUG    | clickbot.vision | wait_for_element: found 1040/14_alerts.png after 2 polls
+2026-03-24 13:24:37 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/14_alerts.png
+2026-03-24 13:24:37 | INFO     | clickbot.process_executor | [1040] Step 14/19 | click_start_alerts                  | Click Start Alerts button on Review Alerts screen
+2026-03-24 13:24:37 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\14_alerts.png ((41, 472, 3))
+2026-03-24 13:24:38 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:38 | INFO     | clickbot.vision | Element found: 1040/14_alerts.png at (726, 215) confidence=1.000
+2026-03-24 13:24:38 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\start_alerts_green.png ((43, 222, 3))
+2026-03-24 13:24:38 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:38 | INFO     | clickbot.vision | Element found: 1040/start_alerts_green.png at (604, 326) confidence=1.000
+2026-03-24 13:24:38 | INFO     | clickbot.executor | Click at (604, 326)
+2026-03-24 13:24:38 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:40 | INFO     | clickbot.process_executor | [1040] Step 15/19 | handle_third_party_designee         | If Third-Party Designee screen appears, fill 3 fields and re-run alerts; otherwise continue
+2026-03-24 13:24:40 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\third_party_designee.png ((36, 470, 3))
+2026-03-24 13:24:40 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:40 | INFO     | clickbot.vision | Element found: 1040/third_party_designee.png at (757, 215) confidence=1.000
+2026-03-24 13:24:40 | INFO     | clickbot.process_executor |   -> Condition: 1040/third_party_designee.png visible=True -> if_true
+2026-03-24 13:24:40 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 1/8: click
+2026-03-24 13:24:40 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\label_designee_name.png ((21, 120, 3))
+2026-03-24 13:24:40 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:41 | INFO     | clickbot.vision | Element found: 1040/label_designee_name.png at (552, 321) confidence=1.000
+2026-03-24 13:24:41 | INFO     | clickbot.executor | Click at (552, 346)
+2026-03-24 13:24:41 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:41 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 2/8: type
+2026-03-24 13:24:41 | INFO     | clickbot.executor | Typing text: 'TATIANA MOROZ'
+2026-03-24 13:24:42 | DEBUG    | clickbot.executor | Typed 13 characters
+2026-03-24 13:24:43 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 3/8: click
+2026-03-24 13:24:43 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\label_designee_phone.png ((22, 128, 3))
+2026-03-24 13:24:43 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:43 | INFO     | clickbot.vision | Element found: 1040/label_designee_phone.png at (556, 392) confidence=1.000
+2026-03-24 13:24:43 | INFO     | clickbot.executor | Click at (556, 417)
+2026-03-24 13:24:43 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:44 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 4/8: type
+2026-03-24 13:24:44 | INFO     | clickbot.executor | Typing text: '(847)850-0085'
+2026-03-24 13:24:45 | DEBUG    | clickbot.executor | Typed 13 characters
+2026-03-24 13:24:45 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 5/8: click
+2026-03-24 13:24:45 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\label_designee_pin.png ((22, 106, 3))
+2026-03-24 13:24:45 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:45 | INFO     | clickbot.vision | Element found: 1040/label_designee_pin.png at (544, 462) confidence=1.000
+2026-03-24 13:24:45 | INFO     | clickbot.executor | Click at (544, 487)
+2026-03-24 13:24:46 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:46 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 6/8: type
+2026-03-24 13:24:46 | INFO     | clickbot.executor | Typing text: '12345'
+2026-03-24 13:24:47 | DEBUG    | clickbot.executor | Typed 5 characters
+2026-03-24 13:24:47 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 7/8: click
+2026-03-24 13:24:47 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:47 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:47 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 666) confidence=1.000
+2026-03-24 13:24:47 | INFO     | clickbot.executor | Click at (1113, 666)
+2026-03-24 13:24:48 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:50 | DEBUG    | clickbot.process_executor |   -> Multi sub-action 8/8: click
+2026-03-24 13:24:50 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\start_alerts_short.png ((46, 149, 3))
+2026-03-24 13:24:50 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:50 | INFO     | clickbot.vision | Element found: 1040/start_alerts_short.png at (562, 368) confidence=1.000
+2026-03-24 13:24:50 | INFO     | clickbot.executor | Click at (562, 368)
+2026-03-24 13:24:50 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:53 | INFO     | clickbot.process_executor | [1040] Step 16/19 | handle_alerts_result                | Check if Passed Alerts or error - different actions
+2026-03-24 13:24:53 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\passed_alerts.png ((33, 165, 3))
+2026-03-24 13:24:53 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.951 (threshold=0.8)
+2026-03-24 13:24:53 | INFO     | clickbot.vision | Element found: common/passed_alerts.png at (806, 215) confidence=0.951
+2026-03-24 13:24:53 | INFO     | clickbot.process_executor |   -> Condition: common/passed_alerts.png visible=True -> if_true
+2026-03-24 13:24:53 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:24:54 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.963 (threshold=0.8)
+2026-03-24 13:24:54 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 584) confidence=0.963
+2026-03-24 13:24:54 | INFO     | clickbot.executor | Click at (1113, 584)
+2026-03-24 13:24:54 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:54 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/16_submit.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:24:54 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\16_submit.png ((37, 449, 3))
+2026-03-24 13:24:54 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.710 (threshold=0.8)
+2026-03-24 13:24:54 | ERROR    | clickbot.vision | Element not found: 1040/16_submit.png (max confidence: 0.710)
+2026-03-24 13:24:54 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\16_submit.png ((37, 449, 3))
+2026-03-24 13:24:55 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.256 (threshold=0.8)
+2026-03-24 13:24:55 | ERROR    | clickbot.vision | Element not found: 1040/16_submit.png (max confidence: 0.256)
+2026-03-24 13:24:55 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\16_submit.png ((37, 449, 3))
+2026-03-24 13:24:55 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.256 (threshold=0.8)
+2026-03-24 13:24:55 | ERROR    | clickbot.vision | Element not found: 1040/16_submit.png (max confidence: 0.256)
+2026-03-24 13:24:56 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\16_submit.png ((37, 449, 3))
+2026-03-24 13:24:56 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.256 (threshold=0.8)
+2026-03-24 13:24:56 | ERROR    | clickbot.vision | Element not found: 1040/16_submit.png (max confidence: 0.256)
+2026-03-24 13:24:56 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\16_submit.png ((37, 449, 3))
+2026-03-24 13:24:56 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:56 | INFO     | clickbot.vision | Element found: 1040/16_submit.png at (715, 214) confidence=1.000
+2026-03-24 13:24:56 | DEBUG    | clickbot.vision | wait_for_element: found 1040/16_submit.png after 5 polls
+2026-03-24 13:24:56 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/16_submit.png
+2026-03-24 13:24:57 | INFO     | clickbot.process_executor | [1040] Step 17/19 | click_submit_efile                  | Click Submit E-File button (no retry - dangerous!)
+2026-03-24 13:24:58 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\16_submit.png ((37, 449, 3))
+2026-03-24 13:24:58 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:58 | INFO     | clickbot.vision | Element found: 1040/16_submit.png at (715, 214) confidence=1.000
+2026-03-24 13:24:58 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\submit_efile.png ((38, 152, 3))
+2026-03-24 13:24:58 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:24:58 | INFO     | clickbot.vision | Element found: common/submit_efile.png at (568, 376) confidence=1.000
+2026-03-24 13:24:58 | INFO     | clickbot.executor | Click at (568, 376)
+2026-03-24 13:24:58 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:24:58 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/17_successful.png (timeout=30.0s, attempt 1/1)
+2026-03-24 13:24:58 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\17_successful.png ((39, 437, 3))
+2026-03-24 13:24:58 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.651 (threshold=0.8)
+2026-03-24 13:24:58 | ERROR    | clickbot.vision | Element not found: 1040/17_successful.png (max confidence: 0.651)
+2026-03-24 13:24:59 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\17_successful.png ((39, 437, 3))
+2026-03-24 13:24:59 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.651 (threshold=0.8)
+2026-03-24 13:24:59 | ERROR    | clickbot.vision | Element not found: 1040/17_successful.png (max confidence: 0.651)
+2026-03-24 13:24:59 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\17_successful.png ((39, 437, 3))
+2026-03-24 13:24:59 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.651 (threshold=0.8)
+2026-03-24 13:24:59 | ERROR    | clickbot.vision | Element not found: 1040/17_successful.png (max confidence: 0.651)
+2026-03-24 13:25:00 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\17_successful.png ((39, 437, 3))
+2026-03-24 13:25:00 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.651 (threshold=0.8)
+2026-03-24 13:25:00 | ERROR    | clickbot.vision | Element not found: 1040/17_successful.png (max confidence: 0.651)
+2026-03-24 13:25:00 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\17_successful.png ((39, 437, 3))
+2026-03-24 13:25:00 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:25:00 | INFO     | clickbot.vision | Element found: 1040/17_successful.png at (708, 216) confidence=1.000
+2026-03-24 13:25:00 | DEBUG    | clickbot.vision | wait_for_element: found 1040/17_successful.png after 5 polls
+2026-03-24 13:25:00 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/17_successful.png
+2026-03-24 13:25:01 | INFO     | clickbot.process_executor | [1040] Step 18/19 | handle_submit_result                | Check if E-File Successful or error - safeguard
+2026-03-24 13:25:01 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\1040\successful.png ((34, 428, 3))
+2026-03-24 13:25:01 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:25:01 | INFO     | clickbot.vision | Element found: 1040/successful.png at (707, 215) confidence=1.000
+2026-03-24 13:25:01 | INFO     | clickbot.process_executor |   -> Condition: 1040/successful.png visible=True -> if_true
+2026-03-24 13:25:01 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\continue_blue.png ((47, 149, 3))
+2026-03-24 13:25:01 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:25:01 | INFO     | clickbot.vision | Element found: common/continue_blue.png at (1113, 592) confidence=1.000
+2026-03-24 13:25:01 | INFO     | clickbot.executor | Click at (1113, 592)
+2026-03-24 13:25:01 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:25:01 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/18_complete.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:25:01 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\18_complete.png ((34, 324, 3))
+2026-03-24 13:25:02 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.419 (threshold=0.8)
+2026-03-24 13:25:02 | ERROR    | clickbot.vision | Element not found: 1040/18_complete.png (max confidence: 0.419)
+2026-03-24 13:25:02 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\18_complete.png ((34, 324, 3))
+2026-03-24 13:25:02 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:25:02 | INFO     | clickbot.vision | Element found: 1040/18_complete.png at (654, 215) confidence=1.000
+2026-03-24 13:25:02 | DEBUG    | clickbot.vision | wait_for_element: found 1040/18_complete.png after 2 polls
+2026-03-24 13:25:02 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/18_complete.png
+2026-03-24 13:25:04 | INFO     | clickbot.process_executor | [1040] Step 19/19 | click_clients_complete              | Click Clients button on Filing Complete screen to return to Client Manager
+2026-03-24 13:25:04 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\18_complete.png ((34, 324, 3))
+2026-03-24 13:25:04 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:25:04 | INFO     | clickbot.vision | Element found: 1040/18_complete.png at (654, 215) confidence=1.000
+2026-03-24 13:25:04 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\clients_button.png ((25, 70, 3))
+2026-03-24 13:25:04 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.994 (threshold=0.8)
+2026-03-24 13:25:04 | INFO     | clickbot.vision | Element found: common/clients_button.png at (142, 59) confidence=0.994
+2026-03-24 13:25:04 | INFO     | clickbot.executor | Click at (142, 59)
+2026-03-24 13:25:04 | DEBUG    | clickbot.executor | Click completed, waited 0s
+2026-03-24 13:25:04 | INFO     | clickbot.process_executor |   -> Verifying: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify/1040/19_base.png (timeout=10.0s, attempt 1/3)
+2026-03-24 13:25:04 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\19_base.png ((25, 376, 3))
+2026-03-24 13:25:04 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.318 (threshold=0.8)
+2026-03-24 13:25:04 | ERROR    | clickbot.vision | Element not found: 1040/19_base.png (max confidence: 0.318)
+2026-03-24 13:25:05 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\19_base.png ((25, 376, 3))
+2026-03-24 13:25:05 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.318 (threshold=0.8)
+2026-03-24 13:25:05 | ERROR    | clickbot.vision | Element not found: 1040/19_base.png (max confidence: 0.318)
+2026-03-24 13:25:05 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\19_base.png ((25, 376, 3))
+2026-03-24 13:25:05 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.318 (threshold=0.8)
+2026-03-24 13:25:05 | ERROR    | clickbot.vision | Element not found: 1040/19_base.png (max confidence: 0.318)
+2026-03-24 13:25:06 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\19_base.png ((25, 376, 3))
+2026-03-24 13:25:06 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=0.318 (threshold=0.8)
+2026-03-24 13:25:06 | ERROR    | clickbot.vision | Element not found: 1040/19_base.png (max confidence: 0.318)
+2026-03-24 13:25:06 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\assets\verify\1040\19_base.png ((25, 376, 3))
+2026-03-24 13:25:07 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=1.000 (threshold=0.8)
+2026-03-24 13:25:07 | INFO     | clickbot.vision | Element found: 1040/19_base.png at (248, 83) confidence=1.000
+2026-03-24 13:25:07 | DEBUG    | clickbot.vision | wait_for_element: found 1040/19_base.png after 5 polls
+2026-03-24 13:25:07 | INFO     | clickbot.process_executor |   -> Screen verified: 1040/19_base.png
+2026-03-24 13:25:07 | DEBUG    | clickbot.preprocessor | Loaded 463 records from C:\TaxActBot\logs\clients_2026-03-24-10-44-17.csv
+2026-03-24 13:25:07 | DEBUG    | clickbot.preprocessor | Updated status: ANATOLIE ANTONIU (616-57-7582, 1040) -> Submitted
+2026-03-24 13:25:07 | DEBUG    | clickbot.preprocessor | Wrote 463 records to C:\TaxActBot\logs\clients_2026-03-24-10-44-17.csv
+2026-03-24 13:25:07 | DEBUG    | clickbot.preprocessor | Loaded 463 records from C:\TaxActBot\logs\clients_2026-03-24-10-44-17.csv
+2026-03-24 13:25:07 | DEBUG    | clickbot.sounds | Played iteration sound: SystemAsterisk
+2026-03-24 13:25:07 | DEBUG    | clickbot.bot_controller | Scrolled client table to top
+2026-03-24 13:25:08 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_ggwlfi6w_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_ggwlfi6w', '-l', 'eng', 'txt']
+2026-03-24 13:25:08 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_eetqb99b_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_eetqb99b', '-l', 'eng', 'txt']
+2026-03-24 13:25:08 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_yjdw1ios_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_yjdw1ios', '-l', 'eng', 'txt']
+2026-03-24 13:25:08 | DEBUG    | clickbot.vision | Return type not recognized: ''
+2026-03-24 13:25:08 | DEBUG    | clickbot.vision | CSV scan row 0: Loading clients type '' != selected '1040', skipping
+2026-03-24 13:25:08 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_wg_o62ai_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_wg_o62ai', '-l', 'eng', 'txt']
+2026-03-24 13:25:09 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_48_co7vi_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_48_co7vi', '-l', 'eng', 'txt']
+2026-03-24 13:25:09 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_1410960m_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_1410960m', '-l', 'eng', 'txt']
+2026-03-24 13:25:09 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_08coq2o2_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_08coq2o2', '-l', 'eng', 'txt']
+2026-03-24 13:25:09 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_djad0tgm_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_djad0tgm', '-l', 'eng', 'txt']
+2026-03-24 13:25:10 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_7i8yw3_g_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_7i8yw3_g', '-l', 'eng', 'txt']
+2026-03-24 13:25:10 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_h7c03sis_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_h7c03sis', '-l', 'eng', 'txt']
+2026-03-24 13:25:10 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_pchjpb6d_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_pchjpb6d', '-l', 'eng', 'txt']
+2026-03-24 13:25:10 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_jh4941pp_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_jh4941pp', '-l', 'eng', 'txt']
+2026-03-24 13:25:11 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_7k8t2qk__input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_7k8t2qk_', '-l', 'eng', 'txt']
+2026-03-24 13:25:11 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_rx6bzg52_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_rx6bzg52', '-l', 'eng', 'txt']
+2026-03-24 13:25:11 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_hdfrdsaj_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_hdfrdsaj', '-l', 'eng', 'txt']
+2026-03-24 13:25:11 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_7yjdqlja_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_7yjdqlja', '-l', 'eng', 'txt']
+2026-03-24 13:25:11 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_tf0av1fj_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_tf0av1fj', '-l', 'eng', 'txt']
+2026-03-24 13:25:12 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_jzymve9n_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_jzymve9n', '-l', 'eng', 'txt']
+2026-03-24 13:25:12 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_kjsp9zd0_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_kjsp9zd0', '-l', 'eng', 'txt']
+2026-03-24 13:25:12 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_xau2660e_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_xau2660e', '-l', 'eng', 'txt']
+2026-03-24 13:25:12 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_p46iro0c_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_p46iro0c', '-l', 'eng', 'txt']
+2026-03-24 13:25:13 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_q96odtx4_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_q96odtx4', '-l', 'eng', 'txt']
+2026-03-24 13:25:13 | DEBUG    | clickbot.vision | CSV scan: no TODO client found on page (last_client='Loading clients')
+2026-03-24 13:25:13 | DEBUG    | clickbot.bot_controller | No TODO on page, scrolling (attempt 1/20)
+2026-03-24 13:25:14 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_6u_1r9m4_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_6u_1r9m4', '-l', 'eng', 'txt']
+2026-03-24 13:25:14 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_0b3go_6w_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_0b3go_6w', '-l', 'eng', 'txt']
+2026-03-24 13:25:14 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_8ragxxd4_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_8ragxxd4', '-l', 'eng', 'txt']
+2026-03-24 13:25:15 | DEBUG    | clickbot.vision | Return type '1040' -> '1040'
+2026-03-24 13:25:15 | DEBUG    | clickbot.vision | CSV scan row 0: ANATOLI KROVIUNOV not in CSV, skipping
+2026-03-24 13:25:15 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_8yt6b_1e_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_8yt6b_1e', '-l', 'eng', 'txt']
+2026-03-24 13:25:15 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_lzf05lns_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_lzf05lns', '-l', 'eng', 'txt']
+2026-03-24 13:25:15 | DEBUG    | pytesseract | ['C:\\TaxActBot\\dist\\TaxActBot\\_internal\\tesseract_bundle\\tesseract.exe', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_qcy542ld_input.PNG', 'C:\\Users\\TaxAct\\AppData\\Local\\Temp\\tess_qcy542ld', '-l', 'eng', 'txt']
+2026-03-24 13:25:15 | DEBUG    | clickbot.vision | Return type '(1040' -> '1040'
+2026-03-24 13:25:15 | INFO     | clickbot.vision | CSV scan: found TODO client ANATOLI MEZHERYTSKYI (1040) at row 1
+2026-03-24 13:25:15 | INFO     | clickbot.bot_controller | ============================================================
+2026-03-24 13:25:15 | INFO     | clickbot.bot_controller | CLIENT #2: ANATOLI MEZHERYTSKYI (1040)
+2026-03-24 13:25:15 | INFO     | clickbot.bot_controller | ============================================================
+2026-03-24 13:25:15 | INFO     | clickbot.executor | Double-click at (190, 279)
+2026-03-24 13:25:17 | INFO     | clickbot.bot_controller | Stop signal received
+2026-03-24 13:25:19 | INFO     | clickbot.bot_controller | Bot stopped
+2026-03-24 13:25:20 | DEBUG    | clickbot.executor | Double-click completed, waited 4.0s
+2026-03-24 13:25:20 | DEBUG    | clickbot.vision | Loaded template: C:\TaxActBot\dist\TaxActBot\_internal\.agents\screenshots\buttons\common\blue_i_icon.png ((38, 35, 3))
+2026-03-24 13:25:20 | DEBUG    | clickbot.vision | Template match attempt 1: confidence=-0.081 (threshold=0.8)
+2026-03-24 13:25:20 | ERROR    | clickbot.vision | Element not found: common/blue_i_icon.png (max confidence: -0.081)
+2026-03-24 13:25:20 | INFO     | clickbot.bot_controller | Bot worker thread finished (processed 2 clients)

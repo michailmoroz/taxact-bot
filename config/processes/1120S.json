@@ -4,6 +4,7 @@
   "version": "2.0",
   "description": "20-stage process with screen verification for Form 1120-S (S Corporation)",
   "static_inputs": {},
+  "open_verify_image": "1120S/02_s_corp_view.png",
   "stages": [
     {
       "id": 1,

@@ -4,6 +4,7 @@
   "version": "1.0",
   "description": "19-stage process with screen verification for Form 1040 (Individual)",
   "static_inputs": {},
+  "open_verify_image": "1040/01_basic_information.png",
   "stages": [
     {
       "id": 1,

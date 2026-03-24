@@ -1476,56 +1476,64 @@ Fuer jeden Client in TaxAct-Tabelle:
 
 ---
 
-### Phase 12: 1120 Process Validation & Optimization
+### Phase 12: 1120 Process Redesign + Client-Open Polling
 
-**Goal:** Step-Validierung für den 1120-Prozess, analog zu Phase 7 (1120S)
+**Goal:** Komplettes Redesign des 1120-Prozesses im 1040-Pattern (Screen-Verifikation, Abort-Handling, Locked-Client-Support). Zusaetzlich dynamisches Polling nach Doppelklick statt fester 4s-Wartezeit (betrifft alle Prozesse).
 
-**Scope:** Übertragung des in Phase 7 implementierten Validierungs-Frameworks auf den 1120-Prozess.
+**Scope:** `1120.json` Rewrite (26 Stages), `bot_controller.py` Client-Open-Polling, `open_verify_image` Feld fuer alle Prozesse.
 
 **Deliverables:**
-- ⬜ Verification-Screenshots für 1120 aufnehmen (`assets/verify/1120/` — 27 Stages)
-- ⬜ `1120.json` komplett überarbeiten: 27 konsolidierte Stages mit `verify_screen`
-- ⬜ Officer-Felder Eingabe-Logik validieren und testen
-- ⬜ Error/Omission Handling (Stage 23e) implementieren
-- ⬜ E2E-Test: 10+ 1120-Clients im Loop ohne Fehler
+- ⬜ **`1120.json` Rewrite** — 26 konsolidierte Stages mit `verify_screen`/`verify_next`
+- ⬜ **Abort-Handling** — Stages 18 (Wizard), 23 (Alerts), 25 (Submit) mit spezifischem `abort_reason`
+- ⬜ **Locked-Client-Handling** — Stage 4: `locked_2.png` Polling + `unlock_and_save.png`
+- ⬜ **Checkbox-Stages konsolidiert** — Stages 8, 13, 14 als `multi` (checkbox + continue)
+- ⬜ **Officer-Felder** — Stage 19: `type_field` fuer Title/Email/Phone, Stage 20: PIN
+- ⬜ **Submit-Safety** — Stage 24: `no_retry: true`, `verify_timeout: 30`
+- ⬜ **`bot_controller.py`** — Dynamisches Polling (60s) nach Doppelklick via `open_verify_image`
+- ⬜ **`open_verify_image`** — Neues Feld in 1120.json, 1040.json, 1120S.json
+- ⬜ **26 Verify-Screenshots** in `assets/verify/1120/` (bereits bereitgestellt)
+- ⬜ Unit Tests fuer neue Features
 
-**1120 Stages (27 Screens):**
+**1120 Stages (26 Screens):**
 
-| Stage | Screen-Header |
-|-------|--------------|
-| 01 | "Add / Remove State(s)" |
-| 02 | "U.S. Corporation Income Tax Return" |
-| 03 | "Submit Electronic Filing Return" |
-| 04 | "File Extension" |
-| 05 | "Filing Extension Step - Federal Extension" |
-| 06 | "Form 7004 - Application for Automatic Extension" |
-| 07 | "Form 7004 - Corporation Name" |
-| 08 | "Form 7004 - Homeowners Association" |
-| 09 | "Form 7004 - Address" |
-| 10 | "Form 7004 - Federal ID Number" |
-| 11 | "Form 7004 - Fiscal Year" |
-| 12 | "Form 7004 - Today's Date" |
-| 13 | "Form 7004 - No Office in the United States" |
-| 14 | "Form 7004 - Section 1.6081-5" |
-| 15 | "Form 7004 - Tax Liability" |
-| 16 | "Form 7004 - Payment Amount" |
-| 17 | "Form 7004 - Print Form 7004" |
-| 18 | "Form 7004 E-File - Acknowledgement Status" |
-| 19 | "Form 7004 E-File - Signing Officer Information" |
-| 20 | "E-filing - Officer's Signature" |
-| 21 | "Form 7004 E-File - ERO Signature" |
-| 22 | "Form 7004 E-File - Federal E-File Alerts" |
-| 23 | "Form 7004 E-File - Passed Alerts" / "Error or Omission" |
-| 24 | "Form 7004 E-File - Submit Form 7004" |
-| 25 | "Form 7004 E-File - E-File Successful" |
-| 26 | "Filing Extension - Complete" |
-| 27 | "Would you like to add a new TaxAct 2025 client" |
+| Stage | Screen | Action | Besonderheit |
+|-------|--------|--------|-------------|
+| 01 | Popup (optional) | conditional: close popup | kein verify_screen |
+| 02 | Form 1120 View | click E-File | verify_screen/next |
+| 03 | E-File Center | click Submit Electronic | verify |
+| 04 | Filing | multi: checkbox + continue + locked_2 | Locked-Client-Handling |
+| 05 | Federal Extension | click Yes | verify |
+| 06 | Form 7004 Application | click Complete Form 7004 | verify |
+| 07 | Corporation Name | click Continue | verify |
+| 08 | Homeowners | multi: checkbox + continue | konsolidiert |
+| 09 | Address | click Continue | verify |
+| 10 | Federal ID | click Continue | verify |
+| 11 | Fiscal Year | click Continue | verify |
+| 12 | Today's Date | click Continue | verify |
+| 13 | No Office | multi: checkbox + continue | konsolidiert |
+| 14 | Section 1.6081-5 | multi: checkbox + continue | konsolidiert |
+| 15 | Tax Liability | multi: scroll + continue | konsolidiert |
+| 16 | Payment Amount | click Continue | verify |
+| 17 | Print Form 7004 | click E-File Form 7004 | wait_after (unvorhersehbar) |
+| 18 | Acknowledgement | conditional + abort | Wizard-Erkennung |
+| 19 | Officer Info | multi: fill 4 fields + continue | type_field |
+| 20 | Officer Signature | multi: fill PIN + continue | type_field |
+| 21 | ERO Signature | click Continue | verify |
+| 22 | Alerts | click Start Alerts | wait_after (unvorhersehbar) |
+| 23 | Alerts Result | conditional + abort | FAIL: Alerts not passed |
+| 24 | Submit | click Submit E-file | no_retry, 30s timeout |
+| 25 | Submit Result | conditional + abort | FAIL: Submit unsuccessful |
+| 26 | Filing Complete | click Clients-Button | zurueck zur Base |
+
+**Plan:** `.agents/plans/1120-process-redesign.md` (Confidence: 9/10)
 
 **Validation:**
 - Bot validiert jeden 1120-Screen via eindeutigen Header
-- Officer-Felder werden korrekt ausgefüllt
-- Error/Omission wird erkannt und Client übersprungen
-- Bot läuft stabil über 10+ 1120-Clients ohne Fehler
+- Officer-Felder werden korrekt ausgefuellt (type_field mit Clipboard-Check)
+- Locked Clients werden korrekt gehandhabt
+- Saubere Aborts mit spezifischen FAIL-Gruenden + CSV-Status
+- Dynamisches Polling nach Doppelklick (alle Prozesse)
+- Bot laeuft stabil ueber 10+ 1120-Clients ohne Fehler
 
 ---
 
