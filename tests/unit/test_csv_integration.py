@@ -597,7 +597,7 @@ class TestScanVisibleClientsCsvNew:
 
         mock_ocr.side_effect = [
             "\u2018JONES INC.",  # Unicode prefix + trailing dot
-            "98-76-5432",       # Missing leading zero (8 digits) → 098-76-5432
+            "098-76-5432",      # 9 digits → 098-76-5432
             "1040",
         ]
 

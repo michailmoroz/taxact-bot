@@ -284,19 +284,9 @@ def update_client_status(
     records = load_csv(csv_path)
     updated = False
 
-    # For 1040: match by (client_id, return_type) only — client names are OCR-unreliable
-    # For 1120/1120S: match by full composite key (name, id, return_type)
-    use_id_only = return_type == "1040"
-
+    # Match by client_id (SSN/EIN) only — unique per taxpayer
     for record in records:
-        if use_id_only:
-            match = (record.client_id == client_id
-                     and record.return_type == return_type)
-        else:
-            match = (record.client_name == client_name
-                     and record.client_id == client_id
-                     and record.return_type == return_type)
-        if match:
+        if record.client_id == client_id:
             record.status = new_status
             updated = True
             logger.debug(

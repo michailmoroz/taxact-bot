@@ -130,8 +130,8 @@ class TestUpdateClientStatus:
         records = load_csv(csv_file)
         assert len(records) == 4
 
-    def test_update_matches_composite_key(self, tmp_path):
-        """update_client_status uses composite key (name + id + return_type)."""
+    def test_update_matches_by_client_id(self, tmp_path):
+        """update_client_status matches by client_id (SSN/EIN) only."""
         # Two clients with same name but different IDs
         records = [
             ClientRecord("SMITH LLC", "11-111", "1120", "TODO"),
@@ -143,8 +143,8 @@ class TestUpdateClientStatus:
         update_client_status(csv_path, "SMITH LLC", "22-222", "1120S", "DONE")
 
         loaded = load_csv(csv_path)
-        assert loaded[0].status == "TODO"  # First SMITH LLC unchanged
-        assert loaded[1].status == "DONE"  # Second SMITH LLC updated
+        assert loaded[0].status == "TODO"  # 11-111 unchanged
+        assert loaded[1].status == "DONE"  # 22-222 updated
 
 
 class TestGetTodoClients:
@@ -493,23 +493,23 @@ class TestPreprocessTableEndDetection:
     @patch("clickbot.preprocessor.vision")
     @patch("clickbot.preprocessor.sounds")
     @patch("clickbot.preprocessor.time")
-    def test_stale_detection_after_three_identical_last_clients(
+    def test_stale_detection_after_one_identical_last_client(
         self, mock_time, mock_sounds, mock_vision, mock_pyautogui,
         mock_pydirectinput, base_settings
     ):
-        """Scan stops when last client is unchanged after 3 scroll attempts."""
+        """Scan stops when last client is unchanged after 1 scroll attempt (threshold=1)."""
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [
             ("CLIENT A", "12-345", "1120S", ""),
             ("LAST", "99-999", "1120S", ""),
         ]
-        # Pages 2-4 all end with "LAST" → stale_count reaches 3
+        # Page 2 ends with "LAST" → stale_count reaches 1 → stop
         page_stale = [
             ("LAST", "99-999", "1120S", ""),
         ]
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
-            [page1] + [page_stale] * 3
+            [page1, page_stale]
         )
         mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
@@ -522,8 +522,8 @@ class TestPreprocessTableEndDetection:
         records = load_csv(result)
         # Only 2 unique clients (A and LAST)
         assert len(records) == 2
-        # Should have read 4 pages (page1 + 3 stale)
-        assert mock_pyautogui.screenshot.call_count == 4
+        # Should have read 2 pages (page1 + 1 stale → stop)
+        assert mock_pyautogui.screenshot.call_count == 2
 
     @patch("clickbot.preprocessor.pydirectinput")
     @patch("clickbot.preprocessor.pyautogui")
@@ -591,19 +591,16 @@ class TestPreprocessTableEndDetection:
         mock_vision.normalize_return_type.side_effect = lambda x: x
 
         page1 = [("CLIENT A", "12-345", "1120S", "")]
-        # 2 stale pages (same last as page1)
-        page_stale_a = [("CLIENT A", "12-345", "1120S", "")]
         # New client appears → resets stale
         page_new = [
             ("CLIENT A", "12-345", "1120S", ""),
             ("CLIENT B", "98-765", "1120", ""),
         ]
-        # 3 stale pages (same last as page_new) → should stop
+        # 1 stale page (same last as page_new) → stale_count=1 → stop
         page_stale_b = [("CLIENT B", "98-765", "1120", "")]
 
         mock_vision.read_all_rows_from_screenshot.side_effect = _make_page_reader(
-            [page1, page_stale_a, page_stale_a, page_new]
-            + [page_stale_b] * 3
+            [page1, page_new, page_stale_b]
         )
         mock_pyautogui.screenshot.return_value = "fake_pil_screenshot"
 
@@ -615,5 +612,5 @@ class TestPreprocessTableEndDetection:
         assert result is not None
         records = load_csv(result)
         assert len(records) == 2
-        # 7 pages total: p1 + 2 stale + new + 3 stale
-        assert mock_pyautogui.screenshot.call_count == 7
+        # 3 pages total: p1 + new + 1 stale → stop
+        assert mock_pyautogui.screenshot.call_count == 3

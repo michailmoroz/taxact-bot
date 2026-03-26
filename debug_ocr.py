@@ -91,8 +91,18 @@ for row_idx in range(NUM_ROWS):
         # Raw RGB can fail on colored text (e.g. blue status text)
         region_np = np.array(region)
         region_gray = cv2.cvtColor(region_np, cv2.COLOR_RGB2GRAY)
-        region_pil = Image.fromarray(region_gray)
-        text = pytesseract.image_to_string(region_pil, lang="eng").strip()
+
+        if col_name == "ssn_ein":
+            # Digit-optimized OCR: 3x upscale + digit whitelist + PSM 7
+            region_3x = cv2.resize(region_gray, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+            region_pil = Image.fromarray(region_3x)
+            text = pytesseract.image_to_string(
+                region_pil,
+                config="--psm 7 -c tessedit_char_whitelist=0123456789-"
+            ).strip()
+        else:
+            region_pil = Image.fromarray(region_gray)
+            text = pytesseract.image_to_string(region_pil, lang="eng").strip()
 
         # Take first non-empty line (like the bot does)
         lines = [line.strip() for line in text.split("\n") if line.strip()]

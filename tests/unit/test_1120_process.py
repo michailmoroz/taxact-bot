@@ -335,13 +335,15 @@ class TestNormalizeSsnEin:
         from clickbot.vision import normalize_ssn_ein
         assert normalize_ssn_ein("123456789", "1040") == "123-45-6789"
 
-    def test_leading_zero_ein(self):
+    def test_8_digits_not_padded_ein(self):
         from clickbot.vision import normalize_ssn_ein
-        assert normalize_ssn_ein("93871200", "1120") == "09-3871200"
+        # 8-digit values are returned raw (no leading-zero padding)
+        assert normalize_ssn_ein("93871200", "1120") == "93871200"
 
-    def test_leading_zero_ssn(self):
+    def test_8_digits_not_padded_ssn(self):
         from clickbot.vision import normalize_ssn_ein
-        assert normalize_ssn_ein("23456789", "1040") == "023-45-6789"
+        # 8-digit values are returned raw (no leading-zero padding)
+        assert normalize_ssn_ein("23456789", "1040") == "23456789"
 
     def test_non_9_digit_returns_raw(self):
         from clickbot.vision import normalize_ssn_ein

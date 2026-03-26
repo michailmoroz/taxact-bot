@@ -445,6 +445,36 @@ def read_text_region(
     return result
 
 
+def _ocr_digits(pil_image: Image.Image) -> str:
+    """OCR optimized for digit-only fields (SSN/EIN).
+
+    Applies 3x upscaling and digit-only whitelist for much better
+    recognition of small numeric text in table cells.
+
+    Args:
+        pil_image: Grayscale PIL Image of the cell
+
+    Returns:
+        Recognized text (first non-empty line, stripped)
+    """
+    # 3x upscale for better digit recognition
+    img_np = np.array(pil_image)
+    img_3x = cv2.resize(img_np, None, fx=3, fy=3, interpolation=cv2.INTER_CUBIC)
+    img_pil = Image.fromarray(img_3x)
+
+    # PSM 7 = single text line, whitelist = digits + hyphen only
+    text = pytesseract.image_to_string(
+        img_pil,
+        config="--psm 7 -c tessedit_char_whitelist=0123456789-"
+    ).strip()
+
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    result = lines[0] if lines else ""
+
+    logger.debug(f"OCR digits result: '{result}'")
+    return result
+
+
 def is_checkbox_checked_by_template(
     image_checked: str,
     image_unchecked: str,
@@ -692,8 +722,7 @@ def normalize_ssn_ein(raw_value: str, return_type: str = "") -> str:
         Formatted SSN/EIN string, or raw digits if length != 9
     """
     digits = re.sub(r"[^0-9]", "", raw_value)
-    if len(digits) == 8:
-        digits = "0" + digits
+    # 8-digit values are NOT padded — OCR improvement should prevent this
     if len(digits) != 9:
         return raw_value  # Can't format, return as-is
     if return_type == "1040":
@@ -851,6 +880,13 @@ def _read_single_cell(
         col_width = col_cfg.get("width", template_w)
         cell_x = col_center_x - template_w // 2 - 5
 
+    if col_name == "ssn_ein":
+        # Use digit-optimized OCR for SSN/EIN fields
+        screenshot = take_screenshot(region=(cell_x, row_y, col_width, int(row_height)))
+        gray = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
+        pil_image = Image.fromarray(gray)
+        return _ocr_digits(pil_image)
+
     text = read_text_region(cell_x, row_y, col_width, row_height, preprocess=False)
     lines = [line.strip() for line in text.split('\n') if line.strip()]
     return lines[0] if lines else ""
@@ -902,14 +938,19 @@ def read_all_rows_from_screenshot(
             # Crop from PIL Image (same approach as debug_ocr.py)
             region = screenshot.crop((x, row_y, x + w, row_y + row_height))
 
-            # RGB → Grayscale → OCR (same as debug_ocr.py)
+            # RGB → Grayscale → OCR
             region_np = np.array(region)
             region_gray = cv2.cvtColor(region_np, cv2.COLOR_RGB2GRAY)
             region_pil = Image.fromarray(region_gray)
-            text = pytesseract.image_to_string(region_pil, lang="eng").strip()
 
-            lines = [line.strip() for line in text.split("\n") if line.strip()]
-            cell_values.append(lines[0] if lines else "")
+            if col_name == "ssn_ein":
+                cell_text = _ocr_digits(region_pil)
+            else:
+                text = pytesseract.image_to_string(region_pil, lang="eng").strip()
+                lines = [line.strip() for line in text.split("\n") if line.strip()]
+                cell_text = lines[0] if lines else ""
+
+            cell_values.append(cell_text)
 
         # Skip rows with empty client_name (no break — continue reading)
         if not cell_values[0]:
@@ -962,23 +1003,14 @@ def scan_visible_clients_csv(
     first_data_row_y = table_settings.get("first_data_row_y", 205)
     max_visible_rows = table_settings.get("max_visible_rows", 20)
 
-    # Build lookup structures from CSV
-    # For 1040: match by (ssn_ein, return_type) only — client names are OCR-unreliable
-    # For 1120/1120S: match by (client_name, client_id, return_type) as before
-    use_id_only = selected_return_type == "1040"
-    skip_keys = set()
-    csv_keys = set()
+    # Build lookup structures from CSV — match by client_id (SSN/EIN) only
+    skip_ids = set()
+    csv_ids = set()
     for r in csv_records:
-        # Normalize CSV client_id to match OCR-normalized format
         csv_id = normalize_ssn_ein(r.client_id, r.return_type)
-
-        if use_id_only:
-            key = (csv_id, r.return_type)
-        else:
-            key = (r.client_name, csv_id, r.return_type)
-        csv_keys.add(key)
+        csv_ids.add(csv_id)
         if r.status != "TODO":
-            skip_keys.add(key)
+            skip_ids.add(csv_id)
 
     def _crop_and_ocr(col_name: str, row_y: float) -> str:
         """Crop a single cell from the screenshot and run OCR."""
@@ -992,8 +1024,11 @@ def scan_visible_clients_csv(
         region_np = np.array(region)
         region_gray = cv2.cvtColor(region_np, cv2.COLOR_RGB2GRAY)
         region_pil = Image.fromarray(region_gray)
-        text = pytesseract.image_to_string(region_pil, lang="eng").strip()
 
+        if col_name == "ssn_ein":
+            return _ocr_digits(region_pil)
+
+        text = pytesseract.image_to_string(region_pil, lang="eng").strip()
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         return lines[0] if lines else ""
 
@@ -1031,21 +1066,15 @@ def scan_visible_clients_csv(
             )
             continue
 
-        # Build key: 1040 uses (ssn_ein, return_type), others use full composite
-        if use_id_only:
-            key = (ssn_ein, return_type)
-        else:
-            key = (client_name, ssn_ein, return_type)
-
-        # Filter: client not in CSV (unknown)
-        if key not in csv_keys:
+        # Filter: client not in CSV (match by SSN/EIN only)
+        if ssn_ein not in csv_ids:
             logger.debug(
                 f"CSV scan row {row_idx}: {client_name} ({ssn_ein}) not in CSV, skipping"
             )
             continue
 
         # Filter: not TODO (already processed)
-        if key in skip_keys:
+        if ssn_ein in skip_ids:
             logger.debug(
                 f"CSV scan row {row_idx}: {client_name} ({ssn_ein}) not TODO in CSV, skipping"
             )
@@ -1119,17 +1148,16 @@ def _scan_visible_clients(
     if processed_clients is None:
         processed_clients = set()
 
-    # Build skip set from CSV (non-TODO clients)
+    # Build skip set from CSV — match by client_id (SSN/EIN) only
     has_csv = csv_records is not None
     has_ssn_col = "ssn_ein" in column_positions
-    skip_keys = set()
-    csv_lookup = {}
+    skip_ids = set()
+    csv_id_lookup = {}
     if has_csv:
         for r in csv_records:
-            key = (r.client_name, r.client_id, r.return_type)
             if r.status != "TODO":
-                skip_keys.add(key)
-            csv_lookup[key] = r.status
+                skip_ids.add(r.client_id)
+            csv_id_lookup[r.client_id] = r.status
 
     last_client_name = ""
 
@@ -1149,8 +1177,7 @@ def _scan_visible_clients(
                 # Auto-status-update: compare TaxAct status with CSV
                 if has_csv and has_ssn_col and status_updates is not None:
                     ssn_ein = _read_single_cell("ssn_ein", row_y, column_positions, settings)
-                    csv_key = (client_name, ssn_ein, selected_return_type)
-                    csv_status = csv_lookup.get(csv_key)
+                    csv_status = csv_id_lookup.get(ssn_ein)
                     if csv_status is not None and csv_status != fed_ef_status and csv_status != "TODO":
                         status_updates.append((client_name, ssn_ein, selected_return_type, fed_ef_status))
                         logger.debug(
@@ -1174,9 +1201,9 @@ def _scan_visible_clients(
         if has_csv and has_ssn_col:
             ssn_ein = _read_single_cell("ssn_ein", row_y, column_positions, settings)
 
-        # Skip already processed clients
+        # Skip already processed clients (match by SSN/EIN only)
         if has_csv:
-            if (client_name, ssn_ein, selected_return_type) in skip_keys:
+            if ssn_ein in skip_ids:
                 logger.debug(f"Row {row_index}: {client_name} not TODO in CSV, skipping")
                 continue
         elif client_name in processed_clients:
